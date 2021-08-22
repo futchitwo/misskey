@@ -28,6 +28,9 @@ jobs:
         with:
           fetch-depth: 0
       
+      - name: ls current
+        run: ls
+      
       # Runs a single command using the runners shell
       - name: Create default.yml
         run: |
