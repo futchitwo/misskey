@@ -44,5 +44,4 @@ jobs:
       
       - name: git push gigalixir
         run: |
-          git pull gigalixir HEAD:refs/heads/gigalixir --allow-unrelated-histories
-          git push -f gigalixir HEAD:refs/heads/gigalixir
+          git push -f gigalixir HEAD:refs/heads/gigalixir-cli
