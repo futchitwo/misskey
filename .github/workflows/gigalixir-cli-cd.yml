@@ -36,7 +36,7 @@ jobs:
         
       - name: Login gigalixir
         run: |
-          gigalixir login -e ${{ secret.GIGALIXIR_EMAIL_NOT_ESCAPED }} -y -p ${{ secret.GIGALIXIR_PASSWORD }}
+          gigalixir login -e ${{ secrest.GIGALIXIR_EMAIL_NOT_ESCAPED }} -y -p ${{ secrets.GIGALIXIR_PASSWORD }}
           gigalixir git:remote f2misskey
           
       - name: Create default.yml
