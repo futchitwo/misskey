@@ -20,7 +20,26 @@ const path = process.env.NODE_ENV === 'test'
 	: `${dir}/default.yml`;
 
 export default function load() {
-	const config = yaml.load(fs.readFileSync(path, 'utf-8')) as Source;
+	const config = {
+		url: process.env.CONFIG_URL,
+		port:process.env.PORT,
+		db: {
+			host: process.env.DATABASE_HOST,
+			db: process.env.DATABASE_DB,
+			user: process.env.DATABASE_USER,
+			pass: process.env.DATABASE_PASS,
+			disableCache:  true
+		},
+		redis: {
+			host: process.env.REDIS_HOST,
+			port: process.env.REDIS_PORT,
+			pass: process.env.REDIS_HOST
+		},
+		id: "aid",
+		disableHsts: true,
+		clusterLimit: 1
+	};
+				//yaml.load(fs.readFileSync(path, 'utf-8')) as Source;
 
 	const mixin = {} as Mixin;
 
