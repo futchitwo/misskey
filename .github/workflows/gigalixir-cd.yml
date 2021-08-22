@@ -29,13 +29,13 @@ jobs:
           fetch-depth: 0
       
       - name: ls current
-        run: ls
+        run: ls -a
       
       # Runs a single command using the runners shell
       - name: Create default.yml
         run: |
           echo -e ${{ secrets.GIGALIXIR_DEFAULT_YML }} > .config/default.yml
-          ls -a ../.config/
+          ls -a .config
       
       # Runs a set of commands using the runners shell
       - name: git push gigalixir
