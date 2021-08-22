@@ -30,8 +30,8 @@ jobs:
           
       - name: Install gigalixir-cli
         run: |
-          apt update
-          apt install -y python-pip git
+          sudo apt update
+          sudo apt install -y python-pip git
           pip install gigalixir
         
       - name: Login gigalixir
