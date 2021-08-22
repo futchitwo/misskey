@@ -44,4 +44,4 @@ jobs:
       
       - name: git push gigalixir
         run: |
-          git push -f gigalixir HEAD:refs/heads/gigalixir-cli
+          git push -f gigalixir refs/heads/master:gigalixir-cli
