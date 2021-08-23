@@ -33,7 +33,7 @@ export default function load() {
 		redis: {
 			host: process.env.REDIS_HOST,
 			port: process.env.REDIS_PORT,
-			pass: process.env.REDIS_HOST
+			pass: process.env.REDIS_PASS
 		},
 		id: "aid",
 		disableHsts: true,
