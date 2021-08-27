@@ -1,1 +1,1 @@
-web: PGBOUNCER_OPTIONS=-unobody bin/start-pgbouncer && NODE_ENV=production npm start
+web: PGBOUNCER_OPTIONS="-u nobody" bin/start-pgbouncer && NODE_ENV=production npm start
