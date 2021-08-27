@@ -1,1 +1,1 @@
-web: NODE_ENV=production npm start
+web: bin/pgbouncer && NODE_ENV=production npm start
