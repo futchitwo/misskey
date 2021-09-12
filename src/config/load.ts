@@ -24,12 +24,11 @@ export default function load() {
 		url: process.env.CONFIG_URL,
 		port:process.env.PORT,
 		db: {
-			host: process.env.DATABASE_HOST,
-			db: process.env.DATABASE_DB,
-			user: process.env.DATABASE_USER,
-			pass: process.env.DATABASE_PASS,
-			disableCache: true,
-			extra: { max: process.env.DATABASE_MAX }
+			host: process.env.MYSQL_HOST,
+			db: process.env.MYSQL_DB,
+			user: process.env.MYSQL_USER,
+			pass: process.env.MYSQL_PASS,
+			disableCache: true
 		},
 		redis: {
 			host: process.env.REDIS_HOST,
