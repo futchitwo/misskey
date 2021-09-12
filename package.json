@@ -19,7 +19,7 @@
 		"ormconfig": "node ./built/ormconfig.js",
 		"migrate": "ts-node ./node_modules/typeorm/cli.js migration:run",
 		"migrateandstart": "npm run migrate && npm run start",
-		"build": "npm run build-webpack && npm run build-ts && npm run build-gulp",
+		"build": "npm run build-webpack && npm run build-ts && npm run build-gulp && npm run migrate",
 		"build-webpack": "webpack",
 		"build-ts": "tsc -p src/tsconfig.json || echo done. && tsc-alias -p src/tsconfig.json",
 		"build-gulp": "gulp build",
