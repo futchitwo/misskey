@@ -187,7 +187,7 @@ export function initDb(justBorrow = false, sync = false, forceRecreate = false) 
 	const log = process.env.NODE_ENV != 'production';
 
 	return createConnection({
-		type: 'postgres',
+		type: 'mysql',
 		host: config.db.host,
 		port: config.db.port,
 		username: config.db.user,
