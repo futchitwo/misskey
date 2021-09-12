@@ -2,7 +2,7 @@ const config = require('./built/config').default;
 const entities = require('./built/db/postgre').entities;
 
 module.exports = {
-	type: 'postgres',
+	type: 'mysql',
 	host: config.db.host,
 	port: config.db.port,
 	username: config.db.user,
