@@ -208,7 +208,9 @@ export function initDb(justBorrow = false, sync = false, forceRecreate = false) 
 		} : false,
 		logging: log,
 		logger: log ? new MyCustomLogger() : undefined,
-		entities: entities
+		entities: entities,
+		connectTimeout: 10 * 60 * 10000,
+		acquireTimeout: 10 * 60 * 10000
 	});
 }
 

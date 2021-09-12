@@ -4,7 +4,7 @@ import { createConnection } from 'typeorm';
 import config from '@/config';
 
 createConnection({
-	type: 'postgres',
+	type: 'mysql',
 	host: config.db.host,
 	port: config.db.port,
 	username: config.db.user,
@@ -13,6 +13,8 @@ createConnection({
 	extra: config.db.extra,
 	synchronize: false,
 	dropSchema: false,
+	connectTimeout: 10 * 60 * 10000,
+	acquireTimeout: 10 * 60 * 10000
 }).then(c => {
 	c.query(`INSERT INTO migrations(timestamp,name) VALUES (${process.argv[3]}, '${process.argv[2]}${process.argv[3]}');`).then(() => {
 		console.log('done');

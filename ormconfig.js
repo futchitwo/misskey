@@ -13,5 +13,7 @@ module.exports = {
 	migrations: ['migration/*.ts'],
 	cli: {
 		migrationsDir: 'migration'
-	}
+	},
+	connectTimeout: 10 * 60 * 10000,
+	acquireTimeout: 10 * 60 * 10000
 };
