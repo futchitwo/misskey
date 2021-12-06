@@ -7,6 +7,9 @@
 		"url": "https://github.com/misskey-dev/misskey.git"
 	},
 	"private": true,
+	"engines": {
+		"node": "16.x"
+	},
 	"scripts": {
 		"postinstall": "node ./scripts/install-packages.js",
 		"build": "node ./scripts/build.js",
