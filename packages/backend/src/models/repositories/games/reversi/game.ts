@@ -43,7 +43,7 @@ export class ReversiGameRepository extends Repository<ReversiGame> {
 			loopedBoard: game.loopedBoard,
 			...(opts.detail ? {
 				logs: game.logs.map(log => ({
-					at: log.at.toISOString(),
+					at: (console.log("type: ",typeof log.at ," log.at:",log.at) || log.at.toISOString()),
 					color: log.color,
 					pos: log.pos
 				})),
