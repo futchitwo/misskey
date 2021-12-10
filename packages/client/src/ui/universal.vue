@@ -102,7 +102,7 @@ export default defineComponent({
 		const pageInfo = ref();
 		const widgetsEl = ref<HTMLElement>();
 		const widgetsShowing = ref(false);
-		const side = ref();
+		const side = ref<HTMLElement>();
 
 		const sideViewController = new EventEmitter();
 
