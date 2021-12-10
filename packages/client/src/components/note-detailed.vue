@@ -824,7 +824,13 @@ export default defineComponent({
 					const promise = os.api('clips/add-note', { clipId: clip.id, noteId: this.appearNote.id });
 					os.promiseDialog(promise, null, (e) => {
 						if (e.id == '734806c4-542c-463a-9311-15c512803965') {
-							os.apiWithDialog('clips/remove-note', { clipId: clip.id, noteId: this.appearNote.id });
+							const confirm = await os.confirm({
+								type: 'warning',
+								text: this.$ts.alreadyClippedAndRemoveFromClip,
+							});
+							if (!confirm.canceled) {
+								os.apiWithDialog('clips/remove-note', { clipId: clip.id, noteId: this.appearNote.id });
+							}
 						} else {
 							os.alert({
 								type: 'error',
