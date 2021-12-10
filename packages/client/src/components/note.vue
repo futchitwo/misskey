@@ -797,7 +797,7 @@ export default defineComponent({
 				text: clip.name,
 				action: () => {
 					const promise = os.api('clips/add-note', { clipId: clip.id, noteId: this.appearNote.id });
-					os.promiseDialog(promise, null, (e) => {
+					os.promiseDialog(promise, null, async (e) => {
 						if (e.id == '734806c4-542c-463a-9311-15c512803965') {
 							const confirm = await os.confirm({
 								type: 'warning',
