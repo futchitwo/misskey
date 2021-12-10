@@ -6,7 +6,7 @@ name: Gigalixir CD
 on:
   # Triggers the workflow on push or pull request events but only for the develop branch
   push:
-    branches: [ gigalixir-2 ]
+    branches: [ gigalixir-clip-remove ]
   schedule:
     # *はYAMLにおける特殊文字なので、この文字列はクオートしなければならない
     - cron:  '0 0 1,16 * *'
@@ -44,4 +44,4 @@ jobs:
       - name: git push gigalixir
         run: |
           git remote add gigalixir https://${{ secrets.GIGALIXIR_EMAIL }}:${{ secrets.GIGALIXIR_API_KEY }}@git.gigalixir.com/${{ secrets.GIGALIXIR_APP_NAME }}.git
-          git push -f gigalixir gigalixir-2:refs/heads/master
+          git push -f gigalixir gigalixir-clip-remove:refs/heads/master
