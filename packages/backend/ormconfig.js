@@ -9,6 +9,7 @@ module.exports = {
 	password: config.db.pass,
 	database: config.db.db,
 	extra: config.db.extra,
+	ssl: config.db.ssl,
 	entities: entities,
 	migrations: ['migration/*.js'],
 	cli: {
