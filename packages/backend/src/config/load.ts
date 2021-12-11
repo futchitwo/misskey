@@ -29,7 +29,17 @@ export default function load() {
 	const config = {
 		url: process.env.CONFIG_URL,
 		port:process.env.PORT,
-		db: {
+		db: process.env.DB_TYPE == 'YUGA' ? {
+			host: process.env.YUGA_HOST,
+			db: process.env.YUGA_DB,
+			user: process.env.YUGA_USER,
+			pass: process.env.YUGA_PASS,
+			disableCache: true,
+			ssl: {
+				rejectUnauthorized: true,
+				ca: process.env.YUGA_PEM,
+			},
+		}: {
 			host: process.env.DATABASE_HOST,
 			db: process.env.DATABASE_DB,
 			user: process.env.DATABASE_USER,
