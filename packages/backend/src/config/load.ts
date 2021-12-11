@@ -36,8 +36,8 @@ export default function load() {
 			pass: process.env.YUGA_PASS,
 			disableCache: true,
 			ssl: {
-				rejectUnauthorized: false,
-				//ca: process.env.YUGA_PEM,
+				rejectUnauthorized: true,
+				ca: process.env.YUGA_PEM,
 			},
 		}: {
 			host: process.env.DATABASE_HOST,
