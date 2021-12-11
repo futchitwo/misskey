@@ -40,7 +40,18 @@ export default function load() {
 				rejectUnauthorized: false,
 				//ca: process.env.YUGA_PEM,
 			},
-		}: {
+		} : processenv.DB_TYPE == 'CRDB' ? {
+			host: process.env.CRDB_HOST,
+			db: process.env.CRDB_DB,
+			user: process.env.CRDB_USER,
+			pass: process.env.CRDB_PASS,
+			port: process.env.CRDB_PORT,
+			disableCache: true,
+			ssl: {
+				rejectUnauthorized: false,
+				//ca: process.env.CRDB_PEM,
+			},
+		} : {
 			host: process.env.DATABASE_HOST,
 			db: process.env.DATABASE_DB,
 			user: process.env.DATABASE_USER,
