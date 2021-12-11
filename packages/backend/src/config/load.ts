@@ -34,6 +34,7 @@ export default function load() {
 			db: process.env.YUGA_DB,
 			user: process.env.YUGA_USER,
 			pass: process.env.YUGA_PASS,
+			port: process.env.YUGA_PORT,
 			disableCache: true,
 			ssl: {
 				rejectUnauthorized: false,
@@ -44,6 +45,7 @@ export default function load() {
 			db: process.env.DATABASE_DB,
 			user: process.env.DATABASE_USER,
 			pass: process.env.DATABASE_PASS,
+			port: Process.env.DATABASE_PORT,
 			disableCache: true,
 			extra: { max: process.env.DATABASE_MAX }
 		},
