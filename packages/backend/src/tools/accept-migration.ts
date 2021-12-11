@@ -11,6 +11,7 @@ createConnection({
 	password: config.db.pass,
 	database: config.db.db,
 	extra: config.db.extra,
+	ssl: config.db.ssl,
 	synchronize: false,
 	dropSchema: false,
 }).then(c => {
