@@ -102,6 +102,7 @@ export default defineComponent({
 		const pageInfo = ref();
 		const widgetsEl = ref<HTMLElement>();
 		const widgetsShowing = ref(false);
+		const side = ref<InstanceType<typeof XSideView>>();
 
 		const sideViewController = new EventEmitter();
 
@@ -173,7 +174,7 @@ export default defineComponent({
 				icon: 'fas fa-columns',
 				text: i18n.locale.openInSideView,
 				action: () => {
-					this.$refs.side.navigate(path);
+					side.value.navigate(path);
 				}
 			}, {
 				icon: 'fas fa-window-maximize',
