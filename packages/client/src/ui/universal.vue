@@ -281,7 +281,6 @@ export default defineComponent({
 	> .contents {
 		width: 100%;
 		min-width: 0;
-		background: var(--panel);
 
 		> main {
 			min-width: 0;

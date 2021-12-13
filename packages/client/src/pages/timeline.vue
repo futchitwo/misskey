@@ -44,7 +44,6 @@ export default defineComponent({
 			[symbols.PAGE_INFO]: computed(() => ({
 				title: this.$ts.timeline,
 				icon: this.src === 'local' ? 'fas fa-comments' : this.src === 'social' ? 'fas fa-share-alt' : this.src === 'global' ? 'fas fa-globe' : 'fas fa-home',
-				bg: 'var(--bg)',
 				actions: [{
 					icon: 'fas fa-list-ul',
 					text: this.$ts.lists,
