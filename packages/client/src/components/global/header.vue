@@ -79,9 +79,9 @@ export default defineComponent({
 		const shouldShowMenu = computed(() => {
 			if (props.info == null) return false;
 			if (props.info.actions != null && narrow.value) return true;
-			if (props.info.menu != null) return true;
+			if (props.info.menu != null) return false;//true;
 			if (props.info.share != null) return true;
-			if (props.menu != null) return true;
+			if (props.menu != null) return false://true;
 			return false;
 		});
 		const hideTitle = inject('shouldOmitHeaderTitle', false);
