@@ -86,35 +86,10 @@ export default defineComponent({
 		});
 		const hideTitle = inject('shouldOmitHeaderTitle', false);
 		const shouldShowHeader = computed(() => {
-			/*
 			if (!hideTitle) return true;
-			//if (shouldShowMenu) return true;
+			if (shouldShowMenu.value) return true;
 			if (props.info.actions) return true;
-			if (props.tabs) return true;*/
-			const qHideTitle = !hideTitle;
-			const qShowMenu = shouldShowMenu;
-			const qInfoActions = !!props.info.actions;
-			const qTabs = !!props.tabs;
-			const qInfo = (props.info == null);
-			const qInfoMenu = (props.info.menu != null);
-			const qInfoShare = (props.info.share != null);
-			const qMenu = (props.menu != null);
-			alert(`${props.info.title}
-			hideTitle: ${qHideTitle}
-			showMenu: ${qShowMenu}
-			infoAction: ${qInfoActions}
-			tabs: ${qTabs}
-			info:F: ${qInfo}
-			infoMenu: ${qInfoMenu}
-			infoShare ${qInfoShare}
-			menu: ${qMenu}
-			`)
-			if(
-				qHideTitle ||
-				qShowMenu ||
-				qInfoShare ||
-				qTabs
-			)return true;
+			if (props.info.tabs) return true;
 			return false;
 		});
 
