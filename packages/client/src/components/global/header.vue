@@ -86,10 +86,10 @@ export default defineComponent({
 		});
 		const hideTitle = inject('shouldOmitHeaderTitle', false);
 		const shouldShowHeader = computed(() => {
-			//if (!hideTitle) return true;
-			if (shouldShowMenu) return true;
-			//if (props.info.actions) return true;
-			//if (props.tabs) return true;
+			if (!hideTitle) return true;
+			//if (shouldShowMenu) return true;
+			if (props.info.actions) return true;
+			if (props.tabs) return true;
 			return false;
 		});
 
