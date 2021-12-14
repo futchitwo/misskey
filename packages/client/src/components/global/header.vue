@@ -94,7 +94,7 @@ export default defineComponent({
 			const qHideTitle = !hideTitle;
 			const qShowMenu = shouldShowMenu;
 			const qInfoActions = !!props.info.actions;
-			const qTabs = !!prop.tabs;
+			const qTabs = !!props.tabs;
 			const qInfo = (props.info == null);
 			const qInfoMenu = (props.info.menu != null);
 			const qInfoShare = (props.info.share != null);
