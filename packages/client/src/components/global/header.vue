@@ -1,5 +1,5 @@
 <template>
-<div ref="el" class="fdidabkb" :class="{ slim: narrow, thin: thin_ }" :style="{ background: bg }" @click="onClick">
+<div v-if="shouldShowHeader" ref="el" class="fdidabkb" :class="{ slim: narrow, thin: thin_ }" :style="{ background: bg }" @click="onClick">
 	<template v-if="info">
 		<div v-if="!hideTitle" class="titleContainer" @click="showTabsPopup">
 			<MkAvatar v-if="info.avatar" class="avatar" :user="info.avatar" :disable-preview="true" :show-indicator="true"/>
@@ -82,6 +82,14 @@ export default defineComponent({
 			if (props.info.menu != null) return true;
 			if (props.info.share != null) return true;
 			if (props.menu != null) return true;
+			return false;
+		});
+		const hideTitle = inject('shouldOmitHeaderTitle', false);
+		const shouldShowHeader = computed(() => {
+			if (!hideTitle) return true;
+			if (shouldShowMenu) return true;
+			if (props.info.actions) return true;
+			if (props.tabs) return true;
 			return false;
 		});
 
@@ -177,7 +185,7 @@ export default defineComponent({
 			showTabsPopup,
 			preventDrag,
 			onClick,
-			hideTitle: inject('shouldOmitHeaderTitle', false),
+			hideTitle,
 			thin_: props.thin || inject('shouldHeaderThin', false)
 		};
 	},

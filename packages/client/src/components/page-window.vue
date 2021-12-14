@@ -51,6 +51,7 @@ export default defineComponent({
 				this.navigate(path);
 			},
 			shouldHeaderThin: true,
+			shouldOmitHeaderTitle: true,
 		};
 	},
 
