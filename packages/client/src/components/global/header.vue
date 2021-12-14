@@ -79,17 +79,17 @@ export default defineComponent({
 		const shouldShowMenu = computed(() => {
 			if (props.info == null) return false;
 			if (props.info.actions != null && narrow.value) return true;
-			if (props.info.menu != null) return false;//true;
+			if (props.info.menu != null) return true;
 			if (props.info.share != null) return true;
-			if (props.menu != null) return false://true;
+			if (props.menu != null) return true;
 			return false;
 		});
 		const hideTitle = inject('shouldOmitHeaderTitle', false);
 		const shouldShowHeader = computed(() => {
 			if (!hideTitle) return true;
 			if (shouldShowMenu) return true;
-			if (props.info.actions) return true;
-			if (props.tabs) return true;
+			//if (props.info.actions) return true;
+			//if (props.tabs) return true;
 			return false;
 		});
 
