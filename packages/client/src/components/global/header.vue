@@ -34,7 +34,7 @@
 		<button v-if="shouldShowMenu" v-tooltip="$ts.menu" class="_button button" @click.stop="showMenu" @touchstart="preventDrag"><i class="fas fa-ellipsis-h"></i></button>
 	</div>
 </div>
-<div v-if="narrow && useTabForNarrow && !hideTitle && hasTabs" class="fdidabkb thin" :style="{ background: bg }">
+<div v-if="narrow && useTabForNarrow && !hideTitle && hasTabs" class="fdidabkb thin narrowTab" :style="{ background: bg }">
 	<div class="tabs">
 		<button v-for="tab in info.tabs" v-tooltip="tab.title" class="tab _button" :class="{ active: tab.active }" @click="tab.onClick">
 			<i v-if="tab.icon" class="icon" :class="tab.icon"></i>
@@ -243,6 +243,11 @@ export default defineComponent({
 		}
 	}
 
+	&.narrowTab {
+		position: fixed;
+    	top: var(--height);
+	}
+
 	> .buttons {
 		--margin: 8px;
 		display: flex;
@@ -336,6 +341,7 @@ export default defineComponent({
 	}
 
 	> .tabs {
+		height: var(--height);
 		margin-left: 16px;
 		font-size: 0.8em;
 		overflow: auto;
