@@ -2,9 +2,9 @@
 <div class="_formRoot">
 	<FormLink class="_formBlock" @click="configure"><template #icon><i class="fas fa-cog"></i></template>{{ $ts.notificationSetting }}</FormLink>
 	<FormSection>
-		<FormBUtton class="_formBlock" @click="readAllNotifications">{{ $ts.markAsReadAllNotifications }}</FormLink>
-		<FormButton class="_formBlock" @click="readAllUnreadNotes">{{ $ts.markAsReadAllUnreadNotes }}</FormLink>
-		<FormButton class="_formBlock" @click="readAllMessagingMessages">{{ $ts.markAsReadAllTalkMessages }}</FormLink>
+		<FormButton class="_formBlock" @click="readAllNotifications">{{ $ts.markAsReadAllNotifications }}</FormButton>
+		<FormButton class="_formBlock" @click="readAllUnreadNotes">{{ $ts.markAsReadAllUnreadNotes }}</FormButton>
+		<FormButton class="_formBlock" @click="readAllMessagingMessages">{{ $ts.markAsReadAllTalkMessages }}</FormButton>
 	</FormSection>
 </div>
 </template>
