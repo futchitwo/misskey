@@ -20,6 +20,7 @@
 		<FormSwitch v-model="enableInfiniteScroll" class="_formBlock">{{ $ts.enableInfiniteScroll }}</FormSwitch>
 		<FormSwitch v-model="useReactionPickerForContextMenu" class="_formBlock">{{ $ts.useReactionPickerForContextMenu }}</FormSwitch>
 		<FormSwitch v-model="disablePagesScript" class="_formBlock">{{ $ts.disablePagesScript }}</FormSwitch>
+		<FormSwitch v-model="useTabForNarrowDisplay" class="_formBlock">{{ $ts.useTabForNarrowDisplay }}</FormSwitch>
 
 		<FormSelect v-model="serverDisconnectedBehavior" class="_formBlock">
 			<template #label>{{ $ts.whenServerDisconnected }}</template>
@@ -133,6 +134,7 @@ export default defineComponent({
 	},
 
 	computed: {
+		useTabForNarrowDisplay: defaultStore.makeGetterSetter('useTabForNarrowDisplay'),
 		serverDisconnectedBehavior: defaultStore.makeGetterSetter('serverDisconnectedBehavior'),
 		reduceAnimation: defaultStore.makeGetterSetter('animation', v => !v, v => !v),
 		useBlurEffectForModal: defaultStore.makeGetterSetter('useBlurEffectForModal'),

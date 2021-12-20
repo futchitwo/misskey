@@ -11,7 +11,7 @@
 				<div v-if="!narrow && info.subtitle" class="subtitle">
 					{{ info.subtitle }}
 				</div>
-				<div v-if="narrow && hasTabs" class="subtitle activeTab">
+				<div v-if="narrow && !useTabForNarrow && hasTabs" class="subtitle activeTab">
 					{{ info.tabs.find(tab => tab.active)?.title }}
 					<i class="chevron fas fa-chevron-down"></i>
 				</div>
@@ -34,6 +34,14 @@
 		<button v-if="shouldShowMenu" v-tooltip="$ts.menu" class="_button button" @click.stop="showMenu" @touchstart="preventDrag"><i class="fas fa-ellipsis-h"></i></button>
 	</div>
 </div>
+<div v-if="narrow && useTabForNarrow && !hideTitle && hasTabs" class="fdidabkb thin" :style="{ background: bg }">
+	<div class="tabs">
+		<button v-for="tab in info.tabs" v-tooltip="tab.title" class="tab _button" :class="{ active: tab.active }" @click="tab.onClick">
+			<i v-if="tab.icon" class="icon" :class="tab.icon"></i>
+			<span v-if="!tab.iconOnly" class="title">{{ tab.title }}</span>
+		</button>
+	</div>
+</div>
 </template>
 
 <script lang="ts">
@@ -45,6 +53,7 @@ import { scrollToTop } from '@/scripts/scroll';
 import MkButton from '@/components/ui/button.vue';
 import { i18n } from '@/i18n';
 import { globalEvents } from '@/events';
+import { defaultStore } from '@/store';
 
 export default defineComponent({
 	components: {
@@ -89,7 +98,7 @@ export default defineComponent({
 			if (!hideTitle) return true;
 			if (shouldShowMenu.value) return true;
 			if (props.info.actions) return true;
-			if (props.info.tabs) return true;
+			if (hasTabs.value) return true;
 			return false;
 		});
 
@@ -187,7 +196,8 @@ export default defineComponent({
 			showTabsPopup,
 			preventDrag,
 			onClick,
-			thin_: props.thin || inject('shouldHeaderThin', false)
+			thin_: props.thin || inject('shouldHeaderThin', false),
+			useTabForNarrow: defaultStore.state.useTabForNarrowDisplay
 		};
 	},
 });

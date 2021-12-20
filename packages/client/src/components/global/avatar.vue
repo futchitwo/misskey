@@ -152,6 +152,7 @@ export default defineComponent({
 		> .crown {
 			transform: none;
 			margin-left: 30%;
+			top: 30%;
 			width: 50%;
 		}
 
