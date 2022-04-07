@@ -34,6 +34,7 @@ export default function load() {
 			db: process.env.DATABASE_DB,
 			user: process.env.DATABASE_USER,
 			pass: process.env.DATABASE_PASS,
+			port: process.env.DATABASE_PORT,
 			disableCache: true,
 			extra: { max: process.env.DATABASE_MAX }
 		},
