@@ -1,13 +1,13 @@
-import { publishMainStream } from '@/services/stream';
-import { Note } from '@/models/entities/note';
-import { User } from '@/models/entities/user';
-import { NoteUnreads, AntennaNotes, Users, Followings, ChannelFollowings } from '@/models/index';
+import { publishMainStream } from '@/services/stream.js';
+import { Note } from '@/models/entities/note.js';
+import { User } from '@/models/entities/user.js';
+import { NoteUnreads, AntennaNotes, Users, Followings, ChannelFollowings } from '@/models/index.js';
 import { Not, IsNull, In } from 'typeorm';
-import { Channel } from '@/models/entities/channel';
-import { checkHitAntenna } from '@/misc/check-hit-antenna';
-import { getAntennas } from '@/misc/antenna-cache';
-import { readNotificationByQuery } from '@/server/api/common/read-notification';
-import { Packed } from '@/misc/schema';
+import { Channel } from '@/models/entities/channel.js';
+import { checkHitAntenna } from '@/misc/check-hit-antenna.js';
+import { getAntennas } from '@/misc/antenna-cache.js';
+import { readNotificationByQuery } from '@/server/api/common/read-notification.js';
+import { Packed } from '@/misc/schema.js';
 
 /**
  * Mark notes as read
@@ -22,15 +22,15 @@ export default async function(
 ) {
 	const following = info?.following ? info.following : new Set<string>((await Followings.find({
 		where: {
-			followerId: userId
+			followerId: userId,
 		},
-		select: ['followeeId']
+		select: ['followeeId'],
 	})).map(x => x.followeeId));
 	const followingChannels = info?.followingChannels ? info.followingChannels : new Set<string>((await ChannelFollowings.find({
 		where: {
-			followerId: userId
+			followerId: userId,
 		},
-		select: ['followeeId']
+		select: ['followeeId'],
 	})).map(x => x.followeeId));
 
 	const myAntennas = (await getAntennas()).filter(a => a.userId === userId);
@@ -52,7 +52,7 @@ export default async function(
 
 		if (note.user != null) { // たぶんnullになることは無いはずだけど一応
 			for (const antenna of myAntennas) {
-				if (await checkHitAntenna(antenna, note, note.user as any, undefined, Array.from(following))) {
+				if (await checkHitAntenna(antenna, note, note.user, undefined, Array.from(following))) {
 					readAntennaNotes.push(note);
 				}
 			}
@@ -68,9 +68,9 @@ export default async function(
 
 		// TODO: ↓まとめてクエリしたい
 
-		NoteUnreads.count({
+		NoteUnreads.countBy({
 			userId: userId,
-			isMentioned: true
+			isMentioned: true,
 		}).then(mentionsCount => {
 			if (mentionsCount === 0) {
 				// 全て既読になったイベントを発行
@@ -78,9 +78,9 @@ export default async function(
 			}
 		});
 
-		NoteUnreads.count({
+		NoteUnreads.countBy({
 			userId: userId,
-			isSpecified: true
+			isSpecified: true,
 		}).then(specifiedCount => {
 			if (specifiedCount === 0) {
 				// 全て既読になったイベントを発行
@@ -88,9 +88,9 @@ export default async function(
 			}
 		});
 
-		NoteUnreads.count({
+		NoteUnreads.countBy({
 			userId: userId,
-			noteChannelId: Not(IsNull())
+			noteChannelId: Not(IsNull()),
 		}).then(channelNoteCount => {
 			if (channelNoteCount === 0) {
 				// 全て既読になったイベントを発行
@@ -106,16 +106,16 @@ export default async function(
 	if (readAntennaNotes.length > 0) {
 		await AntennaNotes.update({
 			antennaId: In(myAntennas.map(a => a.id)),
-			noteId: In(readAntennaNotes.map(n => n.id))
+			noteId: In(readAntennaNotes.map(n => n.id)),
 		}, {
-			read: true
+			read: true,
 		});
 
 		// TODO: まとめてクエリしたい
 		for (const antenna of myAntennas) {
-			const count = await AntennaNotes.count({
+			const count = await AntennaNotes.countBy({
 				antennaId: antenna.id,
-				read: false
+				read: false,
 			});
 
 			if (count === 0) {

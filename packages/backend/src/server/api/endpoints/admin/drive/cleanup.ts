@@ -1,18 +1,25 @@
 import { IsNull } from 'typeorm';
-import define from '../../../define';
-import { deleteFile } from '@/services/drive/delete-file';
-import { DriveFiles } from '@/models/index';
+import define from '../../../define.js';
+import { deleteFile } from '@/services/drive/delete-file.js';
+import { DriveFiles } from '@/models/index.js';
 
 export const meta = {
 	tags: ['admin'],
 
-	requireCredential: true as const,
+	requireCredential: true,
 	requireModerator: true,
-};
+} as const;
 
-export default define(meta, async (ps, me) => {
-	const files = await DriveFiles.find({
-		userId: IsNull()
+export const paramDef = {
+	type: 'object',
+	properties: {},
+	required: [],
+} as const;
+
+// eslint-disable-next-line import/no-default-export
+export default define(meta, paramDef, async (ps, me) => {
+	const files = await DriveFiles.findBy({
+		userId: IsNull(),
 	});
 
 	for (const file of files) {

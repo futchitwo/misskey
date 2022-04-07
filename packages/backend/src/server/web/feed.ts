@@ -1,25 +1,25 @@
 import { Feed } from 'feed';
-import config from '@/config/index';
-import { User } from '@/models/entities/user';
-import { Notes, DriveFiles, UserProfiles } from '@/models/index';
-import { In } from 'typeorm';
+import config from '@/config/index.js';
+import { User } from '@/models/entities/user.js';
+import { Notes, DriveFiles, UserProfiles } from '@/models/index.js';
+import { In, IsNull } from 'typeorm';
 
 export default async function(user: User) {
 	const author = {
 		link: `${config.url}/@${user.username}`,
-		name: user.name || user.username
+		name: user.name || user.username,
 	};
 
-	const profile = await UserProfiles.findOneOrFail(user.id);
+	const profile = await UserProfiles.findOneByOrFail({ userId: user.id });
 
 	const notes = await Notes.find({
 		where: {
 			userId: user.id,
-			renoteId: null,
-			visibility: In(['public', 'home'])
+			renoteId: IsNull(),
+			visibility: In(['public', 'home']),
 		},
 		order: { createdAt: -1 },
-		take: 20
+		take: 20,
 	});
 
 	const feed = new Feed({
@@ -35,12 +35,12 @@ export default async function(user: User) {
 			atom: `${author.link}.atom`,
 		},
 		author,
-		copyright: user.name || user.username
+		copyright: user.name || user.username,
 	});
 
 	for (const note of notes) {
-		const files = note.fileIds.length > 0 ? await DriveFiles.find({
-			id: In(note.fileIds)
+		const files = note.fileIds.length > 0 ? await DriveFiles.findBy({
+			id: In(note.fileIds),
 		}) : [];
 		const file = files.find(file => file.type.startsWith('image/'));
 
@@ -50,7 +50,7 @@ export default async function(user: User) {
 			date: note.createdAt,
 			description: note.cw || undefined,
 			content: note.text || undefined,
-			image: file ? DriveFiles.getPublicUrl(file) || undefined : undefined
+			image: file ? DriveFiles.getPublicUrl(file) || undefined : undefined,
 		});
 	}
 

@@ -1,46 +1,47 @@
-import $ from 'cafy';
-import { ID } from '@/misc/cafy-id';
-import define from '../../../define';
-import { ApiError } from '../../../error';
-import { GalleryPosts, GalleryLikes } from '@/models/index';
-import { genId } from '@/misc/gen-id';
+import define from '../../../define.js';
+import { ApiError } from '../../../error.js';
+import { GalleryPosts, GalleryLikes } from '@/models/index.js';
+import { genId } from '@/misc/gen-id.js';
 
 export const meta = {
 	tags: ['gallery'],
 
-	requireCredential: true as const,
+	requireCredential: true,
 
 	kind: 'write:gallery-likes',
-
-	params: {
-		postId: {
-			validator: $.type(ID),
-		}
-	},
 
 	errors: {
 		noSuchPost: {
 			message: 'No such post.',
 			code: 'NO_SUCH_POST',
-			id: '56c06af3-1287-442f-9701-c93f7c4a62ff'
+			id: '56c06af3-1287-442f-9701-c93f7c4a62ff',
 		},
 
 		yourPost: {
 			message: 'You cannot like your post.',
 			code: 'YOUR_POST',
-			id: 'f78f1511-5ebc-4478-a888-1198d752da68'
+			id: 'f78f1511-5ebc-4478-a888-1198d752da68',
 		},
 
 		alreadyLiked: {
 			message: 'The post has already been liked.',
 			code: 'ALREADY_LIKED',
-			id: '40e9ed56-a59c-473a-bf3f-f289c54fb5a7'
+			id: '40e9ed56-a59c-473a-bf3f-f289c54fb5a7',
 		},
-	}
-};
+	},
+} as const;
 
-export default define(meta, async (ps, user) => {
-	const post = await GalleryPosts.findOne(ps.postId);
+export const paramDef = {
+	type: 'object',
+	properties: {
+		postId: { type: 'string', format: 'misskey:id' },
+	},
+	required: ['postId'],
+} as const;
+
+// eslint-disable-next-line import/no-default-export
+export default define(meta, paramDef, async (ps, user) => {
+	const post = await GalleryPosts.findOneBy({ id: ps.postId });
 	if (post == null) {
 		throw new ApiError(meta.errors.noSuchPost);
 	}
@@ -50,9 +51,9 @@ export default define(meta, async (ps, user) => {
 	}
 
 	// if already liked
-	const exist = await GalleryLikes.findOne({
+	const exist = await GalleryLikes.findOneBy({
 		postId: post.id,
-		userId: user.id
+		userId: user.id,
 	});
 
 	if (exist != null) {
@@ -64,7 +65,7 @@ export default define(meta, async (ps, user) => {
 		id: genId(),
 		createdAt: new Date(),
 		postId: post.id,
-		userId: user.id
+		userId: user.id,
 	});
 
 	GalleryPosts.increment({ id: post.id }, 'likedCount', 1);

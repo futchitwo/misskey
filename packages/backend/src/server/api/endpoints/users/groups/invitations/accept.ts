@@ -1,36 +1,37 @@
-import $ from 'cafy';
-import { ID } from '@/misc/cafy-id';
-import define from '../../../../define';
-import { ApiError } from '../../../../error';
-import { UserGroupJoinings, UserGroupInvitations } from '@/models/index';
-import { genId } from '@/misc/gen-id';
-import { UserGroupJoining } from '@/models/entities/user-group-joining';
+import define from '../../../../define.js';
+import { ApiError } from '../../../../error.js';
+import { UserGroupJoinings, UserGroupInvitations } from '@/models/index.js';
+import { genId } from '@/misc/gen-id.js';
+import { UserGroupJoining } from '@/models/entities/user-group-joining.js';
 
 export const meta = {
 	tags: ['groups', 'users'],
 
-	requireCredential: true as const,
+	requireCredential: true,
 
 	kind: 'write:user-groups',
-
-	params: {
-		invitationId: {
-			validator: $.type(ID),
-		},
-	},
 
 	errors: {
 		noSuchInvitation: {
 			message: 'No such invitation.',
 			code: 'NO_SUCH_INVITATION',
-			id: '98c11eca-c890-4f42-9806-c8c8303ebb5e'
+			id: '98c11eca-c890-4f42-9806-c8c8303ebb5e',
 		},
-	}
-};
+	},
+} as const;
 
-export default define(meta, async (ps, user) => {
+export const paramDef = {
+	type: 'object',
+	properties: {
+		invitationId: { type: 'string', format: 'misskey:id' },
+	},
+	required: ['invitationId'],
+} as const;
+
+// eslint-disable-next-line import/no-default-export
+export default define(meta, paramDef, async (ps, user) => {
 	// Fetch the invitation
-	const invitation = await UserGroupInvitations.findOne({
+	const invitation = await UserGroupInvitations.findOneBy({
 		id: ps.invitationId,
 	});
 
@@ -47,7 +48,7 @@ export default define(meta, async (ps, user) => {
 		id: genId(),
 		createdAt: new Date(),
 		userId: user.id,
-		userGroupId: invitation.userGroupId
+		userGroupId: invitation.userGroupId,
 	} as UserGroupJoining);
 
 	UserGroupInvitations.delete(invitation.id);

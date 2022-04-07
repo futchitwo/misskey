@@ -1,8 +1,8 @@
 import { JSDOM } from 'jsdom';
 import * as mfm from 'mfm-js';
-import config from '@/config/index';
-import { intersperse } from '@/prelude/array';
-import { IMentionedRemoteUsers } from '@/models/entities/note';
+import config from '@/config/index.js';
+import { intersperse } from '@/prelude/array.js';
+import { IMentionedRemoteUsers } from '@/models/entities/note.js';
 
 export function toHtml(nodes: mfm.MfmNode[] | null, mentionedRemoteUsers: IMentionedRemoteUsers = []) {
 	if (nodes == null) {
@@ -144,7 +144,7 @@ export function toHtml(nodes: mfm.MfmNode[] | null, mentionedRemoteUsers: IMenti
 			a.href = `https://www.google.com/search?q=${node.props.query}`;
 			a.textContent = node.props.content;
 			return a;
-		}
+		},
 	};
 
 	appendChildren(nodes, doc.body);

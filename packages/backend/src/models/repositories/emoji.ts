@@ -1,13 +1,12 @@
-import { EntityRepository, Repository } from 'typeorm';
-import { Emoji } from '@/models/entities/emoji';
-import { Packed } from '@/misc/schema';
+import { db } from '@/db/postgre.js';
+import { Emoji } from '@/models/entities/emoji.js';
+import { Packed } from '@/misc/schema.js';
 
-@EntityRepository(Emoji)
-export class EmojiRepository extends Repository<Emoji> {
-	public async pack(
+export const EmojiRepository = db.getRepository(Emoji).extend({
+	async pack(
 		src: Emoji['id'] | Emoji,
 	): Promise<Packed<'Emoji'>> {
-		const emoji = typeof src === 'object' ? src : await this.findOneOrFail(src);
+		const emoji = typeof src === 'object' ? src : await this.findOneByOrFail({ id: src });
 
 		return {
 			id: emoji.id,
@@ -15,51 +14,14 @@ export class EmojiRepository extends Repository<Emoji> {
 			name: emoji.name,
 			category: emoji.category,
 			host: emoji.host,
-			url: emoji.url,
+			// || emoji.originalUrl してるのは後方互換性のため
+			url: emoji.publicUrl || emoji.originalUrl,
 		};
-	}
+	},
 
-	public packMany(
+	packMany(
 		emojis: any[],
 	) {
 		return Promise.all(emojis.map(x => this.pack(x)));
-	}
-}
-
-export const packedEmojiSchema = {
-	type: 'object' as const,
-	optional: false as const, nullable: false as const,
-	properties: {
-		id: {
-			type: 'string' as const,
-			optional: false as const, nullable: false as const,
-			format: 'id',
-			example: 'xxxxxxxxxx',
-		},
-		aliases: {
-			type: 'array' as const,
-			optional: false as const, nullable: false as const,
-			items: {
-				type: 'string' as const,
-				optional: false as const, nullable: false as const,
-				format: 'id',
-			},
-		},
-		name: {
-			type: 'string' as const,
-			optional: false as const, nullable: false as const,
-		},
-		category: {
-			type: 'string' as const,
-			optional: false as const, nullable: true as const,
-		},
-		host: {
-			type: 'string' as const,
-			optional: false as const, nullable: true as const,
-		},
-		url: {
-			type: 'string' as const,
-			optional: false as const, nullable: false as const,
-		},
-	}
-};
+	},
+});

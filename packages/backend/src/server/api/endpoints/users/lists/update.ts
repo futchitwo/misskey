@@ -1,29 +1,17 @@
-import $ from 'cafy';
-import { ID } from '@/misc/cafy-id';
-import define from '../../../define';
-import { ApiError } from '../../../error';
-import { UserLists } from '@/models/index';
+import define from '../../../define.js';
+import { ApiError } from '../../../error.js';
+import { UserLists } from '@/models/index.js';
 
 export const meta = {
 	tags: ['lists'],
 
-	requireCredential: true as const,
+	requireCredential: true,
 
 	kind: 'write:account',
 
-	params: {
-		listId: {
-			validator: $.type(ID),
-		},
-
-		name: {
-			validator: $.str.range(1, 100),
-		}
-	},
-
 	res: {
-		type: 'object' as const,
-		optional: false as const, nullable: false as const,
+		type: 'object',
+		optional: false, nullable: false,
 		ref: 'UserList',
 	},
 
@@ -31,16 +19,26 @@ export const meta = {
 		noSuchList: {
 			message: 'No such list.',
 			code: 'NO_SUCH_LIST',
-			id: '796666fe-3dff-4d39-becb-8a5932c1d5b7'
+			id: '796666fe-3dff-4d39-becb-8a5932c1d5b7',
 		},
-	}
-};
+	},
+} as const;
 
-export default define(meta, async (ps, user) => {
+export const paramDef = {
+	type: 'object',
+	properties: {
+		listId: { type: 'string', format: 'misskey:id' },
+		name: { type: 'string', minLength: 1, maxLength: 100 },
+	},
+	required: ['listId', 'name'],
+} as const;
+
+// eslint-disable-next-line import/no-default-export
+export default define(meta, paramDef, async (ps, user) => {
 	// Fetch the list
-	const userList = await UserLists.findOne({
+	const userList = await UserLists.findOneBy({
 		id: ps.listId,
-		userId: user.id
+		userId: user.id,
 	});
 
 	if (userList == null) {
@@ -48,7 +46,7 @@ export default define(meta, async (ps, user) => {
 	}
 
 	await UserLists.update(userList.id, {
-		name: ps.name
+		name: ps.name,
 	});
 
 	return await UserLists.pack(userList.id);

@@ -1,18 +1,19 @@
+import Koa from 'koa';
 import { performance } from 'perf_hooks';
-import limiter from './limiter';
-import { User } from '@/models/entities/user';
-import endpoints from './endpoints';
-import { ApiError } from './error';
-import { apiLogger } from './logger';
-import { AccessToken } from '@/models/entities/access-token';
+import { limiter } from './limiter.js';
+import { CacheableLocalUser, User } from '@/models/entities/user.js';
+import endpoints, { IEndpoint } from './endpoints.js';
+import { ApiError } from './error.js';
+import { apiLogger } from './logger.js';
+import { AccessToken } from '@/models/entities/access-token.js';
 
 const accessDenied = {
 	message: 'Access denied.',
 	code: 'ACCESS_DENIED',
-	id: '56f35758-7dd5-468b-8439-5d6fb8ec9b8e'
+	id: '56f35758-7dd5-468b-8439-5d6fb8ec9b8e',
 };
 
-export default async (endpoint: string, user: User | null | undefined, token: AccessToken | null | undefined, data: any, file?: any) => {
+export default async (endpoint: string, user: CacheableLocalUser | null | undefined, token: AccessToken | null | undefined, data: any, ctx?: Koa.Context) => {
 	const isSecure = user != null && token == null;
 
 	const ep = endpoints.find(e => e.name === endpoint);
@@ -22,7 +23,7 @@ export default async (endpoint: string, user: User | null | undefined, token: Ac
 			message: 'No such endpoint.',
 			code: 'NO_SUCH_ENDPOINT',
 			id: 'f8080b67-5f9c-4eb7-8c18-7f1eeae8f709',
-			httpStatusCode: 404
+			httpStatusCode: 404,
 		});
 	}
 
@@ -35,7 +36,7 @@ export default async (endpoint: string, user: User | null | undefined, token: Ac
 			message: 'Credential required.',
 			code: 'CREDENTIAL_REQUIRED',
 			id: '1384574d-a912-4b81-8601-c7b1c4085df1',
-			httpStatusCode: 401
+			httpStatusCode: 401,
 		});
 	}
 
@@ -44,7 +45,7 @@ export default async (endpoint: string, user: User | null | undefined, token: Ac
 			message: 'Your account has been suspended.',
 			code: 'YOUR_ACCOUNT_SUSPENDED',
 			id: 'a8c724b3-6e9c-4b46-b1a8-bc3ed6258370',
-			httpStatusCode: 403
+			httpStatusCode: 403,
 		});
 	}
 
@@ -66,19 +67,40 @@ export default async (endpoint: string, user: User | null | undefined, token: Ac
 
 	if (ep.meta.requireCredential && ep.meta.limit && !user!.isAdmin && !user!.isModerator) {
 		// Rate limit
-		await limiter(ep, user!).catch(e => {
+		await limiter(ep as IEndpoint & { meta: { limit: NonNullable<IEndpoint['meta']['limit']> } }, user!).catch(e => {
 			throw new ApiError({
 				message: 'Rate limit exceeded. Please try again later.',
 				code: 'RATE_LIMIT_EXCEEDED',
 				id: 'd5826d14-3982-4d2e-8011-b9e9f02499ef',
-				httpStatusCode: 429
+				httpStatusCode: 429,
 			});
 		});
 	}
 
+	// Cast non JSON input
+	if (ep.meta.requireFile && ep.params.properties) {
+		for (const k of Object.keys(ep.params.properties)) {
+			const param = ep.params.properties![k];
+			if (['boolean', 'number', 'integer'].includes(param.type ?? '') && typeof data[k] === 'string') {
+				try {
+					data[k] = JSON.parse(data[k]);
+				} catch (e) {
+					throw	new ApiError({
+						message: 'Invalid param.',
+						code: 'INVALID_PARAM',
+						id: '0b5f1631-7c1a-41a6-b399-cce335f34d85',
+					}, {
+						param: k,
+						reason: `cannot cast to ${param.type}`,
+					});
+				}
+			}
+		}
+	}
+
 	// API invoking
 	const before = performance.now();
-	return await ep.exec(data, user, token, file).catch((e: Error) => {
+	return await ep.exec(data, user, token, ctx?.file).catch((e: Error) => {
 		if (e instanceof ApiError) {
 			throw e;
 		} else {
@@ -88,15 +110,15 @@ export default async (endpoint: string, user: User | null | undefined, token: Ac
 				e: {
 					message: e?.message,
 					code: e?.name,
-					stack: e?.stack
-				}
+					stack: e?.stack,
+				},
 			});
 			throw new ApiError(null, {
 				e: {
 					message: e?.message,
 					code: e?.name,
-					stack: e?.stack
-				}
+					stack: e?.stack,
+				},
 			});
 		}
 	}).finally(() => {

@@ -1,24 +1,26 @@
-import $ from 'cafy';
 import * as speakeasy from 'speakeasy';
-import define from '../../../define';
-import { UserProfiles } from '@/models/index';
+import define from '../../../define.js';
+import { UserProfiles } from '@/models/index.js';
 
 export const meta = {
-	requireCredential: true as const,
+	requireCredential: true,
 
 	secure: true,
+} as const;
 
-	params: {
-		token: {
-			validator: $.str
-		}
-	}
-};
+export const paramDef = {
+	type: 'object',
+	properties: {
+		token: { type: 'string' },
+	},
+	required: ['token'],
+} as const;
 
-export default define(meta, async (ps, user) => {
+// eslint-disable-next-line import/no-default-export
+export default define(meta, paramDef, async (ps, user) => {
 	const token = ps.token.replace(/\s/g, '');
 
-	const profile = await UserProfiles.findOneOrFail(user.id);
+	const profile = await UserProfiles.findOneByOrFail({ userId: user.id });
 
 	if (profile.twoFactorTempSecret == null) {
 		throw new Error('二段階認証の設定が開始されていません');
@@ -27,7 +29,7 @@ export default define(meta, async (ps, user) => {
 	const verified = (speakeasy as any).totp.verify({
 		secret: profile.twoFactorTempSecret,
 		encoding: 'base32',
-		token: token
+		token: token,
 	});
 
 	if (!verified) {
@@ -36,6 +38,6 @@ export default define(meta, async (ps, user) => {
 
 	await UserProfiles.update(user.id, {
 		twoFactorSecret: profile.twoFactorTempSecret,
-		twoFactorEnabled: true
+		twoFactorEnabled: true,
 	});
 });

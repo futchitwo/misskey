@@ -1,11 +1,11 @@
-import * as fs from 'fs';
-import * as crypto from 'crypto';
-import * as stream from 'stream';
-import * as util from 'util';
-import * as fileType from 'file-type';
+import * as fs from 'node:fs';
+import * as crypto from 'node:crypto';
+import * as stream from 'node:stream';
+import * as util from 'node:util';
+import { fileTypeFromFile } from 'file-type';
 import isSvg from 'is-svg';
-import * as probeImageSize from 'probe-image-size';
-import * as sharp from 'sharp';
+import probeImageSize from 'probe-image-size';
+import sharp from 'sharp';
 import { encode } from 'blurhash';
 
 const pipeline = util.promisify(stream.pipeline);
@@ -26,12 +26,12 @@ export type FileInfo = {
 
 const TYPE_OCTET_STREAM = {
 	mime: 'application/octet-stream',
-	ext: null
+	ext: null,
 };
 
 const TYPE_SVG = {
 	mime: 'image/svg+xml',
-	ext: 'svg'
+	ext: 'svg',
 };
 
 /**
@@ -99,14 +99,17 @@ export async function getFileInfo(path: string): Promise<FileInfo> {
 /**
  * Detect MIME Type and extension
  */
-export async function detectType(path: string) {
+export async function detectType(path: string): Promise<{
+	mime: string;
+	ext: string | null;
+}> {
 	// Check 0 byte
 	const fileSize = await getFileSize(path);
 	if (fileSize === 0) {
 		return TYPE_OCTET_STREAM;
 	}
 
-	const type = await fileType.fromFile(path);
+	const type = await fileTypeFromFile(path);
 
 	if (type) {
 		// XMLはSVGかもしれない
@@ -116,7 +119,7 @@ export async function detectType(path: string) {
 
 		return {
 			mime: type.mime,
-			ext: type.ext
+			ext: type.ext,
 		};
 	}
 

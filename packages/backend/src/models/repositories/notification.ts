@@ -1,17 +1,17 @@
-import { EntityRepository, In, Repository } from 'typeorm';
-import { Users, Notes, UserGroupInvitations, AccessTokens, NoteReactions } from '../index';
-import { Notification } from '@/models/entities/notification';
-import { awaitAll } from '@/prelude/await-all';
-import { Packed } from '@/misc/schema';
-import { Note } from '@/models/entities/note';
-import { NoteReaction } from '@/models/entities/note-reaction';
-import { User } from '@/models/entities/user';
-import { aggregateNoteEmojis, prefetchEmojis } from '@/misc/populate-emojis';
-import { notificationTypes } from '@/types';
+import { In, Repository } from 'typeorm';
+import { Users, Notes, UserGroupInvitations, AccessTokens, NoteReactions } from '../index.js';
+import { Notification } from '@/models/entities/notification.js';
+import { awaitAll } from '@/prelude/await-all.js';
+import { Packed } from '@/misc/schema.js';
+import { Note } from '@/models/entities/note.js';
+import { NoteReaction } from '@/models/entities/note-reaction.js';
+import { User } from '@/models/entities/user.js';
+import { aggregateNoteEmojis, prefetchEmojis } from '@/misc/populate-emojis.js';
+import { notificationTypes } from '@/types.js';
+import { db } from '@/db/postgre.js';
 
-@EntityRepository(Notification)
-export class NotificationRepository extends Repository<Notification> {
-	public async pack(
+export const NotificationRepository = db.getRepository(Notification).extend({
+	async pack(
 		src: Notification['id'] | Notification,
 		options: {
 			_hintForEachNotes_?: {
@@ -19,8 +19,8 @@ export class NotificationRepository extends Repository<Notification> {
 			};
 		}
 	): Promise<Packed<'Notification'>> {
-		const notification = typeof src === 'object' ? src : await this.findOneOrFail(src);
-		const token = notification.appAccessTokenId ? await AccessTokens.findOneOrFail(notification.appAccessTokenId) : null;
+		const notification = typeof src === 'object' ? src : await this.findOneByOrFail({ id: src });
+		const token = notification.appAccessTokenId ? await AccessTokens.findOneByOrFail({ id: notification.appAccessTokenId }) : null;
 
 		return await awaitAll({
 			id: notification.id,
@@ -32,40 +32,46 @@ export class NotificationRepository extends Repository<Notification> {
 			...(notification.type === 'mention' ? {
 				note: Notes.pack(notification.note || notification.noteId!, { id: notification.notifieeId }, {
 					detail: true,
-					_hint_: options._hintForEachNotes_
+					_hint_: options._hintForEachNotes_,
 				}),
 			} : {}),
 			...(notification.type === 'reply' ? {
 				note: Notes.pack(notification.note || notification.noteId!, { id: notification.notifieeId }, {
 					detail: true,
-					_hint_: options._hintForEachNotes_
+					_hint_: options._hintForEachNotes_,
 				}),
 			} : {}),
 			...(notification.type === 'renote' ? {
 				note: Notes.pack(notification.note || notification.noteId!, { id: notification.notifieeId }, {
 					detail: true,
-					_hint_: options._hintForEachNotes_
+					_hint_: options._hintForEachNotes_,
 				}),
 			} : {}),
 			...(notification.type === 'quote' ? {
 				note: Notes.pack(notification.note || notification.noteId!, { id: notification.notifieeId }, {
 					detail: true,
-					_hint_: options._hintForEachNotes_
+					_hint_: options._hintForEachNotes_,
 				}),
 			} : {}),
 			...(notification.type === 'reaction' ? {
 				note: Notes.pack(notification.note || notification.noteId!, { id: notification.notifieeId }, {
 					detail: true,
-					_hint_: options._hintForEachNotes_
+					_hint_: options._hintForEachNotes_,
 				}),
-				reaction: notification.reaction
+				reaction: notification.reaction,
 			} : {}),
 			...(notification.type === 'pollVote' ? {
 				note: Notes.pack(notification.note || notification.noteId!, { id: notification.notifieeId }, {
 					detail: true,
-					_hint_: options._hintForEachNotes_
+					_hint_: options._hintForEachNotes_,
 				}),
-				choice: notification.choice
+				choice: notification.choice,
+			} : {}),
+			...(notification.type === 'pollEnded' ? {
+				note: Notes.pack(notification.note || notification.noteId!, { id: notification.notifieeId }, {
+					detail: true,
+					_hint_: options._hintForEachNotes_,
+				}),
 			} : {}),
 			...(notification.type === 'groupInvited' ? {
 				invitation: UserGroupInvitations.pack(notification.userGroupInvitationId!),
@@ -76,9 +82,9 @@ export class NotificationRepository extends Repository<Notification> {
 				icon: notification.customIcon || token?.iconUrl,
 			} : {}),
 		});
-	}
+	},
 
-	public async packMany(
+	async packMany(
 		notifications: Notification[],
 		meId: User['id']
 	) {
@@ -89,7 +95,7 @@ export class NotificationRepository extends Repository<Notification> {
 		const myReactionsMap = new Map<Note['id'], NoteReaction | null>();
 		const renoteIds = notes.filter(n => n.renoteId != null).map(n => n.renoteId!);
 		const targets = [...noteIds, ...renoteIds];
-		const myReactions = await NoteReactions.find({
+		const myReactions = await NoteReactions.findBy({
 			userId: meId,
 			noteId: In(targets),
 		});
@@ -102,74 +108,8 @@ export class NotificationRepository extends Repository<Notification> {
 
 		return await Promise.all(notifications.map(x => this.pack(x, {
 			_hintForEachNotes_: {
-				myReactions: myReactionsMap
-			}
+				myReactions: myReactionsMap,
+			},
 		})));
-	}
-}
-
-export const packedNotificationSchema = {
-	type: 'object' as const,
-	optional: false as const, nullable: false as const,
-	properties: {
-		id: {
-			type: 'string' as const,
-			optional: false as const, nullable: false as const,
-			format: 'id',
-			example: 'xxxxxxxxxx',
-		},
-		createdAt: {
-			type: 'string' as const,
-			optional: false as const, nullable: false as const,
-			format: 'date-time',
-		},
-		isRead: {
-			type: 'boolean' as const,
-			optional: false as const, nullable: false as const,
-		},
-		type: {
-			type: 'string' as const,
-			optional: false as const, nullable: false as const,
-			enum: [...notificationTypes],
-		},
-		user: {
-			type: 'object' as const,
-			ref: 'User' as const,
-			optional: true as const, nullable: true as const,
-		},
-		userId: {
-			type: 'string' as const,
-			optional: true as const, nullable: true as const,
-			format: 'id',
-		},
-		note: {
-			type: 'object' as const,
-			ref: 'Note' as const,
-			optional: true as const, nullable: true as const,
-		},
-		reaction: {
-			type: 'string' as const,
-			optional: true as const, nullable: true as const,
-		},
-		choice: {
-			type: 'number' as const,
-			optional: true as const, nullable: true as const,
-		},
-		invitation: {
-			type: 'object' as const,
-			optional: true as const, nullable: true as const,
-		},
-		body: {
-			type: 'string' as const,
-			optional: true as const, nullable: true as const,
-		},
-		header: {
-			type: 'string' as const,
-			optional: true as const, nullable: true as const,
-		},
-		icon: {
-			type: 'string' as const,
-			optional: true as const, nullable: true as const,
-		},
-	}
-};
+	},
+});

@@ -1,5 +1,5 @@
-import config from '@/config/index';
-import { Note } from '@/models/entities/note';
+import config from '@/config/index.js';
+import { Note } from '@/models/entities/note.js';
 
 export default (object: any, note: Note) => {
 	const activity = {
@@ -7,7 +7,7 @@ export default (object: any, note: Note) => {
 		actor: `${config.url}/users/${note.userId}`,
 		type: 'Create',
 		published: note.createdAt.toISOString(),
-		object
+		object,
 	} as any;
 
 	if (object.to) activity.to = object.to;

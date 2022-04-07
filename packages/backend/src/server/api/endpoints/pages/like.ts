@@ -1,46 +1,47 @@
-import $ from 'cafy';
-import { ID } from '@/misc/cafy-id';
-import define from '../../define';
-import { ApiError } from '../../error';
-import { Pages, PageLikes } from '@/models/index';
-import { genId } from '@/misc/gen-id';
+import define from '../../define.js';
+import { ApiError } from '../../error.js';
+import { Pages, PageLikes } from '@/models/index.js';
+import { genId } from '@/misc/gen-id.js';
 
 export const meta = {
 	tags: ['pages'],
 
-	requireCredential: true as const,
+	requireCredential: true,
 
 	kind: 'write:page-likes',
-
-	params: {
-		pageId: {
-			validator: $.type(ID),
-		}
-	},
 
 	errors: {
 		noSuchPage: {
 			message: 'No such page.',
 			code: 'NO_SUCH_PAGE',
-			id: 'cc98a8a2-0dc3-4123-b198-62c71df18ed3'
+			id: 'cc98a8a2-0dc3-4123-b198-62c71df18ed3',
 		},
 
 		yourPage: {
 			message: 'You cannot like your page.',
 			code: 'YOUR_PAGE',
-			id: '28800466-e6db-40f2-8fae-bf9e82aa92b8'
+			id: '28800466-e6db-40f2-8fae-bf9e82aa92b8',
 		},
 
 		alreadyLiked: {
 			message: 'The page has already been liked.',
 			code: 'ALREADY_LIKED',
-			id: 'cc98a8a2-0dc3-4123-b198-62c71df18ed3'
+			id: 'cc98a8a2-0dc3-4123-b198-62c71df18ed3',
 		},
-	}
-};
+	},
+} as const;
 
-export default define(meta, async (ps, user) => {
-	const page = await Pages.findOne(ps.pageId);
+export const paramDef = {
+	type: 'object',
+	properties: {
+		pageId: { type: 'string', format: 'misskey:id' },
+	},
+	required: ['pageId'],
+} as const;
+
+// eslint-disable-next-line import/no-default-export
+export default define(meta, paramDef, async (ps, user) => {
+	const page = await Pages.findOneBy({ id: ps.pageId });
 	if (page == null) {
 		throw new ApiError(meta.errors.noSuchPage);
 	}
@@ -50,9 +51,9 @@ export default define(meta, async (ps, user) => {
 	}
 
 	// if already liked
-	const exist = await PageLikes.findOne({
+	const exist = await PageLikes.findOneBy({
 		pageId: page.id,
-		userId: user.id
+		userId: user.id,
 	});
 
 	if (exist != null) {
@@ -64,7 +65,7 @@ export default define(meta, async (ps, user) => {
 		id: genId(),
 		createdAt: new Date(),
 		pageId: page.id,
-		userId: user.id
+		userId: user.id,
 	});
 
 	Pages.increment({ id: page.id }, 'likedCount', 1);

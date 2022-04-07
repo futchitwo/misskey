@@ -1,52 +1,51 @@
-import $ from 'cafy';
-import { publishMainStream } from '@/services/stream';
-import define from '../../define';
+import { publishMainStream } from '@/services/stream.js';
+import define from '../../define.js';
 import rndstr from 'rndstr';
-import config from '@/config/index';
+import config from '@/config/index.js';
 import ms from 'ms';
-import * as bcrypt from 'bcryptjs';
-import { Users, UserProfiles } from '@/models/index';
-import { sendEmail } from '@/services/send-email';
-import { ApiError } from '../../error';
-import { validateEmailForAccount } from '@/services/validate-email-for-account';
+import bcrypt from 'bcryptjs';
+import { Users, UserProfiles } from '@/models/index.js';
+import { sendEmail } from '@/services/send-email.js';
+import { ApiError } from '../../error.js';
+import { validateEmailForAccount } from '@/services/validate-email-for-account.js';
 
 export const meta = {
-	requireCredential: true as const,
+	requireCredential: true,
 
 	secure: true,
 
 	limit: {
 		duration: ms('1hour'),
-		max: 3
-	},
-
-	params: {
-		password: {
-			validator: $.str
-		},
-
-		email: {
-			validator: $.optional.nullable.str
-		},
+		max: 3,
 	},
 
 	errors: {
 		incorrectPassword: {
 			message: 'Incorrect password.',
 			code: 'INCORRECT_PASSWORD',
-			id: 'e54c1d7e-e7d6-4103-86b6-0a95069b4ad3'
+			id: 'e54c1d7e-e7d6-4103-86b6-0a95069b4ad3',
 		},
 
 		unavailable: {
 			message: 'Unavailable email address.',
 			code: 'UNAVAILABLE',
-			id: 'a2defefb-f220-8849-0af6-17f816099323'
+			id: 'a2defefb-f220-8849-0af6-17f816099323',
 		},
-	}
-};
+	},
+} as const;
 
-export default define(meta, async (ps, user) => {
-	const profile = await UserProfiles.findOneOrFail(user.id);
+export const paramDef = {
+	type: 'object',
+	properties: {
+		password: { type: 'string' },
+		email: { type: 'string', nullable: true },
+	},
+	required: ['password'],
+} as const;
+
+// eslint-disable-next-line import/no-default-export
+export default define(meta, paramDef, async (ps, user) => {
+	const profile = await UserProfiles.findOneByOrFail({ userId: user.id });
 
 	// Compare password
 	const same = await bcrypt.compare(ps.password, profile.password!);
@@ -65,12 +64,12 @@ export default define(meta, async (ps, user) => {
 	await UserProfiles.update(user.id, {
 		email: ps.email,
 		emailVerified: false,
-		emailVerifyCode: null
+		emailVerifyCode: null,
 	});
 
 	const iObj = await Users.pack(user.id, user, {
 		detail: true,
-		includeSecrets: true
+		includeSecrets: true,
 	});
 
 	// Publish meUpdated event
@@ -80,7 +79,7 @@ export default define(meta, async (ps, user) => {
 		const code = rndstr('a-z0-9', 16);
 
 		await UserProfiles.update(user.id, {
-			emailVerifyCode: code
+			emailVerifyCode: code,
 		});
 
 		const link = `${config.url}/verify-email/${code}`;

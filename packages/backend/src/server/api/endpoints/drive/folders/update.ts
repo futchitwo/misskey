@@ -1,63 +1,58 @@
-import $ from 'cafy';
-import { ID } from '@/misc/cafy-id';
-import { publishDriveStream } from '@/services/stream';
-import define from '../../../define';
-import { ApiError } from '../../../error';
-import { DriveFolders } from '@/models/index';
+import { publishDriveStream } from '@/services/stream.js';
+import define from '../../../define.js';
+import { ApiError } from '../../../error.js';
+import { DriveFolders } from '@/models/index.js';
 
 export const meta = {
 	tags: ['drive'],
 
-	requireCredential: true as const,
+	requireCredential: true,
 
 	kind: 'write:drive',
-
-	params: {
-		folderId: {
-			validator: $.type(ID),
-		},
-
-		name: {
-			validator: $.optional.str.pipe(DriveFolders.validateFolderName),
-		},
-
-		parentId: {
-			validator: $.optional.nullable.type(ID),
-		}
-	},
 
 	errors: {
 		noSuchFolder: {
 			message: 'No such folder.',
 			code: 'NO_SUCH_FOLDER',
-			id: 'f7974dac-2c0d-4a27-926e-23583b28e98e'
+			id: 'f7974dac-2c0d-4a27-926e-23583b28e98e',
 		},
 
 		noSuchParentFolder: {
 			message: 'No such parent folder.',
 			code: 'NO_SUCH_PARENT_FOLDER',
-			id: 'ce104e3a-faaf-49d5-b459-10ff0cbbcaa1'
+			id: 'ce104e3a-faaf-49d5-b459-10ff0cbbcaa1',
 		},
 
 		recursiveNesting: {
 			message: 'It can not be structured like nesting folders recursively.',
 			code: 'NO_SUCH_PARENT_FOLDER',
-			id: 'ce104e3a-faaf-49d5-b459-10ff0cbbcaa1'
+			id: 'ce104e3a-faaf-49d5-b459-10ff0cbbcaa1',
 		},
 	},
 
 	res: {
-		type: 'object' as const,
-		optional: false as const, nullable: false as const,
-		ref: 'DriveFolder'
-	}
-};
+		type: 'object',
+		optional: false, nullable: false,
+		ref: 'DriveFolder',
+	},
+} as const;
 
-export default define(meta, async (ps, user) => {
+export const paramDef = {
+	type: 'object',
+	properties: {
+		folderId: { type: 'string', format: 'misskey:id' },
+		name: { type: 'string', maxLength: 200 },
+		parentId: { type: 'string', format: 'misskey:id', nullable: true },
+	},
+	required: ['folderId'],
+} as const;
+
+// eslint-disable-next-line import/no-default-export
+export default define(meta, paramDef, async (ps, user) => {
 	// Fetch folder
-	const folder = await DriveFolders.findOne({
+	const folder = await DriveFolders.findOneBy({
 		id: ps.folderId,
-		userId: user.id
+		userId: user.id,
 	});
 
 	if (folder == null) {
@@ -73,9 +68,9 @@ export default define(meta, async (ps, user) => {
 			folder.parentId = null;
 		} else {
 			// Get parent folder
-			const parent = await DriveFolders.findOne({
+			const parent = await DriveFolders.findOneBy({
 				id: ps.parentId,
-				userId: user.id
+				userId: user.id,
 			});
 
 			if (parent == null) {
@@ -83,10 +78,10 @@ export default define(meta, async (ps, user) => {
 			}
 
 			// Check if the circular reference will occur
-			async function checkCircle(folderId: any): Promise<boolean> {
+			async function checkCircle(folderId: string): Promise<boolean> {
 				// Fetch folder
-				const folder2 = await DriveFolders.findOne({
-					id: folderId
+				const folder2 = await DriveFolders.findOneBy({
+					id: folderId,
 				});
 
 				if (folder2!.id === folder!.id) {
@@ -111,7 +106,7 @@ export default define(meta, async (ps, user) => {
 	// Update
 	DriveFolders.update(folder.id, {
 		name: folder.name,
-		parentId: folder.parentId
+		parentId: folder.parentId,
 	});
 
 	const folderObj = await DriveFolders.pack(folder);

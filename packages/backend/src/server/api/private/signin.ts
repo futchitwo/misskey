@@ -1,13 +1,14 @@
-import * as Koa from 'koa';
-import * as bcrypt from 'bcryptjs';
+import Koa from 'koa';
+import bcrypt from 'bcryptjs';
 import * as speakeasy from 'speakeasy';
-import signin from '../common/signin';
-import config from '@/config/index';
-import { Users, Signins, UserProfiles, UserSecurityKeys, AttestationChallenges } from '@/models/index';
-import { ILocalUser } from '@/models/entities/user';
-import { genId } from '@/misc/gen-id';
-import { verifyLogin, hash } from '../2fa';
-import { randomBytes } from 'crypto';
+import signin from '../common/signin.js';
+import config from '@/config/index.js';
+import { Users, Signins, UserProfiles, UserSecurityKeys, AttestationChallenges } from '@/models/index.js';
+import { ILocalUser } from '@/models/entities/user.js';
+import { genId } from '@/misc/gen-id.js';
+import { verifyLogin, hash } from '../2fa.js';
+import { randomBytes } from 'node:crypto';
+import { IsNull } from 'typeorm';
 
 export default async (ctx: Koa.Context) => {
 	ctx.set('Access-Control-Allow-Origin', config.url);
@@ -23,25 +24,25 @@ export default async (ctx: Koa.Context) => {
 		ctx.body = { error };
 	}
 
-	if (typeof username != 'string') {
+	if (typeof username !== 'string') {
 		ctx.status = 400;
 		return;
 	}
 
-	if (typeof password != 'string') {
+	if (typeof password !== 'string') {
 		ctx.status = 400;
 		return;
 	}
 
-	if (token != null && typeof token != 'string') {
+	if (token != null && typeof token !== 'string') {
 		ctx.status = 400;
 		return;
 	}
 
 	// Fetch user
-	const user = await Users.findOne({
+	const user = await Users.findOneBy({
 		usernameLower: username.toLowerCase(),
-		host: null
+		host: IsNull(),
 	}) as ILocalUser;
 
 	if (user == null) {
@@ -58,7 +59,7 @@ export default async (ctx: Koa.Context) => {
 		return;
 	}
 
-	const profile = await UserProfiles.findOneOrFail(user.id);
+	const profile = await UserProfiles.findOneByOrFail({ userId: user.id });
 
 	// Compare password
 	const same = await bcrypt.compare(password, profile.password!);
@@ -71,7 +72,7 @@ export default async (ctx: Koa.Context) => {
 			userId: user.id,
 			ip: ctx.ip,
 			headers: ctx.headers,
-			success: false
+			success: false,
 		});
 
 		error(status || 500, failure || { id: '4e30e80c-e338-45a0-8c8f-44455efa3b76' });
@@ -83,7 +84,7 @@ export default async (ctx: Koa.Context) => {
 			return;
 		} else {
 			await fail(403, {
-				id: '932c904e-9460-45b7-9ce6-7ed33be7eb2c'
+				id: '932c904e-9460-45b7-9ce6-7ed33be7eb2c',
 			});
 			return;
 		}
@@ -92,7 +93,7 @@ export default async (ctx: Koa.Context) => {
 	if (token) {
 		if (!same) {
 			await fail(403, {
-				id: '932c904e-9460-45b7-9ce6-7ed33be7eb2c'
+				id: '932c904e-9460-45b7-9ce6-7ed33be7eb2c',
 			});
 			return;
 		}
@@ -101,7 +102,7 @@ export default async (ctx: Koa.Context) => {
 			secret: profile.twoFactorSecret,
 			encoding: 'base32',
 			token: token,
-			window: 2
+			window: 2,
 		});
 
 		if (verified) {
@@ -109,58 +110,58 @@ export default async (ctx: Koa.Context) => {
 			return;
 		} else {
 			await fail(403, {
-				id: 'cdf1235b-ac71-46d4-a3a6-84ccce48df6f'
+				id: 'cdf1235b-ac71-46d4-a3a6-84ccce48df6f',
 			});
 			return;
 		}
 	} else if (body.credentialId) {
 		if (!same && !profile.usePasswordLessLogin) {
 			await fail(403, {
-				id: '932c904e-9460-45b7-9ce6-7ed33be7eb2c'
+				id: '932c904e-9460-45b7-9ce6-7ed33be7eb2c',
 			});
 			return;
 		}
 
 		const clientDataJSON = Buffer.from(body.clientDataJSON, 'hex');
 		const clientData = JSON.parse(clientDataJSON.toString('utf-8'));
-		const challenge = await AttestationChallenges.findOne({
+		const challenge = await AttestationChallenges.findOneBy({
 			userId: user.id,
 			id: body.challengeId,
 			registrationChallenge: false,
-			challenge: hash(clientData.challenge).toString('hex')
+			challenge: hash(clientData.challenge).toString('hex'),
 		});
 
 		if (!challenge) {
 			await fail(403, {
-				id: '2715a88a-2125-4013-932f-aa6fe72792da'
+				id: '2715a88a-2125-4013-932f-aa6fe72792da',
 			});
 			return;
 		}
 
 		await AttestationChallenges.delete({
 			userId: user.id,
-			id: body.challengeId
+			id: body.challengeId,
 		});
 
 		if (new Date().getTime() - challenge.createdAt.getTime() >= 5 * 60 * 1000) {
 			await fail(403, {
-				id: '2715a88a-2125-4013-932f-aa6fe72792da'
+				id: '2715a88a-2125-4013-932f-aa6fe72792da',
 			});
 			return;
 		}
 
-		const securityKey = await UserSecurityKeys.findOne({
+		const securityKey = await UserSecurityKeys.findOneBy({
 			id: Buffer.from(
 				body.credentialId
 					.replace(/-/g, '+')
 					.replace(/_/g, '/'),
 					'base64'
-			).toString('hex')
+			).toString('hex'),
 		});
 
 		if (!securityKey) {
 			await fail(403, {
-				id: '66269679-aeaf-4474-862b-eb761197e046'
+				id: '66269679-aeaf-4474-862b-eb761197e046',
 			});
 			return;
 		}
@@ -171,7 +172,7 @@ export default async (ctx: Koa.Context) => {
 			clientDataJSON,
 			clientData,
 			signature: Buffer.from(body.signature, 'hex'),
-			challenge: challenge.challenge
+			challenge: challenge.challenge,
 		});
 
 		if (isValid) {
@@ -179,25 +180,25 @@ export default async (ctx: Koa.Context) => {
 			return;
 		} else {
 			await fail(403, {
-				id: '93b86c4b-72f9-40eb-9815-798928603d1e'
+				id: '93b86c4b-72f9-40eb-9815-798928603d1e',
 			});
 			return;
 		}
 	} else {
 		if (!same && !profile.usePasswordLessLogin) {
 			await fail(403, {
-				id: '932c904e-9460-45b7-9ce6-7ed33be7eb2c'
+				id: '932c904e-9460-45b7-9ce6-7ed33be7eb2c',
 			});
 			return;
 		}
 
-		const keys = await UserSecurityKeys.find({
-			userId: user.id
+		const keys = await UserSecurityKeys.findBy({
+			userId: user.id,
 		});
 
 		if (keys.length === 0) {
 			await fail(403, {
-				id: 'f27fd449-9af4-4841-9249-1f989b9fa4a4'
+				id: 'f27fd449-9af4-4841-9249-1f989b9fa4a4',
 			});
 			return;
 		}
@@ -215,15 +216,15 @@ export default async (ctx: Koa.Context) => {
 			id: challengeId,
 			challenge: hash(Buffer.from(challenge, 'utf-8')).toString('hex'),
 			createdAt: new Date(),
-			registrationChallenge: false
+			registrationChallenge: false,
 		});
 
 		ctx.body = {
 			challenge,
 			challengeId,
 			securityKeys: keys.map(key => ({
-				id: key.id
-			}))
+				id: key.id,
+			})),
 		};
 		ctx.status = 200;
 		return;

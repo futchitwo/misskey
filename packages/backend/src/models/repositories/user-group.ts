@@ -1,17 +1,16 @@
-import { EntityRepository, Repository } from 'typeorm';
-import { UserGroup } from '@/models/entities/user-group';
-import { UserGroupJoinings } from '../index';
-import { Packed } from '@/misc/schema';
+import { db } from '@/db/postgre.js';
+import { UserGroup } from '@/models/entities/user-group.js';
+import { UserGroupJoinings } from '../index.js';
+import { Packed } from '@/misc/schema.js';
 
-@EntityRepository(UserGroup)
-export class UserGroupRepository extends Repository<UserGroup> {
-	public async pack(
+export const UserGroupRepository = db.getRepository(UserGroup).extend({
+	async pack(
 		src: UserGroup['id'] | UserGroup,
 	): Promise<Packed<'UserGroup'>> {
-		const userGroup = typeof src === 'object' ? src : await this.findOneOrFail(src);
+		const userGroup = typeof src === 'object' ? src : await this.findOneByOrFail({ id: src });
 
-		const users = await UserGroupJoinings.find({
-			userGroupId: userGroup.id
+		const users = await UserGroupJoinings.findBy({
+			userGroupId: userGroup.id,
 		});
 
 		return {
@@ -19,43 +18,7 @@ export class UserGroupRepository extends Repository<UserGroup> {
 			createdAt: userGroup.createdAt.toISOString(),
 			name: userGroup.name,
 			ownerId: userGroup.userId,
-			userIds: users.map(x => x.userId)
+			userIds: users.map(x => x.userId),
 		};
-	}
-}
-
-export const packedUserGroupSchema = {
-	type: 'object' as const,
-	optional: false as const, nullable: false as const,
-	properties: {
-		id: {
-			type: 'string' as const,
-			optional: false as const, nullable: false as const,
-			format: 'id',
-			example: 'xxxxxxxxxx',
-		},
-		createdAt: {
-			type: 'string' as const,
-			optional: false as const, nullable: false as const,
-			format: 'date-time',
-		},
-		name: {
-			type: 'string' as const,
-			optional: false as const, nullable: false as const,
-		},
-		ownerId: {
-			type: 'string' as const,
-			nullable: false as const, optional: false as const,
-			format: 'id',
-		},
-		userIds: {
-			type: 'array' as const,
-			nullable: false as const, optional: true as const,
-			items: {
-				type: 'string' as const,
-				nullable: false as const, optional: false as const,
-				format: 'id',
-			}
-		},
 	},
-};
+});

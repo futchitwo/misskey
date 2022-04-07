@@ -1,12 +1,11 @@
-import { redisClient } from '../db/redis';
-import { User } from '@/models/entities/user';
-import { Note } from '@/models/entities/note';
-import { UserList } from '@/models/entities/user-list';
-import { ReversiGame } from '@/models/entities/games/reversi/game';
-import { UserGroup } from '@/models/entities/user-group';
-import config from '@/config/index';
-import { Antenna } from '@/models/entities/antenna';
-import { Channel } from '@/models/entities/channel';
+import { redisClient } from '../db/redis.js';
+import { User } from '@/models/entities/user.js';
+import { Note } from '@/models/entities/note.js';
+import { UserList } from '@/models/entities/user-list.js';
+import { UserGroup } from '@/models/entities/user-group.js';
+import config from '@/config/index.js';
+import { Antenna } from '@/models/entities/antenna.js';
+import { Channel } from '@/models/entities/channel.js';
 import {
 	StreamChannels,
 	AdminStreamTypes,
@@ -20,12 +19,10 @@ import {
 	MessagingIndexStreamTypes,
 	MessagingStreamTypes,
 	NoteStreamTypes,
-	ReversiGameStreamTypes,
-	ReversiStreamTypes,
 	UserListStreamTypes,
-	UserStreamTypes
-} from '@/server/api/stream/types';
-import { Packed } from '@/misc/schema';
+	UserStreamTypes,
+} from '@/server/api/stream/types.js';
+import { Packed } from '@/misc/schema.js';
 
 class Publisher {
 	private publish = (channel: StreamChannels, type: string | null, value?: any): void => {
@@ -35,7 +32,7 @@ class Publisher {
 
 		redisClient.publish(config.host, JSON.stringify({
 			channel: channel,
-			message: message
+			message: message,
 		}));
 	};
 
@@ -62,7 +59,7 @@ class Publisher {
 	public publishNoteStream = <K extends keyof NoteStreamTypes>(noteId: Note['id'], type: K, value?: NoteStreamTypes[K]): void => {
 		this.publish(`noteStream:${noteId}`, type, {
 			id: noteId,
-			body: value
+			body: value,
 		});
 	};
 
@@ -88,14 +85,6 @@ class Publisher {
 
 	public publishMessagingIndexStream = <K extends keyof MessagingIndexStreamTypes>(userId: User['id'], type: K, value?: MessagingIndexStreamTypes[K]): void => {
 		this.publish(`messagingIndexStream:${userId}`, type, typeof value === 'undefined' ? null : value);
-	};
-
-	public publishReversiStream = <K extends keyof ReversiStreamTypes>(userId: User['id'], type: K, value?: ReversiStreamTypes[K]): void => {
-		this.publish(`reversiStream:${userId}`, type, typeof value === 'undefined' ? null : value);
-	};
-
-	public publishReversiGameStream = <K extends keyof ReversiGameStreamTypes>(gameId: ReversiGame['id'], type: K, value?: ReversiGameStreamTypes[K]): void => {
-		this.publish(`reversiGameStream:${gameId}`, type, typeof value === 'undefined' ? null : value);
 	};
 
 	public publishNotesStream = (note: Packed<'Note'>): void => {
@@ -124,6 +113,4 @@ export const publishAntennaStream = publisher.publishAntennaStream;
 export const publishMessagingStream = publisher.publishMessagingStream;
 export const publishGroupMessagingStream = publisher.publishGroupMessagingStream;
 export const publishMessagingIndexStream = publisher.publishMessagingIndexStream;
-export const publishReversiStream = publisher.publishReversiStream;
-export const publishReversiGameStream = publisher.publishReversiGameStream;
 export const publishAdminStream = publisher.publishAdminStream;

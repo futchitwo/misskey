@@ -1,72 +1,25 @@
-import $ from 'cafy';
 import ms from 'ms';
-import define from '../../define';
-import { ID } from '@/misc/cafy-id';
-import { Pages, DriveFiles } from '@/models/index';
-import { genId } from '@/misc/gen-id';
-import { Page } from '@/models/entities/page';
-import { ApiError } from '../../error';
+import define from '../../define.js';
+import { Pages, DriveFiles } from '@/models/index.js';
+import { genId } from '@/misc/gen-id.js';
+import { Page } from '@/models/entities/page.js';
+import { ApiError } from '../../error.js';
 
 export const meta = {
 	tags: ['pages'],
 
-	requireCredential: true as const,
+	requireCredential: true,
 
 	kind: 'write:pages',
 
 	limit: {
 		duration: ms('1hour'),
-		max: 300
-	},
-
-	params: {
-		title: {
-			validator: $.str,
-		},
-
-		name: {
-			validator: $.str.min(1),
-		},
-
-		summary: {
-			validator: $.optional.nullable.str,
-		},
-
-		content: {
-			validator: $.arr($.obj())
-		},
-
-		variables: {
-			validator: $.arr($.obj())
-		},
-
-		script: {
-			validator: $.str,
-		},
-
-		eyeCatchingImageId: {
-			validator: $.optional.nullable.type(ID),
-		},
-
-		font: {
-			validator: $.optional.str.or(['serif', 'sans-serif']),
-			default: 'sans-serif'
-		},
-
-		alignCenter: {
-			validator: $.optional.bool,
-			default: false
-		},
-
-		hideTitleWhenPinned: {
-			validator: $.optional.bool,
-			default: false
-		},
+		max: 300,
 	},
 
 	res: {
-		type: 'object' as const,
-		optional: false as const, nullable: false as const,
+		type: 'object',
+		optional: false, nullable: false,
 		ref: 'Page',
 	},
 
@@ -74,22 +27,44 @@ export const meta = {
 		noSuchFile: {
 			message: 'No such file.',
 			code: 'NO_SUCH_FILE',
-			id: 'b7b97489-0f66-4b12-a5ff-b21bd63f6e1c'
+			id: 'b7b97489-0f66-4b12-a5ff-b21bd63f6e1c',
 		},
 		nameAlreadyExists: {
 			message: 'Specified name already exists.',
 			code: 'NAME_ALREADY_EXISTS',
-			id: '4650348e-301c-499a-83c9-6aa988c66bc1'
-		}
-	}
-};
+			id: '4650348e-301c-499a-83c9-6aa988c66bc1',
+		},
+	},
+} as const;
 
-export default define(meta, async (ps, user) => {
+export const paramDef = {
+	type: 'object',
+	properties: {
+		title: { type: 'string' },
+		name: { type: 'string', minLength: 1 },
+		summary: { type: 'string', nullable: true },
+		content: { type: 'array', items: {
+			type: 'object', additionalProperties: true,
+		} },
+		variables: { type: 'array', items: {
+			type: 'object', additionalProperties: true,
+		} },
+		script: { type: 'string' },
+		eyeCatchingImageId: { type: 'string', format: 'misskey:id', nullable: true },
+		font: { type: 'string', enum: ['serif', 'sans-serif'], default: "sans-serif" },
+		alignCenter: { type: 'boolean', default: false },
+		hideTitleWhenPinned: { type: 'boolean', default: false },
+	},
+	required: ['title', 'name', 'content', 'variables', 'script'],
+} as const;
+
+// eslint-disable-next-line import/no-default-export
+export default define(meta, paramDef, async (ps, user) => {
 	let eyeCatchingImage = null;
 	if (ps.eyeCatchingImageId != null) {
-		eyeCatchingImage = await DriveFiles.findOne({
+		eyeCatchingImage = await DriveFiles.findOneBy({
 			id: ps.eyeCatchingImageId,
-			userId: user.id
+			userId: user.id,
 		});
 
 		if (eyeCatchingImage == null) {
@@ -97,16 +72,16 @@ export default define(meta, async (ps, user) => {
 		}
 	}
 
-	await Pages.find({
+	await Pages.findBy({
 		userId: user.id,
-		name: ps.name
+		name: ps.name,
 	}).then(result => {
 		if (result.length > 0) {
 			throw new ApiError(meta.errors.nameAlreadyExists);
 		}
 	});
 
-	const page = await Pages.save(new Page({
+	const page = await Pages.insert(new Page({
 		id: genId(),
 		createdAt: new Date(),
 		updatedAt: new Date(),
@@ -121,8 +96,8 @@ export default define(meta, async (ps, user) => {
 		visibility: 'public',
 		alignCenter: ps.alignCenter,
 		hideTitleWhenPinned: ps.hideTitleWhenPinned,
-		font: ps.font
-	}));
+		font: ps.font,
+	})).then(x => Pages.findOneByOrFail(x.identifiers[0]));
 
 	return await Pages.pack(page);
 });

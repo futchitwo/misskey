@@ -1,30 +1,22 @@
-import $ from 'cafy';
-import { ID } from '@/misc/cafy-id';
-import define from '../../../define';
-import { ApiError } from '../../../error';
-import { DriveFiles, Notes } from '@/models/index';
+import define from '../../../define.js';
+import { ApiError } from '../../../error.js';
+import { DriveFiles, Notes } from '@/models/index.js';
 
 export const meta = {
 	tags: ['drive', 'notes'],
 
-	requireCredential: true as const,
+	requireCredential: true,
 
 	kind: 'read:drive',
 
-	params: {
-		fileId: {
-			validator: $.type(ID),
-		}
-	},
-
 	res: {
-		type: 'array' as const,
-		optional: false as const, nullable: false as const,
+		type: 'array',
+		optional: false, nullable: false,
 		items: {
-			type: 'object' as const,
-			optional: false as const, nullable: false as const,
+			type: 'object',
+			optional: false, nullable: false,
 			ref: 'Note',
-		}
+		},
 	},
 
 	errors: {
@@ -32,13 +24,22 @@ export const meta = {
 			message: 'No such file.',
 			code: 'NO_SUCH_FILE',
 			id: 'c118ece3-2e4b-4296-99d1-51756e32d232',
-		}
-	}
-};
+		},
+	},
+} as const;
 
-export default define(meta, async (ps, user) => {
+export const paramDef = {
+	type: 'object',
+	properties: {
+		fileId: { type: 'string', format: 'misskey:id' },
+	},
+	required: ['fileId'],
+} as const;
+
+// eslint-disable-next-line import/no-default-export
+export default define(meta, paramDef, async (ps, user) => {
 	// Fetch file
-	const file = await DriveFiles.findOne({
+	const file = await DriveFiles.findOneBy({
 		id: ps.fileId,
 		userId: user.id,
 	});
@@ -52,6 +53,6 @@ export default define(meta, async (ps, user) => {
 		.getMany();
 
 	return await Notes.packMany(notes, user, {
-		detail: true
+		detail: true,
 	});
 });

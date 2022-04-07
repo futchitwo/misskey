@@ -1,46 +1,44 @@
-import $ from 'cafy';
-import { ID } from '@/misc/cafy-id';
-import { publishUserListStream } from '@/services/stream';
-import define from '../../../define';
-import { ApiError } from '../../../error';
-import { getUser } from '../../../common/getters';
-import { UserLists, UserListJoinings, Users } from '@/models/index';
+import { publishUserListStream } from '@/services/stream.js';
+import define from '../../../define.js';
+import { ApiError } from '../../../error.js';
+import { getUser } from '../../../common/getters.js';
+import { UserLists, UserListJoinings, Users } from '@/models/index.js';
 
 export const meta = {
 	tags: ['lists', 'users'],
 
-	requireCredential: true as const,
+	requireCredential: true,
 
 	kind: 'write:account',
-
-	params: {
-		listId: {
-			validator: $.type(ID),
-		},
-
-		userId: {
-			validator: $.type(ID),
-		},
-	},
 
 	errors: {
 		noSuchList: {
 			message: 'No such list.',
 			code: 'NO_SUCH_LIST',
-			id: '7f44670e-ab16-43b8-b4c1-ccd2ee89cc02'
+			id: '7f44670e-ab16-43b8-b4c1-ccd2ee89cc02',
 		},
 
 		noSuchUser: {
 			message: 'No such user.',
 			code: 'NO_SUCH_USER',
-			id: '588e7f72-c744-4a61-b180-d354e912bda2'
-		}
-	}
-};
+			id: '588e7f72-c744-4a61-b180-d354e912bda2',
+		},
+	},
+} as const;
 
-export default define(meta, async (ps, me) => {
+export const paramDef = {
+	type: 'object',
+	properties: {
+		listId: { type: 'string', format: 'misskey:id' },
+		userId: { type: 'string', format: 'misskey:id' },
+	},
+	required: ['listId', 'userId'],
+} as const;
+
+// eslint-disable-next-line import/no-default-export
+export default define(meta, paramDef, async (ps, me) => {
 	// Fetch the list
-	const userList = await UserLists.findOne({
+	const userList = await UserLists.findOneBy({
 		id: ps.listId,
 		userId: me.id,
 	});

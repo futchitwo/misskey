@@ -1,7 +1,7 @@
 import { PrimaryColumn, Entity, Index, JoinColumn, Column, ManyToOne } from 'typeorm';
-import { Note } from './note';
-import { User } from './user';
-import { id } from '../id';
+import { Note } from './note.js';
+import { User } from './user.js';
+import { id } from '../id.js';
 
 @Entity()
 @Index(['userId', 'noteId'], { unique: true })
@@ -10,7 +10,7 @@ export class NoteFavorite {
 	public id: string;
 
 	@Column('timestamp with time zone', {
-		comment: 'The created date of the NoteFavorite.'
+		comment: 'The created date of the NoteFavorite.',
 	})
 	public createdAt: Date;
 
@@ -19,7 +19,7 @@ export class NoteFavorite {
 	public userId: User['id'];
 
 	@ManyToOne(type => User, {
-		onDelete: 'CASCADE'
+		onDelete: 'CASCADE',
 	})
 	@JoinColumn()
 	public user: User | null;
@@ -28,7 +28,7 @@ export class NoteFavorite {
 	public noteId: Note['id'];
 
 	@ManyToOne(type => Note, {
-		onDelete: 'CASCADE'
+		onDelete: 'CASCADE',
 	})
 	@JoinColumn()
 	public note: Note | null;

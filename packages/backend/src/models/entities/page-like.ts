@@ -1,7 +1,7 @@
 import { PrimaryColumn, Entity, Index, JoinColumn, Column, ManyToOne } from 'typeorm';
-import { User } from './user';
-import { id } from '../id';
-import { Page } from './page';
+import { User } from './user.js';
+import { id } from '../id.js';
+import { Page } from './page.js';
 
 @Entity()
 @Index(['userId', 'pageId'], { unique: true })
@@ -17,7 +17,7 @@ export class PageLike {
 	public userId: User['id'];
 
 	@ManyToOne(type => User, {
-		onDelete: 'CASCADE'
+		onDelete: 'CASCADE',
 	})
 	@JoinColumn()
 	public user: User | null;
@@ -26,7 +26,7 @@ export class PageLike {
 	public pageId: Page['id'];
 
 	@ManyToOne(type => Page, {
-		onDelete: 'CASCADE'
+		onDelete: 'CASCADE',
 	})
 	@JoinColumn()
 	public page: Page | null;

@@ -3,8 +3,8 @@ import * as https from 'https';
 import CacheableLookup from 'cacheable-lookup';
 import fetch from 'node-fetch';
 import { HttpProxyAgent, HttpsProxyAgent } from 'hpagent';
-import config from '@/config/index';
-import { URL } from 'url';
+import config from '@/config/index.js';
+import { URL } from 'node:url';
 
 export async function getJson(url: string, accept = 'application/json, */*', timeout = 10000, headers?: Record<string, string>) {
 	const res = await getResponse({
@@ -12,9 +12,9 @@ export async function getJson(url: string, accept = 'application/json, */*', tim
 		method: 'GET',
 		headers: Object.assign({
 			'User-Agent': config.userAgent,
-			Accept: accept
+			Accept: accept,
 		}, headers || {}),
-		timeout
+		timeout,
 	});
 
 	return await res.json();
@@ -26,9 +26,9 @@ export async function getHtml(url: string, accept = 'text/html, */*', timeout = 
 		method: 'GET',
 		headers: Object.assign({
 			'User-Agent': config.userAgent,
-			Accept: accept
+			Accept: accept,
 		}, headers || {}),
-		timeout
+		timeout,
 	});
 
 	return await res.text();
@@ -95,7 +95,7 @@ export const httpAgent = config.proxy
 		maxSockets,
 		maxFreeSockets: 256,
 		scheduling: 'lifo',
-		proxy: config.proxy
+		proxy: config.proxy,
 	})
 	: _http;
 
@@ -109,7 +109,7 @@ export const httpsAgent = config.proxy
 		maxSockets,
 		maxFreeSockets: 256,
 		scheduling: 'lifo',
-		proxy: config.proxy
+		proxy: config.proxy,
 	})
 	: _https;
 
@@ -120,9 +120,9 @@ export const httpsAgent = config.proxy
  */
 export function getAgentByUrl(url: URL, bypassProxy = false) {
 	if (bypassProxy || (config.proxyBypassHosts || []).includes(url.hostname)) {
-		return url.protocol == 'http:' ? _http : _https;
+		return url.protocol === 'http:' ? _http : _https;
 	} else {
-		return url.protocol == 'http:' ? httpAgent : httpsAgent;
+		return url.protocol === 'http:' ? httpAgent : httpsAgent;
 	}
 }
 

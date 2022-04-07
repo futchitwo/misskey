@@ -1,69 +1,53 @@
-import $ from 'cafy';
-import es from '../../../../db/elasticsearch';
-import define from '../../define';
-import { Notes } from '@/models/index';
+import es from '../../../../db/elasticsearch.js';
+import define from '../../define.js';
+import { Notes } from '@/models/index.js';
 import { In } from 'typeorm';
-import { ID } from '@/misc/cafy-id';
-import config from '@/config/index';
-import { makePaginationQuery } from '../../common/make-pagination-query';
-import { generateVisibilityQuery } from '../../common/generate-visibility-query';
-import { generateMutedUserQuery } from '../../common/generate-muted-user-query';
-import { generateBlockedUserQuery } from '../../common/generate-block-query';
+import config from '@/config/index.js';
+import { makePaginationQuery } from '../../common/make-pagination-query.js';
+import { generateVisibilityQuery } from '../../common/generate-visibility-query.js';
+import { generateMutedUserQuery } from '../../common/generate-muted-user-query.js';
+import { generateBlockedUserQuery } from '../../common/generate-block-query.js';
 
 export const meta = {
 	tags: ['notes'],
 
-	requireCredential: false as const,
-
-	params: {
-		query: {
-			validator: $.str
-		},
-
-		sinceId: {
-			validator: $.optional.type(ID),
-		},
-
-		untilId: {
-			validator: $.optional.type(ID),
-		},
-
-		limit: {
-			validator: $.optional.num.range(1, 100),
-			default: 10
-		},
-
-		host: {
-			validator: $.optional.nullable.str,
-			default: undefined
-		},
-
-		userId: {
-			validator: $.optional.nullable.type(ID),
-			default: null
-		},
-
-		channelId: {
-			validator: $.optional.nullable.type(ID),
-			default: null
-		},
-	},
+	requireCredential: false,
 
 	res: {
-		type: 'array' as const,
-		optional: false as const, nullable: false as const,
+		type: 'array',
+		optional: false, nullable: false,
 		items: {
-			type: 'object' as const,
-			optional: false as const, nullable: false as const,
+			type: 'object',
+			optional: false, nullable: false,
 			ref: 'Note',
-		}
+		},
 	},
 
 	errors: {
-	}
-};
+	},
+} as const;
 
-export default define(meta, async (ps, me) => {
+export const paramDef = {
+	type: 'object',
+	properties: {
+		query: { type: 'string' },
+		sinceId: { type: 'string', format: 'misskey:id' },
+		untilId: { type: 'string', format: 'misskey:id' },
+		limit: { type: 'integer', minimum: 1, maximum: 100, default: 10 },
+		offset: { type: 'integer', default: 0 },
+		host: {
+			type: 'string',
+			nullable: true,
+			description: 'The local host is represented with `null`.',
+		},
+		userId: { type: 'string', format: 'misskey:id', nullable: true, default: null },
+		channelId: { type: 'string', format: 'misskey:id', nullable: true, default: null },
+	},
+	required: ['query'],
+} as const;
+
+// eslint-disable-next-line import/no-default-export
+export default define(meta, paramDef, async (ps, me) => {
 	if (es == null) {
 		const query = makePaginationQuery(Notes.createQueryBuilder('note'), ps.sinceId, ps.untilId);
 
@@ -76,23 +60,29 @@ export default define(meta, async (ps, me) => {
 		query
 			.andWhere('note.text ILIKE :q', { q: `%${ps.query}%` })
 			.innerJoinAndSelect('note.user', 'user')
+			.leftJoinAndSelect('user.avatar', 'avatar')
+			.leftJoinAndSelect('user.banner', 'banner')
 			.leftJoinAndSelect('note.reply', 'reply')
 			.leftJoinAndSelect('note.renote', 'renote')
 			.leftJoinAndSelect('reply.user', 'replyUser')
-			.leftJoinAndSelect('renote.user', 'renoteUser');
+			.leftJoinAndSelect('replyUser.avatar', 'replyUserAvatar')
+			.leftJoinAndSelect('replyUser.banner', 'replyUserBanner')
+			.leftJoinAndSelect('renote.user', 'renoteUser')
+			.leftJoinAndSelect('renoteUser.avatar', 'renoteUserAvatar')
+			.leftJoinAndSelect('renoteUser.banner', 'renoteUserBanner');
 
 		generateVisibilityQuery(query, me);
 		if (me) generateMutedUserQuery(query, me);
 		if (me) generateBlockedUserQuery(query, me);
 
-		const notes = await query.take(ps.limit!).getMany();
+		const notes = await query.take(ps.limit).getMany();
 
 		return await Notes.packMany(notes, me);
 	} else {
 		const userQuery = ps.userId != null ? [{
 			term: {
-				userId: ps.userId
-			}
+				userId: ps.userId,
+			},
 		}] : [];
 
 		const hostQuery = ps.userId == null ?
@@ -100,21 +90,21 @@ export default define(meta, async (ps, me) => {
 				bool: {
 					must_not: {
 						exists: {
-							field: 'userHost'
-						}
-					}
-				}
+							field: 'userHost',
+						},
+					},
+				},
 			}] : ps.host !== undefined ? [{
 				term: {
-					userHost: ps.host
-				}
+					userHost: ps.host,
+				},
 			}] : []
 		: [];
 
 		const result = await es.search({
 			index: config.elasticsearch.index || 'misskey_note',
 			body: {
-				size: ps.limit!,
+				size: ps.limit,
 				from: ps.offset,
 				query: {
 					bool: {
@@ -122,15 +112,15 @@ export default define(meta, async (ps, me) => {
 							simple_query_string: {
 								fields: ['text'],
 								query: ps.query.toLowerCase(),
-								default_operator: 'and'
+								default_operator: 'and',
 							},
-						}, ...hostQuery, ...userQuery]
-					}
+						}, ...hostQuery, ...userQuery],
+					},
 				},
 				sort: [{
-					_doc: 'desc'
-				}]
-			}
+					_doc: 'desc',
+				}],
+			},
 		});
 
 		const hits = result.body.hits.hits.map((hit: any) => hit._id);
@@ -140,11 +130,11 @@ export default define(meta, async (ps, me) => {
 		// Fetch found notes
 		const notes = await Notes.find({
 			where: {
-				id: In(hits)
+				id: In(hits),
 			},
 			order: {
-				id: -1
-			}
+				id: -1,
+			},
 		});
 
 		return await Notes.packMany(notes, me);

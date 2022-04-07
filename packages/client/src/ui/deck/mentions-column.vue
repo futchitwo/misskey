@@ -1,52 +1,28 @@
 <template>
-<XColumn :column="column" :is-stacked="isStacked">
+<XColumn :column="column" :is-stacked="isStacked" @parent-focus="$event => emit('parent-focus', $event)">
 	<template #header><i class="fas fa-at" style="margin-right: 8px;"></i>{{ column.name }}</template>
 
-	<XNotes :pagination="pagination" @before="before()" @after="after()"/>
+	<XNotes :pagination="pagination"/>
 </XColumn>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-import Progress from '@/scripts/loading';
+<script lang="ts" setup>
+import { } from 'vue';
 import XColumn from './column.vue';
 import XNotes from '@/components/notes.vue';
-import * as os from '@/os';
+import { Column } from './deck-store';
 
-export default defineComponent({
-	components: {
-		XColumn,
-		XNotes
-	},
+defineProps<{
+	column: Column;
+	isStacked: boolean;
+}>();
 
-	props: {
-		column: {
-			type: Object,
-			required: true
-		},
-		isStacked: {
-			type: Boolean,
-			required: true
-		}
-	},
+const emit = defineEmits<{
+	(e: 'parent-focus', direction: 'up' | 'down' | 'left' | 'right'): void;
+}>();
 
-	data() {
-		return {
-			pagination: {
-				endpoint: 'notes/mentions',
-				limit: 10,
-			},
-		}
-	},
-
-	methods: {
-		before() {
-			Progress.start();
-		},
-
-		after() {
-			Progress.done();
-		}
-	}
-});
+const pagination = {
+	endpoint: 'notes/mentions' as const,
+	limit: 10,
+};
 </script>

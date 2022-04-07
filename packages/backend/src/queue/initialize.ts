@@ -1,5 +1,5 @@
-import * as Bull from 'bull';
-import config from '@/config/index';
+import Bull from 'bull';
+import config from '@/config/index.js';
 
 export function initialize<T>(name: string, limitPerSec = -1) {
 	return new Bull<T>(name, {
@@ -12,13 +12,13 @@ export function initialize<T>(name: string, limitPerSec = -1) {
 		prefix: config.redis.prefix ? `${config.redis.prefix}:queue` : 'queue',
 		limiter: limitPerSec > 0 ? {
 			max: limitPerSec,
-			duration: 1000
+			duration: 1000,
 		} : undefined,
 		settings: {
 			backoffStrategies: {
-				apBackoff
-			}
-		}
+				apBackoff,
+			},
+		},
 	});
 }
 

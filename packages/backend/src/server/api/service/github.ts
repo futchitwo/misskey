@@ -1,28 +1,29 @@
-import * as Koa from 'koa';
-import * as Router from '@koa/router';
-import { getJson } from '@/misc/fetch';
+import Koa from 'koa';
+import Router from '@koa/router';
+import { getJson } from '@/misc/fetch.js';
 import { OAuth2 } from 'oauth';
-import config from '@/config/index';
-import { publishMainStream } from '@/services/stream';
-import { redisClient } from '../../../db/redis';
+import config from '@/config/index.js';
+import { publishMainStream } from '@/services/stream.js';
+import { redisClient } from '../../../db/redis.js';
 import { v4 as uuid } from 'uuid';
-import signin from '../common/signin';
-import { fetchMeta } from '@/misc/fetch-meta';
-import { Users, UserProfiles } from '@/models/index';
-import { ILocalUser } from '@/models/entities/user';
+import signin from '../common/signin.js';
+import { fetchMeta } from '@/misc/fetch-meta.js';
+import { Users, UserProfiles } from '@/models/index.js';
+import { ILocalUser } from '@/models/entities/user.js';
+import { IsNull } from 'typeorm';
 
-function getUserToken(ctx: Koa.Context) {
+function getUserToken(ctx: Koa.BaseContext): string | null {
 	return ((ctx.headers['cookie'] || '').match(/igi=(\w+)/) || [null, null])[1];
 }
 
-function compareOrigin(ctx: Koa.Context) {
-	function normalizeUrl(url: string) {
+function compareOrigin(ctx: Koa.BaseContext): boolean {
+	function normalizeUrl(url?: string): string {
 		return url ? url.endsWith('/') ? url.substr(0, url.length - 1) : url : '';
 	}
 
 	const referer = ctx.headers['referer'];
 
-	return (normalizeUrl(referer) == normalizeUrl(config.url));
+	return (normalizeUrl(referer) === normalizeUrl(config.url));
 }
 
 // Init router
@@ -40,12 +41,12 @@ router.get('/disconnect/github', async ctx => {
 		return;
 	}
 
-	const user = await Users.findOneOrFail({
-		host: null,
+	const user = await Users.findOneByOrFail({
+		host: IsNull(),
 		token: userToken,
 	});
 
-	const profile = await UserProfiles.findOneOrFail(user.id);
+	const profile = await UserProfiles.findOneByOrFail({ userId: user.id });
 
 	delete profile.integrations.github;
 
@@ -92,7 +93,7 @@ router.get('/connect/github', async ctx => {
 	const params = {
 		redirect_uri: `${config.url}/api/gh/cb`,
 		scope: ['read:user'],
-		state: uuid()
+		state: uuid(),
 	};
 
 	redisClient.set(userToken, JSON.stringify(params));
@@ -107,13 +108,13 @@ router.get('/signin/github', async ctx => {
 	const params = {
 		redirect_uri: `${config.url}/api/gh/cb`,
 		scope: ['read:user'],
-		state: uuid()
+		state: uuid(),
 	};
 
 	ctx.cookies.set('signin_with_github_sid', sessid, {
 		path: '/',
 		secure: config.url.startsWith('https'),
-		httpOnly: true
+		httpOnly: true,
 	});
 
 	redisClient.set(sessid, JSON.stringify(params));
@@ -155,7 +156,7 @@ router.get('/gh/cb', async ctx => {
 
 		const { accessToken } = await new Promise<any>((res, rej) =>
 			oauth2!.getOAuthAccessToken(code, {
-				redirect_uri
+				redirect_uri,
 			}, (err, accessToken, refresh, result) => {
 				if (err) {
 					rej(err);
@@ -167,7 +168,7 @@ router.get('/gh/cb', async ctx => {
 			}));
 
 		const { login, id } = await getJson('https://api.github.com/user', 'application/vnd.github.v3+json', 10 * 1000, {
-			'Authorization': `bearer ${accessToken}`
+			'Authorization': `bearer ${accessToken}`,
 		});
 		if (!login || !id) {
 			ctx.throw(400, 'invalid session');
@@ -184,7 +185,7 @@ router.get('/gh/cb', async ctx => {
 			return;
 		}
 
-		signin(ctx, await Users.findOne(link.userId) as ILocalUser, true);
+		signin(ctx, await Users.findOneBy({ id: link.userId }) as ILocalUser, true);
 	} else {
 		const code = ctx.query.code;
 
@@ -219,7 +220,7 @@ router.get('/gh/cb', async ctx => {
 				}));
 
 		const { login, id } = await getJson('https://api.github.com/user', 'application/vnd.github.v3+json', 10 * 1000, {
-			'Authorization': `bearer ${accessToken}`
+			'Authorization': `bearer ${accessToken}`,
 		});
 
 		if (!login || !id) {
@@ -227,12 +228,12 @@ router.get('/gh/cb', async ctx => {
 			return;
 		}
 
-		const user = await Users.findOneOrFail({
-			host: null,
-			token: userToken
+		const user = await Users.findOneByOrFail({
+			host: IsNull(),
+			token: userToken,
 		});
 
-		const profile = await UserProfiles.findOneOrFail(user.id);
+		const profile = await UserProfiles.findOneByOrFail({ userId: user.id });
 
 		await UserProfiles.update(user.id, {
 			integrations: {
@@ -241,8 +242,8 @@ router.get('/gh/cb', async ctx => {
 					accessToken: accessToken,
 					id: id,
 					login: login,
-				}
-			}
+				},
+			},
 		});
 
 		ctx.body = `GitHub: @${login} を、Misskey: @${user.username} に接続しました！`;
@@ -250,7 +251,7 @@ router.get('/gh/cb', async ctx => {
 		// Publish i updated event
 		publishMainStream(user.id, 'meUpdated', await Users.pack(user, user, {
 			detail: true,
-			includeSecrets: true
+			includeSecrets: true,
 		}));
 	}
 });

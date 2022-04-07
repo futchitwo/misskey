@@ -1,5 +1,5 @@
 import * as redis from 'redis';
-import config from '@/config/index';
+import config from '@/config/index.js';
 
 export function createConnection() {
 	return redis.createClient(
@@ -8,7 +8,7 @@ export function createConnection() {
 		{
 			password: config.redis.pass,
 			prefix: config.redis.prefix,
-			db: config.redis.db || 0
+			db: config.redis.db || 0,
 		}
 	);
 }

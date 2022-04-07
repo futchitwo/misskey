@@ -1,44 +1,37 @@
-import $ from 'cafy';
-import define from '../../define';
-import { AccessTokens, Apps } from '@/models/index';
+import define from '../../define.js';
+import { AccessTokens, Apps } from '@/models/index.js';
 
 export const meta = {
-	requireCredential: true as const,
+	requireCredential: true,
 
 	secure: true,
+} as const;
 
-	params: {
-		limit: {
-			validator: $.optional.num.range(1, 100),
-			default: 10,
-		},
+export const paramDef = {
+	type: 'object',
+	properties: {
+		limit: { type: 'integer', minimum: 1, maximum: 100, default: 10 },
+		offset: { type: 'integer', default: 0 },
+		sort: { type: 'string', enum: ['desc', 'asc'], default: "desc" },
+	},
+	required: [],
+} as const;
 
-		offset: {
-			validator: $.optional.num.min(0),
-			default: 0,
-		},
-
-		sort: {
-			validator: $.optional.str.or('desc|asc'),
-			default: 'desc',
-		}
-	}
-};
-
-export default define(meta, async (ps, user) => {
+// eslint-disable-next-line import/no-default-export
+export default define(meta, paramDef, async (ps, user) => {
 	// Get tokens
 	const tokens = await AccessTokens.find({
 		where: {
-			userId: user.id
+			userId: user.id,
 		},
-		take: ps.limit!,
+		take: ps.limit,
 		skip: ps.offset,
 		order: {
-			id: ps.sort == 'asc' ? 1 : -1
-		}
+			id: ps.sort === 'asc' ? 1 : -1,
+		},
 	});
 
 	return await Promise.all(tokens.map(token => Apps.pack(token.appId, user, {
-		detail: true
+		detail: true,
 	})));
 });

@@ -1,44 +1,43 @@
-import $ from 'cafy';
-import { ID } from '@/misc/cafy-id';
-import define from '../../define';
-import { getNote } from '../../common/getters';
-import { ApiError } from '../../error';
+import define from '../../define.js';
+import { getNote } from '../../common/getters.js';
+import { ApiError } from '../../error.js';
 import fetch from 'node-fetch';
-import config from '@/config/index';
-import { getAgentByUrl } from '@/misc/fetch';
-import { URLSearchParams } from 'url';
-import { fetchMeta } from '@/misc/fetch-meta';
-import { Notes } from '@/models';
+import config from '@/config/index.js';
+import { getAgentByUrl } from '@/misc/fetch.js';
+import { URLSearchParams } from 'node:url';
+import { fetchMeta } from '@/misc/fetch-meta.js';
+import { Notes } from '@/models/index.js';
 
 export const meta = {
 	tags: ['notes'],
 
-	requireCredential: false as const,
-
-	params: {
-		noteId: {
-			validator: $.type(ID),
-		},
-		targetLang: {
-			validator: $.str,
-		},
-	},
+	requireCredential: false,
 
 	res: {
-		type: 'object' as const,
-		optional: false as const, nullable: false as const,
+		type: 'object',
+		optional: false, nullable: false,
 	},
 
 	errors: {
 		noSuchNote: {
 			message: 'No such note.',
 			code: 'NO_SUCH_NOTE',
-			id: 'bea9b03f-36e0-49c5-a4db-627a029f8971'
-		}
-	}
-};
+			id: 'bea9b03f-36e0-49c5-a4db-627a029f8971',
+		},
+	},
+} as const;
 
-export default define(meta, async (ps, user) => {
+export const paramDef = {
+	type: 'object',
+	properties: {
+		noteId: { type: 'string', format: 'misskey:id' },
+		targetLang: { type: 'string' },
+	},
+	required: ['noteId', 'targetLang'],
+} as const;
+
+// eslint-disable-next-line import/no-default-export
+export default define(meta, paramDef, async (ps, user) => {
 	const note = await getNote(ps.noteId).catch(e => {
 		if (e.id === '9725d0ce-ba28-4dde-95a7-2cbb2c15de24') throw new ApiError(meta.errors.noSuchNote);
 		throw e;
@@ -73,10 +72,11 @@ export default define(meta, async (ps, user) => {
 		headers: {
 			'Content-Type': 'application/x-www-form-urlencoded',
 			'User-Agent': config.userAgent,
-			Accept: 'application/json, */*'
+			Accept: 'application/json, */*',
 		},
 		body: params,
-		timeout: 10000,
+		// TODO
+		//timeout: 10000,
 		agent: getAgentByUrl,
 	});
 
@@ -84,6 +84,6 @@ export default define(meta, async (ps, user) => {
 
 	return {
 		sourceLang: json.translations[0].detected_source_language,
-		text: json.translations[0].text
+		text: json.translations[0].text,
 	};
 });

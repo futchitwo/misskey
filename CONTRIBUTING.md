@@ -3,8 +3,11 @@ We're glad you're interested in contributing Misskey! In this document you will 
 
 **ℹ️ Important:** This project uses Japanese as its major language, **but you do not need to translate and write the Issues/PRs in Japanese.**
 Also, you might receive comments on your Issue/PR in Japanese, but you do not need to reply to them in Japanese as well.\
-The accuracy of translation into Japanese is not high, so it will be easier for us to understand if you write it in the original language.
+The accuracy of machine translation into Japanese is not high, so it will be easier for us to understand if you write it in the original language.
 It will also allow the reader to use the translation tool of their preference if necessary.
+
+## Roadmap
+See [ROADMAP.md](./ROADMAP.md)
 
 ## Issues
 Before creating an issue, please check the following:
@@ -15,6 +18,9 @@ Before creating an issue, please check the following:
 
 ## Before implementation
 When you want to add a feature or fix a bug, **first have the design and policy reviewed in an Issue** (if it is not there, please make one). Without this step, there is a high possibility that the PR will not be merged even if it is implemented.
+
+At this point, you also need to clarify the goals of the PR you will create, and make sure that the other members of the team are aware of them.
+PRs that do not have a clear set of do's and don'ts tend to be bloated and difficult to review.
 
 Also, when you start implementation, assign yourself to the Issue (if you cannot do it yourself, ask another member to assign you). By expressing your intention to work the Issue, you can prevent conflicts in the work.
 
@@ -38,6 +44,23 @@ Thank you for your PR! Before creating a PR, please check the following:
 - If this PR includes UI changes, please attach a screenshot in the text.
 
 Thanks for your cooperation 🤗
+
+## Reviewers guide
+Be willing to comment on the good points and not just the things you want fixed 💯
+
+### Review perspective
+- Scope
+  - Are the goals of the PR clear?
+  - Is the granularity of the PR appropriate?
+- Security
+	- Does merging this PR create a vulnerability?
+- Performance
+	- Will merging this PR cause unexpected performance degradation?
+	- Is there a more efficient way?
+- Testing
+	- Does the test ensure the expected behavior?
+	- Are there any omissions or gaps?
+	- Does it check for anomalies?
 
 ## Localization (l10n)
 Misskey uses [Crowdin](https://crowdin.com/project/misskey) for localization management.
@@ -85,21 +108,19 @@ TODO
 Misskey uses GitHub Actions for executing automated tests.
 Configuration files are located in [`/.github/workflows`](/.github/workflows).
 
-## Adding MisskeyRoom items
-* Use English for material, object and texture names.
-* Use meter for unit of length.
-* Your PR should include all source files (e.g. `.png`, `.blend`) of your models (for later editing).
-* Your PR must include the glTF binary files (`.glb`) of your models.
-* Add a locale key `room.furnitures.YOUR_ITEM` at [`/locales/ja-JP.yml`](/locales/ja-JP.yml).
-* Add a furniture definition at [`src/client/scripts/room/furnitures.json5`](src/client/scripts/room/furnitures.json5).
-
-If you have no experience on 3D modeling, we suggest to use the free 3DCG software [Blender](https://www.blender.org/).
-You can find information on glTF 2.0 at [glTF 2.0 — Blender Manual]( https://docs.blender.org/manual/en/dev/addons/io_scene_gltf2.html).
+## Vue
+Misskey uses Vue(v3) as its front-end framework.
+- Use TypeScript.
+- **When creating a new component, please use the Composition API (with [setup sugar](https://v3.vuejs.org/api/sfc-script-setup.html) and [ref sugar](https://github.com/vuejs/rfcs/discussions/369)) instead of the Options API.**
+	- Some of the existing components are implemented in the Options API, but it is an old implementation. Refactors that migrate those components to the Composition API are also welcome.
 
 ## Notes
 ### How to resolve conflictions occurred at yarn.lock?
 
 Just execute `yarn` to fix it.
+
+### INSERTするときにはsaveではなくinsertを使用する
+#6441
 
 ### placeholder
 SQLをクエリビルダで組み立てる際、使用するプレースホルダは重複してはならない
@@ -180,11 +201,13 @@ MongoDBの時とは違い、findOneでレコードを取得する時に対象レ
 MongoDBは`null`で返してきてたので、その感覚で`if (x === null)`とか書くとバグる。代わりに`if (x == null)`と書いてください
 
 ### Migration作成方法
-```
-npx ts-node ./node_modules/typeorm/cli.js migration:generate -n 変更の名前 -o
+packages/backendで:
+```sh
+npx typeorm migration:generate -d ormconfig.js -o <migration name>
 ```
 
-作成されたスクリプトは不必要な変更を含むため除去してください。
+- 生成後、ファイルをmigration下に移してください
+- 作成されたスクリプトは不必要な変更を含むため除去してください
 
 ### コネクションには`markRaw`せよ
 **Vueのコンポーネントのdataオプションとして**misskey.jsのコネクションを設定するとき、必ず`markRaw`でラップしてください。インスタンスが不必要にリアクティブ化されることで、misskey.js内の処理で不具合が発生するとともに、パフォーマンス上の問題にも繋がる。なお、Composition APIを使う場合はこの限りではない(リアクティブ化はマニュアルなため)。

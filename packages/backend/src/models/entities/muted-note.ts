@@ -1,8 +1,8 @@
 import { Entity, Index, JoinColumn, Column, ManyToOne, PrimaryColumn } from 'typeorm';
-import { Note } from './note';
-import { User } from './user';
-import { id } from '../id';
-import { mutedNoteReasons } from '../../types';
+import { Note } from './note.js';
+import { User } from './user.js';
+import { id } from '../id.js';
+import { mutedNoteReasons } from '../../types.js';
 
 @Entity()
 @Index(['noteId', 'userId'], { unique: true })
@@ -13,12 +13,12 @@ export class MutedNote {
 	@Index()
 	@Column({
 		...id(),
-		comment: 'The note ID.'
+		comment: 'The note ID.',
 	})
 	public noteId: Note['id'];
 
 	@ManyToOne(type => Note, {
-		onDelete: 'CASCADE'
+		onDelete: 'CASCADE',
 	})
 	@JoinColumn()
 	public note: Note | null;
@@ -26,12 +26,12 @@ export class MutedNote {
 	@Index()
 	@Column({
 		...id(),
-		comment: 'The user ID.'
+		comment: 'The user ID.',
 	})
 	public userId: User['id'];
 
 	@ManyToOne(type => User, {
-		onDelete: 'CASCADE'
+		onDelete: 'CASCADE',
 	})
 	@JoinColumn()
 	public user: User | null;
@@ -42,7 +42,7 @@ export class MutedNote {
 	@Index()
 	@Column('enum', {
 		enum: mutedNoteReasons,
-		comment: 'The reason of the MutedNote.'
+		comment: 'The reason of the MutedNote.',
 	})
 	public reason: typeof mutedNoteReasons[number];
 }

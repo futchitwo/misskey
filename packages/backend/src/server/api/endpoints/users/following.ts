@@ -1,78 +1,79 @@
-import $ from 'cafy';
-import { ID } from '@/misc/cafy-id';
-import define from '../../define';
-import { ApiError } from '../../error';
-import { Users, Followings, UserProfiles } from '@/models/index';
-import { makePaginationQuery } from '../../common/make-pagination-query';
-import { toPunyNullable } from '@/misc/convert-host';
+import define from '../../define.js';
+import { ApiError } from '../../error.js';
+import { Users, Followings, UserProfiles } from '@/models/index.js';
+import { makePaginationQuery } from '../../common/make-pagination-query.js';
+import { toPunyNullable } from '@/misc/convert-host.js';
+import { IsNull } from 'typeorm';
 
 export const meta = {
 	tags: ['users'],
 
-	requireCredential: false as const,
-
-	params: {
-		userId: {
-			validator: $.optional.type(ID),
-		},
-
-		username: {
-			validator: $.optional.str
-		},
-
-		host: {
-			validator: $.optional.nullable.str
-		},
-
-		sinceId: {
-			validator: $.optional.type(ID),
-		},
-
-		untilId: {
-			validator: $.optional.type(ID),
-		},
-
-		limit: {
-			validator: $.optional.num.range(1, 100),
-			default: 10
-		},
-	},
+	requireCredential: false,
 
 	res: {
-		type: 'array' as const,
-		optional: false as const, nullable: false as const,
+		type: 'array',
+		optional: false, nullable: false,
 		items: {
-			type: 'object' as const,
-			optional: false as const, nullable: false as const,
+			type: 'object',
+			optional: false, nullable: false,
 			ref: 'Following',
-		}
+		},
 	},
 
 	errors: {
 		noSuchUser: {
 			message: 'No such user.',
 			code: 'NO_SUCH_USER',
-			id: '63e4aba4-4156-4e53-be25-c9559e42d71b'
+			id: '63e4aba4-4156-4e53-be25-c9559e42d71b',
 		},
 
 		forbidden: {
 			message: 'Forbidden.',
 			code: 'FORBIDDEN',
-			id: 'f6cdb0df-c19f-ec5c-7dbb-0ba84a1f92ba'
+			id: 'f6cdb0df-c19f-ec5c-7dbb-0ba84a1f92ba',
 		},
-	}
-};
+	},
+} as const;
 
-export default define(meta, async (ps, me) => {
-	const user = await Users.findOne(ps.userId != null
+export const paramDef = {
+	type: 'object',
+	properties: {
+		sinceId: { type: 'string', format: 'misskey:id' },
+		untilId: { type: 'string', format: 'misskey:id' },
+		limit: { type: 'integer', minimum: 1, maximum: 100, default: 10 },
+	},
+	anyOf: [
+		{
+			properties: {
+				userId: { type: 'string', format: 'misskey:id' },
+			},
+			required: ['userId'],
+		},
+		{
+			properties: {
+				username: { type: 'string' },
+				host: {
+					type: 'string',
+					nullable: true,
+					description: 'The local host is represented with `null`.',
+				},
+			},
+			required: ['username', 'host'],
+		},
+	],
+} as const;
+
+// eslint-disable-next-line import/no-default-export
+export default define(meta, paramDef, async (ps, me) => {
+	const user = await Users.findOneBy(ps.userId != null
 		? { id: ps.userId }
-		: { usernameLower: ps.username!.toLowerCase(), host: toPunyNullable(ps.host) });
+		: { usernameLower: ps.username!.toLowerCase(), host: toPunyNullable(ps.host) ?? IsNull() });
 
 	if (user == null) {
 		throw new ApiError(meta.errors.noSuchUser);
 	}
 
-	const profile = await UserProfiles.findOneOrFail(user.id);
+	const profile = await UserProfiles.findOneByOrFail({ userId: user.id });
 
 	if (profile.ffVisibility === 'private') {
 		if (me == null || (me.id !== user.id)) {
@@ -82,7 +83,7 @@ export default define(meta, async (ps, me) => {
 		if (me == null) {
 			throw new ApiError(meta.errors.forbidden);
 		} else if (me.id !== user.id) {
-			const following = await Followings.findOne({
+			const following = await Followings.findOneBy({
 				followeeId: user.id,
 				followerId: me.id,
 			});
@@ -97,7 +98,7 @@ export default define(meta, async (ps, me) => {
 		.innerJoinAndSelect('following.followee', 'followee');
 
 	const followings = await query
-		.take(ps.limit!)
+		.take(ps.limit)
 		.getMany();
 
 	return await Followings.packMany(followings, me, { populateFollowee: true });

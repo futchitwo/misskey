@@ -1,26 +1,27 @@
-import $ from 'cafy';
-import define from '../../../define';
-import { Users } from '@/models/index';
-import { doPostSuspend } from '@/services/suspend-user';
-import { publishUserEvent } from '@/services/stream';
-import { createDeleteAccountJob } from '@/queue';
-import { ID } from '@/misc/cafy-id';
+import define from '../../../define.js';
+import { Users } from '@/models/index.js';
+import { doPostSuspend } from '@/services/suspend-user.js';
+import { publishUserEvent } from '@/services/stream.js';
+import { createDeleteAccountJob } from '@/queue/index.js';
 
 export const meta = {
 	tags: ['admin'],
 
-	requireCredential: true as const,
+	requireCredential: true,
 	requireModerator: true,
+} as const;
 
-	params: {
-		userId: {
-			validator: $.type(ID),
-		},
-	}
-};
+export const paramDef = {
+	type: 'object',
+	properties: {
+		userId: { type: 'string', format: 'misskey:id' },
+	},
+	required: ['userId'],
+} as const;
 
-export default define(meta, async (ps, me) => {
-	const user = await Users.findOne(ps.userId);
+// eslint-disable-next-line import/no-default-export
+export default define(meta, paramDef, async (ps, me) => {
+	const user = await Users.findOneBy({ id: ps.userId });
 
 	if (user == null) {
 		throw new Error('user not found');
@@ -39,11 +40,11 @@ export default define(meta, async (ps, me) => {
 		await doPostSuspend(user).catch(e => {});
 
 		createDeleteAccountJob(user, {
-			soft: false
+			soft: false,
 		});
 	} else {
 		createDeleteAccountJob(user, {
-			soft: true // リモートユーザーの削除は、完全にDBから物理削除してしまうと再度連合してきてアカウントが復活する可能性があるため、soft指定する
+			soft: true, // リモートユーザーの削除は、完全にDBから物理削除してしまうと再度連合してきてアカウントが復活する可能性があるため、soft指定する
 		});
 	}
 

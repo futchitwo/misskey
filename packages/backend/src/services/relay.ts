@@ -1,18 +1,23 @@
-import { createSystemUser } from './create-system-user';
-import { renderFollowRelay } from '@/remote/activitypub/renderer/follow-relay';
-import { renderActivity, attachLdSignature } from '@/remote/activitypub/renderer/index';
-import renderUndo from '@/remote/activitypub/renderer/undo';
-import { deliver } from '@/queue/index';
-import { ILocalUser, User } from '@/models/entities/user';
-import { Users, Relays } from '@/models/index';
-import { genId } from '@/misc/gen-id';
+import { createSystemUser } from './create-system-user.js';
+import { renderFollowRelay } from '@/remote/activitypub/renderer/follow-relay.js';
+import { renderActivity, attachLdSignature } from '@/remote/activitypub/renderer/index.js';
+import renderUndo from '@/remote/activitypub/renderer/undo.js';
+import { deliver } from '@/queue/index.js';
+import { ILocalUser, User } from '@/models/entities/user.js';
+import { Users, Relays } from '@/models/index.js';
+import { genId } from '@/misc/gen-id.js';
+import { Cache } from '@/misc/cache.js';
+import { Relay } from '@/models/entities/relay.js';
+import { IsNull } from 'typeorm';
 
 const ACTOR_USERNAME = 'relay.actor' as const;
 
+const relaysCache = new Cache<Relay[]>(1000 * 60 * 10);
+
 export async function getRelayActor(): Promise<ILocalUser> {
-	const user = await Users.findOne({
-		host: null,
-		username: ACTOR_USERNAME
+	const user = await Users.findOneBy({
+		host: IsNull(),
+		username: ACTOR_USERNAME,
 	});
 
 	if (user) return user as ILocalUser;
@@ -22,11 +27,11 @@ export async function getRelayActor(): Promise<ILocalUser> {
 }
 
 export async function addRelay(inbox: string) {
-	const relay = await Relays.save({
+	const relay = await Relays.insert({
 		id: genId(),
 		inbox,
-		status: 'requesting'
-	});
+		status: 'requesting',
+	}).then(x => Relays.findOneByOrFail(x.identifiers[0]));
 
 	const relayActor = await getRelayActor();
 	const follow = await renderFollowRelay(relay, relayActor);
@@ -37,8 +42,8 @@ export async function addRelay(inbox: string) {
 }
 
 export async function removeRelay(inbox: string) {
-	const relay = await Relays.findOne({
-		inbox
+	const relay = await Relays.findOneBy({
+		inbox,
 	});
 
 	if (relay == null) {
@@ -61,7 +66,7 @@ export async function listRelay() {
 
 export async function relayAccepted(id: string) {
 	const result = await Relays.update(id, {
-		status: 'accepted'
+		status: 'accepted',
 	});
 
 	return JSON.stringify(result);
@@ -69,7 +74,7 @@ export async function relayAccepted(id: string) {
 
 export async function relayRejected(id: string) {
 	const result = await Relays.update(id, {
-		status: 'rejected'
+		status: 'rejected',
 	});
 
 	return JSON.stringify(result);
@@ -78,9 +83,9 @@ export async function relayRejected(id: string) {
 export async function deliverToRelays(user: { id: User['id']; host: null; }, activity: any) {
 	if (activity == null) return;
 
-	const relays = await Relays.find({
-		status: 'accepted'
-	});
+	const relays = await relaysCache.fetch(null, () => Relays.findBy({
+		status: 'accepted',
+	}));
 	if (relays.length === 0) return;
 
 	const copy = JSON.parse(JSON.stringify(activity));

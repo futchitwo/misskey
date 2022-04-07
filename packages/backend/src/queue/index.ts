@@ -1,29 +1,35 @@
-import * as httpSignature from 'http-signature';
+import httpSignature from 'http-signature';
+import { v4 as uuid } from 'uuid';
 
-import config from '@/config/index';
-import { envOption } from '../env';
+import config from '@/config/index.js';
+import { envOption } from '../env.js';
 
-import processDeliver from './processors/deliver';
-import processInbox from './processors/inbox';
-import processDb from './processors/db/index';
-import procesObjectStorage from './processors/object-storage/index';
-import { queueLogger } from './logger';
-import { DriveFile } from '@/models/entities/drive-file';
-import { getJobInfo } from './get-job-info';
-import { systemQueue, dbQueue, deliverQueue, inboxQueue, objectStorageQueue } from './queues';
-import { ThinUser } from './types';
-import { IActivity } from '@/remote/activitypub/type';
+import processDeliver from './processors/deliver.js';
+import processInbox from './processors/inbox.js';
+import processDb from './processors/db/index.js';
+import processObjectStorage from './processors/object-storage/index.js';
+import processSystemQueue from './processors/system/index.js';
+import processWebhookDeliver from './processors/webhook-deliver.js';
+import { endedPollNotification } from './processors/ended-poll-notification.js';
+import { queueLogger } from './logger.js';
+import { DriveFile } from '@/models/entities/drive-file.js';
+import { getJobInfo } from './get-job-info.js';
+import { systemQueue, dbQueue, deliverQueue, inboxQueue, objectStorageQueue, endedPollNotificationQueue, webhookDeliverQueue } from './queues.js';
+import { ThinUser } from './types.js';
+import { IActivity } from '@/remote/activitypub/type.js';
+import { Webhook, webhookEventTypes } from '@/models/entities/webhook.js';
 
 function renderError(e: Error): any {
 	return {
 		stack: e?.stack,
 		message: e?.message,
-		name: e?.name
+		name: e?.name,
 	};
 }
 
 const systemLogger = queueLogger.createSubLogger('system');
 const deliverLogger = queueLogger.createSubLogger('deliver');
+const webhookLogger = queueLogger.createSubLogger('webhook');
 const inboxLogger = queueLogger.createSubLogger('inbox');
 const dbLogger = queueLogger.createSubLogger('db');
 const objectStorageLogger = queueLogger.createSubLogger('objectStorage');
@@ -68,163 +74,215 @@ objectStorageQueue
 	.on('error', (job: any, err: Error) => objectStorageLogger.error(`error ${err}`, { job, e: renderError(err) }))
 	.on('stalled', (job) => objectStorageLogger.warn(`stalled id=${job.id}`));
 
+webhookDeliverQueue
+	.on('waiting', (jobId) => webhookLogger.debug(`waiting id=${jobId}`))
+	.on('active', (job) => webhookLogger.debug(`active ${getJobInfo(job, true)} to=${job.data.to}`))
+	.on('completed', (job, result) => webhookLogger.debug(`completed(${result}) ${getJobInfo(job, true)} to=${job.data.to}`))
+	.on('failed', (job, err) => webhookLogger.warn(`failed(${err}) ${getJobInfo(job)} to=${job.data.to}`))
+	.on('error', (job: any, err: Error) => webhookLogger.error(`error ${err}`, { job, e: renderError(err) }))
+	.on('stalled', (job) => webhookLogger.warn(`stalled ${getJobInfo(job)} to=${job.data.to}`));
+
 export function deliver(user: ThinUser, content: unknown, to: string | null) {
 	if (content == null) return null;
 	if (to == null) return null;
 
 	const data = {
 		user: {
-			id: user.id
+			id: user.id,
 		},
 		content,
-		to
+		to,
 	};
 
 	return deliverQueue.add(data, {
 		attempts: config.deliverJobMaxAttempts || 12,
 		timeout: 1 * 60 * 1000,	// 1min
 		backoff: {
-			type: 'apBackoff'
+			type: 'apBackoff',
 		},
 		removeOnComplete: true,
-		removeOnFail: true
+		removeOnFail: true,
 	});
 }
 
 export function inbox(activity: IActivity, signature: httpSignature.IParsedSignature) {
 	const data = {
 		activity: activity,
-		signature
+		signature,
 	};
 
 	return inboxQueue.add(data, {
 		attempts: config.inboxJobMaxAttempts || 8,
 		timeout: 5 * 60 * 1000,	// 5min
 		backoff: {
-			type: 'apBackoff'
+			type: 'apBackoff',
 		},
 		removeOnComplete: true,
-		removeOnFail: true
+		removeOnFail: true,
 	});
 }
 
 export function createDeleteDriveFilesJob(user: ThinUser) {
 	return dbQueue.add('deleteDriveFiles', {
-		user: user
+		user: user,
 	}, {
 		removeOnComplete: true,
-		removeOnFail: true
+		removeOnFail: true,
+	});
+}
+
+export function createExportCustomEmojisJob(user: ThinUser) {
+	return dbQueue.add('exportCustomEmojis', {
+		user: user,
+	}, {
+		removeOnComplete: true,
+		removeOnFail: true,
 	});
 }
 
 export function createExportNotesJob(user: ThinUser) {
 	return dbQueue.add('exportNotes', {
-		user: user
+		user: user,
 	}, {
 		removeOnComplete: true,
-		removeOnFail: true
+		removeOnFail: true,
 	});
 }
 
-export function createExportFollowingJob(user: ThinUser) {
+export function createExportFollowingJob(user: ThinUser, excludeMuting = false, excludeInactive = false) {
 	return dbQueue.add('exportFollowing', {
-		user: user
+		user: user,
+		excludeMuting,
+		excludeInactive,
 	}, {
 		removeOnComplete: true,
-		removeOnFail: true
+		removeOnFail: true,
 	});
 }
 
 export function createExportMuteJob(user: ThinUser) {
 	return dbQueue.add('exportMute', {
-		user: user
+		user: user,
 	}, {
 		removeOnComplete: true,
-		removeOnFail: true
+		removeOnFail: true,
 	});
 }
 
 export function createExportBlockingJob(user: ThinUser) {
 	return dbQueue.add('exportBlocking', {
-		user: user
+		user: user,
 	}, {
 		removeOnComplete: true,
-		removeOnFail: true
+		removeOnFail: true,
 	});
 }
 
 export function createExportUserListsJob(user: ThinUser) {
 	return dbQueue.add('exportUserLists', {
-		user: user
+		user: user,
 	}, {
 		removeOnComplete: true,
-		removeOnFail: true
+		removeOnFail: true,
 	});
 }
 
 export function createImportFollowingJob(user: ThinUser, fileId: DriveFile['id']) {
 	return dbQueue.add('importFollowing', {
 		user: user,
-		fileId: fileId
+		fileId: fileId,
 	}, {
 		removeOnComplete: true,
-		removeOnFail: true
+		removeOnFail: true,
 	});
 }
 
 export function createImportMutingJob(user: ThinUser, fileId: DriveFile['id']) {
 	return dbQueue.add('importMuting', {
 		user: user,
-		fileId: fileId
+		fileId: fileId,
 	}, {
 		removeOnComplete: true,
-		removeOnFail: true
+		removeOnFail: true,
 	});
 }
 
 export function createImportBlockingJob(user: ThinUser, fileId: DriveFile['id']) {
 	return dbQueue.add('importBlocking', {
 		user: user,
-		fileId: fileId
+		fileId: fileId,
 	}, {
 		removeOnComplete: true,
-		removeOnFail: true
+		removeOnFail: true,
 	});
 }
 
 export function createImportUserListsJob(user: ThinUser, fileId: DriveFile['id']) {
 	return dbQueue.add('importUserLists', {
 		user: user,
-		fileId: fileId
+		fileId: fileId,
 	}, {
 		removeOnComplete: true,
-		removeOnFail: true
+		removeOnFail: true,
+	});
+}
+
+export function createImportCustomEmojisJob(user: ThinUser, fileId: DriveFile['id']) {
+	return dbQueue.add('importCustomEmojis', {
+		user: user,
+		fileId: fileId,
+	}, {
+		removeOnComplete: true,
+		removeOnFail: true,
 	});
 }
 
 export function createDeleteAccountJob(user: ThinUser, opts: { soft?: boolean; } = {}) {
 	return dbQueue.add('deleteAccount', {
 		user: user,
-		soft: opts.soft
+		soft: opts.soft,
 	}, {
 		removeOnComplete: true,
-		removeOnFail: true
+		removeOnFail: true,
 	});
 }
 
 export function createDeleteObjectStorageFileJob(key: string) {
 	return objectStorageQueue.add('deleteFile', {
-		key: key
+		key: key,
 	}, {
 		removeOnComplete: true,
-		removeOnFail: true
+		removeOnFail: true,
 	});
 }
 
 export function createCleanRemoteFilesJob() {
 	return objectStorageQueue.add('cleanRemoteFiles', {}, {
 		removeOnComplete: true,
-		removeOnFail: true
+		removeOnFail: true,
+	});
+}
+
+export function webhookDeliver(webhook: Webhook, type: typeof webhookEventTypes[number], content: unknown) {
+	const data = {
+		type,
+		content,
+		webhookId: webhook.id,
+		userId: webhook.userId,
+		to: webhook.url,
+		secret: webhook.secret,
+		createdAt: Date.now(),
+		eventId: uuid(),
+	};
+
+	return webhookDeliverQueue.add(data, {
+		attempts: 4,
+		timeout: 1 * 60 * 1000,	// 1min
+		backoff: {
+			type: 'apBackoff',
+		},
+		removeOnComplete: true,
+		removeOnFail: true,
 	});
 }
 
@@ -233,13 +291,34 @@ export default function() {
 
 	deliverQueue.process(config.deliverJobConcurrency || 128, processDeliver);
 	inboxQueue.process(config.inboxJobConcurrency || 16, processInbox);
+	endedPollNotificationQueue.process(endedPollNotification);
+	webhookDeliverQueue.process(64, processWebhookDeliver);
 	processDb(dbQueue);
-	procesObjectStorage(objectStorageQueue);
+	processObjectStorage(objectStorageQueue);
+
+	systemQueue.add('tickCharts', {
+	}, {
+		repeat: { cron: '55 * * * *' },
+		removeOnComplete: true,
+	});
 
 	systemQueue.add('resyncCharts', {
 	}, {
-		repeat: { cron: '0 0 * * *' }
+		repeat: { cron: '0 0 * * *' },
 	});
+
+	systemQueue.add('cleanCharts', {
+	}, {
+		repeat: { cron: '0 0 * * *' },
+	});
+
+	systemQueue.add('checkExpiredMutings', {
+	}, {
+		repeat: { cron: '*/5 * * * *' },
+		removeOnComplete: true,
+	});
+
+	processSystemQueue(systemQueue);
 }
 
 export function destroy() {

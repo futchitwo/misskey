@@ -1,9 +1,9 @@
-import { EntityRepository, Repository } from 'typeorm';
-import { Users } from '../index';
-import { Following } from '@/models/entities/following';
-import { awaitAll } from '@/prelude/await-all';
-import { Packed } from '@/misc/schema';
-import { User } from '@/models/entities/user';
+import { db } from '@/db/postgre.js';
+import { Users } from '../index.js';
+import { Following } from '@/models/entities/following.js';
+import { awaitAll } from '@/prelude/await-all.js';
+import { Packed } from '@/misc/schema.js';
+import { User } from '@/models/entities/user.js';
 
 type LocalFollowerFollowing = Following & {
 	followerHost: null;
@@ -29,25 +29,24 @@ type RemoteFolloweeFollowing = Following & {
 	followeeSharedInbox: string;
 };
 
-@EntityRepository(Following)
-export class FollowingRepository extends Repository<Following> {
-	public isLocalFollower(following: Following): following is LocalFollowerFollowing {
+export const FollowingRepository = db.getRepository(Following).extend({
+	isLocalFollower(following: Following): following is LocalFollowerFollowing {
 		return following.followerHost == null;
-	}
+	},
 
-	public isRemoteFollower(following: Following): following is RemoteFollowerFollowing {
+	isRemoteFollower(following: Following): following is RemoteFollowerFollowing {
 		return following.followerHost != null;
-	}
+	},
 
-	public isLocalFollowee(following: Following): following is LocalFolloweeFollowing {
+	isLocalFollowee(following: Following): following is LocalFolloweeFollowing {
 		return following.followeeHost == null;
-	}
+	},
 
-	public isRemoteFollowee(following: Following): following is RemoteFolloweeFollowing {
+	isRemoteFollowee(following: Following): following is RemoteFolloweeFollowing {
 		return following.followeeHost != null;
-	}
+	},
 
-	public async pack(
+	async pack(
 		src: Following['id'] | Following,
 		me?: { id: User['id'] } | null | undefined,
 		opts?: {
@@ -55,7 +54,7 @@ export class FollowingRepository extends Repository<Following> {
 			populateFollower?: boolean;
 		}
 	): Promise<Packed<'Following'>> {
-		const following = typeof src === 'object' ? src : await this.findOneOrFail(src);
+		const following = typeof src === 'object' ? src : await this.findOneByOrFail({ id: src });
 
 		if (opts == null) opts = {};
 
@@ -65,15 +64,15 @@ export class FollowingRepository extends Repository<Following> {
 			followeeId: following.followeeId,
 			followerId: following.followerId,
 			followee: opts.populateFollowee ? Users.pack(following.followee || following.followeeId, me, {
-				detail: true
+				detail: true,
 			}) : undefined,
 			follower: opts.populateFollower ? Users.pack(following.follower || following.followerId, me, {
-				detail: true
+				detail: true,
 			}) : undefined,
 		});
-	}
+	},
 
-	public packMany(
+	packMany(
 		followings: any[],
 		me?: { id: User['id'] } | null | undefined,
 		opts?: {
@@ -82,43 +81,5 @@ export class FollowingRepository extends Repository<Following> {
 		}
 	) {
 		return Promise.all(followings.map(x => this.pack(x, me, opts)));
-	}
-}
-
-export const packedFollowingSchema = {
-	type: 'object' as const,
-	optional: false as const, nullable: false as const,
-	properties: {
-		id: {
-			type: 'string' as const,
-			optional: false as const, nullable: false as const,
-			format: 'id',
-			example: 'xxxxxxxxxx',
-		},
-		createdAt: {
-			type: 'string' as const,
-			optional: false as const, nullable: false as const,
-			format: 'date-time',
-		},
-		followeeId: {
-			type: 'string' as const,
-			optional: false as const, nullable: false as const,
-			format: 'id',
-		},
-		followee: {
-			type: 'object' as const,
-			optional: true as const, nullable: false as const,
-			ref: 'User' as const,
-		},
-		followerId: {
-			type: 'string' as const,
-			optional: false as const, nullable: false as const,
-			format: 'id',
-		},
-		follower: {
-			type: 'object' as const,
-			optional: true as const, nullable: false as const,
-			ref: 'User' as const,
-		},
-	}
-};
+	},
+});

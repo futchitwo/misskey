@@ -1,56 +1,27 @@
-import { EntityRepository, Repository } from 'typeorm';
-import { NoteFavorite } from '@/models/entities/note-favorite';
-import { Notes } from '../index';
-import { User } from '@/models/entities/user';
+import { db } from '@/db/postgre.js';
+import { NoteFavorite } from '@/models/entities/note-favorite.js';
+import { Notes } from '../index.js';
+import { User } from '@/models/entities/user.js';
 
-@EntityRepository(NoteFavorite)
-export class NoteFavoriteRepository extends Repository<NoteFavorite> {
-	public async pack(
+export const NoteFavoriteRepository = db.getRepository(NoteFavorite).extend({
+	async pack(
 		src: NoteFavorite['id'] | NoteFavorite,
 		me?: { id: User['id'] } | null | undefined
 	) {
-		const favorite = typeof src === 'object' ? src : await this.findOneOrFail(src);
+		const favorite = typeof src === 'object' ? src : await this.findOneByOrFail({ id: src });
 
 		return {
 			id: favorite.id,
-			createdAt: favorite.createdAt,
+			createdAt: favorite.createdAt.toISOString(),
 			noteId: favorite.noteId,
 			note: await Notes.pack(favorite.note || favorite.noteId, me),
 		};
-	}
+	},
 
-	public packMany(
+	packMany(
 		favorites: any[],
 		me: { id: User['id'] }
 	) {
 		return Promise.all(favorites.map(x => this.pack(x, me)));
-	}
-}
-
-export const packedNoteFavoriteSchema = {
-	type: 'object' as const,
-	optional: false as const, nullable: false as const,
-	properties: {
-		id: {
-			type: 'string' as const,
-			optional: false as const, nullable: false as const,
-			format: 'id',
-			example: 'xxxxxxxxxx',
-		},
-		createdAt: {
-			type: 'string' as const,
-			optional: false as const, nullable: false as const,
-			format: 'date-time',
-		},
-		note: {
-			type: 'object' as const,
-			optional: false as const, nullable: false as const,
-			ref: 'Note' as const,
-		},
-		noteId: {
-			type: 'string' as const,
-			optional: false as const, nullable: false as const,
-			format: 'id',
-		},
 	},
-};
+});

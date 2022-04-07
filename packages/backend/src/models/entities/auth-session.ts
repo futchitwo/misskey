@@ -1,7 +1,7 @@
 import { Entity, PrimaryColumn, Index, Column, ManyToOne, JoinColumn } from 'typeorm';
-import { User } from './user';
-import { App } from './app';
-import { id } from '../id';
+import { User } from './user.js';
+import { App } from './app.js';
+import { id } from '../id.js';
 
 @Entity()
 export class AuthSession {
@@ -9,25 +9,25 @@ export class AuthSession {
 	public id: string;
 
 	@Column('timestamp with time zone', {
-		comment: 'The created date of the AuthSession.'
+		comment: 'The created date of the AuthSession.',
 	})
 	public createdAt: Date;
 
 	@Index()
 	@Column('varchar', {
-		length: 128
+		length: 128,
 	})
 	public token: string;
 
 	@Column({
 		...id(),
-		nullable: true
+		nullable: true,
 	})
 	public userId: User['id'];
 
 	@ManyToOne(type => User, {
 		onDelete: 'CASCADE',
-		nullable: true
+		nullable: true,
 	})
 	@JoinColumn()
 	public user: User | null;
@@ -36,7 +36,7 @@ export class AuthSession {
 	public appId: App['id'];
 
 	@ManyToOne(type => App, {
-		onDelete: 'CASCADE'
+		onDelete: 'CASCADE',
 	})
 	@JoinColumn()
 	public app: App | null;

@@ -12,6 +12,14 @@
 		</template>
 	</FormSelect>
 
+	<FormRadios v-model="overridedDeviceKind" class="_formBlock">
+		<template #label>{{ $ts.overridedDeviceKind }}</template>
+		<option :value="null">{{ $ts.auto }}</option>
+		<option value="smartphone"><i class="fas fa-mobile-alt"/> {{ $ts.smartphone }}</option>
+		<option value="tablet"><i class="fas fa-tablet-alt"/> {{ $ts.tablet }}</option>
+		<option value="desktop"><i class="fas fa-desktop"/> {{ $ts.desktop }}</option>
+	</FormRadios>
+
 	<FormSwitch v-model="showFixedPostForm" class="_formBlock">{{ $ts.showFixedPostForm }}</FormSwitch>
 
 	<FormSection>
@@ -43,6 +51,7 @@
 		<FormSwitch v-model="useOsNativeEmojis" class="_formBlock">{{ $ts.useOsNativeEmojis }}
 			<div><Mfm :key="useOsNativeEmojis" text="🍮🍦🍭🍩🍰🍫🍬🥞🍪"/></div>
 		</FormSwitch>
+		<FormSwitch v-model="disableDrawer" class="_formBlock">{{ $ts.disableDrawer }}</FormSwitch>
 
 		<FormRadios v-model="fontSize" class="_formBlock">
 			<template #label>{{ $ts.fontSize }}</template>
@@ -75,13 +84,6 @@
 		<template #label>{{ $ts.defaultNavigationBehaviour }}</template>
 		<FormSwitch v-model="defaultSideView">{{ $ts.openInSideView }}</FormSwitch>
 	</FormGroup>
-
-	<FormSelect v-model="chatOpenBehavior" class="_formBlock">
-		<template #label>{{ $ts.chatOpenBehavior }}</template>
-		<option value="page">{{ $ts.showInPage }}</option>
-		<option value="window">{{ $ts.openInWindow }}</option>
-		<option value="popout">{{ $ts.popout }}</option>
-	</FormSelect>
 
 	<FormLink to="/settings/deck" class="_formBlock">{{ $ts.deck }}</FormLink>
 
@@ -133,6 +135,7 @@ export default defineComponent({
 	},
 
 	computed: {
+		overridedDeviceKind: defaultStore.makeGetterSetter('overridedDeviceKind'),
 		serverDisconnectedBehavior: defaultStore.makeGetterSetter('serverDisconnectedBehavior'),
 		reduceAnimation: defaultStore.makeGetterSetter('animation', v => !v, v => !v),
 		useBlurEffectForModal: defaultStore.makeGetterSetter('useBlurEffectForModal'),
@@ -140,6 +143,7 @@ export default defineComponent({
 		showGapBetweenNotesInTimeline: defaultStore.makeGetterSetter('showGapBetweenNotesInTimeline'),
 		disableAnimatedMfm: defaultStore.makeGetterSetter('animatedMfm', v => !v, v => !v),
 		useOsNativeEmojis: defaultStore.makeGetterSetter('useOsNativeEmojis'),
+		disableDrawer: defaultStore.makeGetterSetter('disableDrawer'),
 		disableShowingAnimatedImages: defaultStore.makeGetterSetter('disableShowingAnimatedImages'),
 		loadRawImages: defaultStore.makeGetterSetter('loadRawImages'),
 		imageNewTab: defaultStore.makeGetterSetter('imageNewTab'),
@@ -147,7 +151,6 @@ export default defineComponent({
 		disablePagesScript: defaultStore.makeGetterSetter('disablePagesScript'),
 		showFixedPostForm: defaultStore.makeGetterSetter('showFixedPostForm'),
 		defaultSideView: defaultStore.makeGetterSetter('defaultSideView'),
-		chatOpenBehavior: ColdDeviceStorage.makeGetterSetter('chatOpenBehavior'),
 		instanceTicker: defaultStore.makeGetterSetter('instanceTicker'),
 		enableInfiniteScroll: defaultStore.makeGetterSetter('enableInfiniteScroll'),
 		useReactionPickerForContextMenu: defaultStore.makeGetterSetter('useReactionPickerForContextMenu'),
@@ -199,10 +202,10 @@ export default defineComponent({
 		instanceTicker() {
 			this.reloadAsk();
 		},
-	},
 
-	mounted() {
-		this.$emit('info', this[symbols.PAGE_INFO]);
+		overridedDeviceKind() {
+			this.reloadAsk();
+		},
 	},
 
 	methods: {

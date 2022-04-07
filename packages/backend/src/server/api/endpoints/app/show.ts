@@ -1,44 +1,39 @@
-import $ from 'cafy';
-import { ID } from '@/misc/cafy-id';
-import define from '../../define';
-import { ApiError } from '../../error';
-import { Apps } from '@/models/index';
+import define from '../../define.js';
+import { ApiError } from '../../error.js';
+import { Apps } from '@/models/index.js';
 
 export const meta = {
 	tags: ['app'],
-
-	params: {
-		appId: {
-			validator: $.type(ID),
-		},
-	},
-
-	res: {
-		type: 'object' as const,
-		optional: false as const, nullable: false as const,
-		ref: 'App',
-	},
 
 	errors: {
 		noSuchApp: {
 			message: 'No such app.',
 			code: 'NO_SUCH_APP',
-			id: 'dce83913-2dc6-4093-8a7b-71dbb11718a3'
-		}
+			id: 'dce83913-2dc6-4093-8a7b-71dbb11718a3',
+		},
 	},
 
 	res: {
-		type: 'object' as const,
-		optional: false as const, nullable: false as const,
-		ref: 'App'
-	}
-};
+		type: 'object',
+		optional: false, nullable: false,
+		ref: 'App',
+	},
+} as const;
 
-export default define(meta, async (ps, user, token) => {
+export const paramDef = {
+	type: 'object',
+	properties: {
+		appId: { type: 'string', format: 'misskey:id' },
+	},
+	required: ['appId'],
+} as const;
+
+// eslint-disable-next-line import/no-default-export
+export default define(meta, paramDef, async (ps, user, token) => {
 	const isSecure = user != null && token == null;
 
 	// Lookup app
-	const ap = await Apps.findOne(ps.appId);
+	const ap = await Apps.findOneBy({ id: ps.appId });
 
 	if (ap == null) {
 		throw new ApiError(meta.errors.noSuchApp);
@@ -46,6 +41,6 @@ export default define(meta, async (ps, user, token) => {
 
 	return await Apps.pack(ap, user, {
 		detail: true,
-		includeSecret: isSecure && (ap.userId === user!.id)
+		includeSecret: isSecure && (ap.userId === user!.id),
 	});
 });

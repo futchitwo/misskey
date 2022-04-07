@@ -1,7 +1,7 @@
-import { URL } from 'url';
-import * as S3 from 'aws-sdk/clients/s3';
-import { Meta } from '@/models/entities/meta';
-import { getAgentByUrl } from '@/misc/fetch';
+import { URL } from 'node:url';
+import S3 from 'aws-sdk/clients/s3.js';
+import { Meta } from '@/models/entities/meta.js';
+import { getAgentByUrl } from '@/misc/fetch.js';
 
 export function getS3(meta: Meta) {
 	const u = meta.objectStorageEndpoint != null
@@ -18,7 +18,7 @@ export function getS3(meta: Meta) {
 			? false
 			: meta.objectStorageS3ForcePathStyle,
 		httpOptions: {
-			agent: getAgentByUrl(new URL(u), !meta.objectStorageUseProxy)
-		}
+			agent: getAgentByUrl(new URL(u), !meta.objectStorageUseProxy),
+		},
 	});
 }

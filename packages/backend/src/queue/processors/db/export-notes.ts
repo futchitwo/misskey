@@ -1,22 +1,22 @@
-import * as Bull from 'bull';
+import Bull from 'bull';
 import * as tmp from 'tmp';
-import * as fs from 'fs';
+import * as fs from 'node:fs';
 
-import { queueLogger } from '../../logger';
-import addFile from '@/services/drive/add-file';
-import * as dateFormat from 'dateformat';
-import { Users, Notes, Polls } from '@/models/index';
+import { queueLogger } from '../../logger.js';
+import { addFile } from '@/services/drive/add-file.js';
+import { format as dateFormat } from 'date-fns';
+import { Users, Notes, Polls } from '@/models/index.js';
 import { MoreThan } from 'typeorm';
-import { Note } from '@/models/entities/note';
-import { Poll } from '@/models/entities/poll';
-import { DbUserJobData } from '@/queue/types';
+import { Note } from '@/models/entities/note.js';
+import { Poll } from '@/models/entities/poll.js';
+import { DbUserJobData } from '@/queue/types.js';
 
 const logger = queueLogger.createSubLogger('export-notes');
 
 export async function exportNotes(job: Bull.Job<DbUserJobData>, done: any): Promise<void> {
 	logger.info(`Exporting notes of ${job.data.user.id} ...`);
 
-	const user = await Users.findOne(job.data.user.id);
+	const user = await Users.findOneBy({ id: job.data.user.id });
 	if (user == null) {
 		done();
 		return;
@@ -34,16 +34,20 @@ export async function exportNotes(job: Bull.Job<DbUserJobData>, done: any): Prom
 
 	const stream = fs.createWriteStream(path, { flags: 'a' });
 
-	await new Promise<void>((res, rej) => {
-		stream.write('[', err => {
-			if (err) {
-				logger.error(err);
-				rej(err);
-			} else {
-				res();
-			}
+	const write = (text: string): Promise<void> => {
+		return new Promise<void>((res, rej) => {
+			stream.write(text, err => {
+				if (err) {
+					logger.error(err);
+					rej(err);
+				} else {
+					res();
+				}
+			});
 		});
-	});
+	};
+
+	await write('[');
 
 	let exportedNotesCount = 0;
 	let cursor: Note['id'] | null = null;
@@ -58,7 +62,7 @@ export async function exportNotes(job: Bull.Job<DbUserJobData>, done: any): Prom
 			order: {
 				id: 1,
 			},
-		});
+		}) as Note[];
 
 		if (notes.length === 0) {
 			job.progress(100);
@@ -70,45 +74,28 @@ export async function exportNotes(job: Bull.Job<DbUserJobData>, done: any): Prom
 		for (const note of notes) {
 			let poll: Poll | undefined;
 			if (note.hasPoll) {
-				poll = await Polls.findOneOrFail({ noteId: note.id });
+				poll = await Polls.findOneByOrFail({ noteId: note.id });
 			}
 			const content = JSON.stringify(serialize(note, poll));
-			await new Promise<void>((res, rej) => {
-				stream.write(exportedNotesCount === 0 ? content : ',\n' + content, err => {
-					if (err) {
-						logger.error(err);
-						rej(err);
-					} else {
-						res();
-					}
-				});
-			});
+			const isFirst = exportedNotesCount === 0;
+			await write(isFirst ? content : ',\n' + content);
 			exportedNotesCount++;
 		}
 
-		const total = await Notes.count({
+		const total = await Notes.countBy({
 			userId: user.id,
 		});
 
 		job.progress(exportedNotesCount / total);
 	}
 
-	await new Promise<void>((res, rej) => {
-		stream.write(']', err => {
-			if (err) {
-				logger.error(err);
-				rej(err);
-			} else {
-				res();
-			}
-		});
-	});
+	await write(']');
 
 	stream.end();
 	logger.succ(`Exported to: ${path}`);
 
-	const fileName = 'notes-' + dateFormat(new Date(), 'yyyy-mm-dd-HH-MM-ss') + '.json';
-	const driveFile = await addFile(user, path, fileName, null, null, true);
+	const fileName = 'notes-' + dateFormat(new Date(), 'yyyy-MM-dd-HH-mm-ss') + '.json';
+	const driveFile = await addFile({ user, path, name: fileName, force: true });
 
 	logger.succ(`Exported to: ${driveFile.id}`);
 	cleanup();

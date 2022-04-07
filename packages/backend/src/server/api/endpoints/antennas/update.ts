@@ -1,99 +1,77 @@
-import $ from 'cafy';
-import { ID } from '@/misc/cafy-id';
-import define from '../../define';
-import { ApiError } from '../../error';
-import { Antennas, UserLists, UserGroupJoinings } from '@/models/index';
-import { publishInternalEvent } from '@/services/stream';
+import define from '../../define.js';
+import { ApiError } from '../../error.js';
+import { Antennas, UserLists, UserGroupJoinings } from '@/models/index.js';
+import { publishInternalEvent } from '@/services/stream.js';
 
 export const meta = {
 	tags: ['antennas'],
 
-	requireCredential: true as const,
+	requireCredential: true,
 
 	kind: 'write:account',
-
-	params: {
-		antennaId: {
-			validator: $.type(ID),
-		},
-
-		name: {
-			validator: $.str.range(1, 100)
-		},
-
-		src: {
-			validator: $.str.or(['home', 'all', 'users', 'list', 'group'])
-		},
-
-		userListId: {
-			validator: $.nullable.optional.type(ID),
-		},
-
-		userGroupId: {
-			validator: $.nullable.optional.type(ID),
-		},
-
-		keywords: {
-			validator: $.arr($.arr($.str))
-		},
-
-		excludeKeywords: {
-			validator: $.arr($.arr($.str))
-		},
-
-		users: {
-			validator: $.arr($.str)
-		},
-
-		caseSensitive: {
-			validator: $.bool
-		},
-
-		withReplies: {
-			validator: $.bool
-		},
-
-		withFile: {
-			validator: $.bool
-		},
-
-		notify: {
-			validator: $.bool
-		}
-	},
 
 	errors: {
 		noSuchAntenna: {
 			message: 'No such antenna.',
 			code: 'NO_SUCH_ANTENNA',
-			id: '10c673ac-8852-48eb-aa1f-f5b67f069290'
+			id: '10c673ac-8852-48eb-aa1f-f5b67f069290',
 		},
 
 		noSuchUserList: {
 			message: 'No such user list.',
 			code: 'NO_SUCH_USER_LIST',
-			id: '1c6b35c9-943e-48c2-81e4-2844989407f7'
+			id: '1c6b35c9-943e-48c2-81e4-2844989407f7',
 		},
 
 		noSuchUserGroup: {
 			message: 'No such user group.',
 			code: 'NO_SUCH_USER_GROUP',
-			id: '109ed789-b6eb-456e-b8a9-6059d567d385'
-		}
+			id: '109ed789-b6eb-456e-b8a9-6059d567d385',
+		},
 	},
 
 	res: {
-		type: 'object' as const,
-		optional: false as const, nullable: false as const,
-		ref: 'Antenna'
-	}
-};
+		type: 'object',
+		optional: false, nullable: false,
+		ref: 'Antenna',
+	},
+} as const;
 
-export default define(meta, async (ps, user) => {
+export const paramDef = {
+	type: 'object',
+	properties: {
+		antennaId: { type: 'string', format: 'misskey:id' },
+		name: { type: 'string', minLength: 1, maxLength: 100 },
+		src: { type: 'string', enum: ['home', 'all', 'users', 'list', 'group'] },
+		userListId: { type: 'string', format: 'misskey:id', nullable: true },
+		userGroupId: { type: 'string', format: 'misskey:id', nullable: true },
+		keywords: { type: 'array', items: {
+			type: 'array', items: {
+				type: 'string',
+			},
+		} },
+		excludeKeywords: { type: 'array', items: {
+			type: 'array', items: {
+				type: 'string',
+			},
+		} },
+		users: { type: 'array', items: {
+			type: 'string',
+		} },
+		caseSensitive: { type: 'boolean' },
+		withReplies: { type: 'boolean' },
+		withFile: { type: 'boolean' },
+		notify: { type: 'boolean' },
+	},
+	required: ['antennaId', 'name', 'src', 'keywords', 'excludeKeywords', 'users', 'caseSensitive', 'withReplies', 'withFile', 'notify'],
+} as const;
+
+// eslint-disable-next-line import/no-default-export
+export default define(meta, paramDef, async (ps, user) => {
 	// Fetch the antenna
-	const antenna = await Antennas.findOne({
+	const antenna = await Antennas.findOneBy({
 		id: ps.antennaId,
-		userId: user.id
+		userId: user.id,
 	});
 
 	if (antenna == null) {
@@ -104,7 +82,7 @@ export default define(meta, async (ps, user) => {
 	let userGroupJoining;
 
 	if (ps.src === 'list' && ps.userListId) {
-		userList = await UserLists.findOne({
+		userList = await UserLists.findOneBy({
 			id: ps.userListId,
 			userId: user.id,
 		});
@@ -113,7 +91,7 @@ export default define(meta, async (ps, user) => {
 			throw new ApiError(meta.errors.noSuchUserList);
 		}
 	} else if (ps.src === 'group' && ps.userGroupId) {
-		userGroupJoining = await UserGroupJoinings.findOne({
+		userGroupJoining = await UserGroupJoinings.findOneBy({
 			userGroupId: ps.userGroupId,
 			userId: user.id,
 		});
@@ -137,7 +115,7 @@ export default define(meta, async (ps, user) => {
 		notify: ps.notify,
 	});
 
-	publishInternalEvent('antennaUpdated', await Antennas.findOneOrFail(antenna.id));
+	publishInternalEvent('antennaUpdated', await Antennas.findOneByOrFail({ id: antenna.id }));
 
 	return await Antennas.pack(antenna.id);
 });

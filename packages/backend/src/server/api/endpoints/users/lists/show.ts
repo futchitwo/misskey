@@ -1,25 +1,17 @@
-import $ from 'cafy';
-import { ID } from '@/misc/cafy-id';
-import define from '../../../define';
-import { ApiError } from '../../../error';
-import { UserLists } from '@/models/index';
+import define from '../../../define.js';
+import { ApiError } from '../../../error.js';
+import { UserLists } from '@/models/index.js';
 
 export const meta = {
 	tags: ['lists', 'account'],
 
-	requireCredential: true as const,
+	requireCredential: true,
 
 	kind: 'read:account',
 
-	params: {
-		listId: {
-			validator: $.type(ID),
-		},
-	},
-
 	res: {
-		type: 'object' as const,
-		optional: false as const, nullable: false as const,
+		type: 'object',
+		optional: false, nullable: false,
 		ref: 'UserList',
 	},
 
@@ -27,14 +19,23 @@ export const meta = {
 		noSuchList: {
 			message: 'No such list.',
 			code: 'NO_SUCH_LIST',
-			id: '7bc05c21-1d7a-41ae-88f1-66820f4dc686'
+			id: '7bc05c21-1d7a-41ae-88f1-66820f4dc686',
 		},
-	}
-};
+	},
+} as const;
 
-export default define(meta, async (ps, me) => {
+export const paramDef = {
+	type: 'object',
+	properties: {
+		listId: { type: 'string', format: 'misskey:id' },
+	},
+	required: ['listId'],
+} as const;
+
+// eslint-disable-next-line import/no-default-export
+export default define(meta, paramDef, async (ps, me) => {
 	// Fetch the list
-	const userList = await UserLists.findOne({
+	const userList = await UserLists.findOneBy({
 		id: ps.listId,
 		userId: me.id,
 	});

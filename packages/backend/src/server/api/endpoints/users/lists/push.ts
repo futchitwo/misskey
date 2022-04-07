@@ -1,58 +1,56 @@
-import $ from 'cafy';
-import { ID } from '@/misc/cafy-id';
-import define from '../../../define';
-import { ApiError } from '../../../error';
-import { getUser } from '../../../common/getters';
-import { pushUserToUserList } from '@/services/user-list/push';
-import { UserLists, UserListJoinings, Blockings } from '@/models/index';
+import define from '../../../define.js';
+import { ApiError } from '../../../error.js';
+import { getUser } from '../../../common/getters.js';
+import { pushUserToUserList } from '@/services/user-list/push.js';
+import { UserLists, UserListJoinings, Blockings } from '@/models/index.js';
 
 export const meta = {
 	tags: ['lists', 'users'],
 
-	requireCredential: true as const,
+	requireCredential: true,
 
 	kind: 'write:account',
-
-	params: {
-		listId: {
-			validator: $.type(ID),
-		},
-
-		userId: {
-			validator: $.type(ID),
-		},
-	},
 
 	errors: {
 		noSuchList: {
 			message: 'No such list.',
 			code: 'NO_SUCH_LIST',
-			id: '2214501d-ac96-4049-b717-91e42272a711'
+			id: '2214501d-ac96-4049-b717-91e42272a711',
 		},
 
 		noSuchUser: {
 			message: 'No such user.',
 			code: 'NO_SUCH_USER',
-			id: 'a89abd3d-f0bc-4cce-beb1-2f446f4f1e6a'
+			id: 'a89abd3d-f0bc-4cce-beb1-2f446f4f1e6a',
 		},
 
 		alreadyAdded: {
 			message: 'That user has already been added to that list.',
 			code: 'ALREADY_ADDED',
-			id: '1de7c884-1595-49e9-857e-61f12f4d4fc5'
+			id: '1de7c884-1595-49e9-857e-61f12f4d4fc5',
 		},
 
 		youHaveBeenBlocked: {
 			message: 'You cannot push this user because you have been blocked by this user.',
 			code: 'YOU_HAVE_BEEN_BLOCKED',
-			id: '990232c5-3f9d-4d83-9f3f-ef27b6332a4b'
+			id: '990232c5-3f9d-4d83-9f3f-ef27b6332a4b',
 		},
-	}
-};
+	},
+} as const;
 
-export default define(meta, async (ps, me) => {
+export const paramDef = {
+	type: 'object',
+	properties: {
+		listId: { type: 'string', format: 'misskey:id' },
+		userId: { type: 'string', format: 'misskey:id' },
+	},
+	required: ['listId', 'userId'],
+} as const;
+
+// eslint-disable-next-line import/no-default-export
+export default define(meta, paramDef, async (ps, me) => {
 	// Fetch the list
-	const userList = await UserLists.findOne({
+	const userList = await UserLists.findOneBy({
 		id: ps.listId,
 		userId: me.id,
 	});
@@ -69,7 +67,7 @@ export default define(meta, async (ps, me) => {
 
 	// Check blocking
 	if (user.id !== me.id) {
-		const block = await Blockings.findOne({
+		const block = await Blockings.findOneBy({
 			blockerId: user.id,
 			blockeeId: me.id,
 		});
@@ -78,9 +76,9 @@ export default define(meta, async (ps, me) => {
 		}
 	}
 
-	const exist = await UserListJoinings.findOne({
+	const exist = await UserListJoinings.findOneBy({
 		userListId: userList.id,
-		userId: user.id
+		userId: user.id,
 	});
 
 	if (exist) {

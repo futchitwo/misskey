@@ -1,15 +1,27 @@
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
-import Chart from './core';
+import { entity as FederationChart } from './charts/entities/federation.js';
+import { entity as NotesChart } from './charts/entities/notes.js';
+import { entity as UsersChart } from './charts/entities/users.js';
+import { entity as ActiveUsersChart } from './charts/entities/active-users.js';
+import { entity as InstanceChart } from './charts/entities/instance.js';
+import { entity as PerUserNotesChart } from './charts/entities/per-user-notes.js';
+import { entity as DriveChart } from './charts/entities/drive.js';
+import { entity as PerUserReactionsChart } from './charts/entities/per-user-reactions.js';
+import { entity as HashtagChart } from './charts/entities/hashtag.js';
+import { entity as PerUserFollowingChart } from './charts/entities/per-user-following.js';
+import { entity as PerUserDriveChart } from './charts/entities/per-user-drive.js';
+import { entity as ApRequestChart } from './charts/entities/ap-request.js';
 
-//const _filename = fileURLToPath(import.meta.url);
-const _filename = __filename;
-const _dirname = dirname(_filename);
-
-export const entities = Object.values(require('require-all')({
-	dirname: _dirname + '/charts/schemas',
-	filter: /^.+\.[jt]s$/,
-	resolve: (x: any) => {
-		return Chart.schemaToEntity(x.name, x.schema);
-	}
-}));
+export const entities = [
+	FederationChart.hour, FederationChart.day,
+	NotesChart.hour, NotesChart.day,
+	UsersChart.hour, UsersChart.day,
+	ActiveUsersChart.hour, ActiveUsersChart.day,
+	InstanceChart.hour, InstanceChart.day,
+	PerUserNotesChart.hour, PerUserNotesChart.day,
+	DriveChart.hour, DriveChart.day,
+	PerUserReactionsChart.hour, PerUserReactionsChart.day,
+	HashtagChart.hour, HashtagChart.day,
+	PerUserFollowingChart.hour, PerUserFollowingChart.day,
+	PerUserDriveChart.hour, PerUserDriveChart.day,
+	ApRequestChart.hour, ApRequestChart.day,
+];

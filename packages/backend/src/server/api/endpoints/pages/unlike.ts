@@ -1,46 +1,47 @@
-import $ from 'cafy';
-import { ID } from '@/misc/cafy-id';
-import define from '../../define';
-import { ApiError } from '../../error';
-import { Pages, PageLikes } from '@/models/index';
+import define from '../../define.js';
+import { ApiError } from '../../error.js';
+import { Pages, PageLikes } from '@/models/index.js';
 
 export const meta = {
 	tags: ['pages'],
 
-	requireCredential: true as const,
+	requireCredential: true,
 
 	kind: 'write:page-likes',
-
-	params: {
-		pageId: {
-			validator: $.type(ID),
-		}
-	},
 
 	errors: {
 		noSuchPage: {
 			message: 'No such page.',
 			code: 'NO_SUCH_PAGE',
-			id: 'a0d41e20-1993-40bd-890e-f6e560ae648e'
+			id: 'a0d41e20-1993-40bd-890e-f6e560ae648e',
 		},
 
 		notLiked: {
 			message: 'You have not liked that page.',
 			code: 'NOT_LIKED',
-			id: 'f5e586b0-ce93-4050-b0e3-7f31af5259ee'
+			id: 'f5e586b0-ce93-4050-b0e3-7f31af5259ee',
 		},
-	}
-};
+	},
+} as const;
 
-export default define(meta, async (ps, user) => {
-	const page = await Pages.findOne(ps.pageId);
+export const paramDef = {
+	type: 'object',
+	properties: {
+		pageId: { type: 'string', format: 'misskey:id' },
+	},
+	required: ['pageId'],
+} as const;
+
+// eslint-disable-next-line import/no-default-export
+export default define(meta, paramDef, async (ps, user) => {
+	const page = await Pages.findOneBy({ id: ps.pageId });
 	if (page == null) {
 		throw new ApiError(meta.errors.noSuchPage);
 	}
 
-	const exist = await PageLikes.findOne({
+	const exist = await PageLikes.findOneBy({
 		pageId: page.id,
-		userId: user.id
+		userId: user.id,
 	});
 
 	if (exist == null) {

@@ -1,6 +1,6 @@
 import { PrimaryColumn, Entity, Index, Column, ManyToOne, JoinColumn } from 'typeorm';
-import { id } from '../id';
-import { User } from './user';
+import { id } from '../id.js';
+import { User } from './user.js';
 
 @Entity()
 export class PasswordResetRequest {
@@ -23,7 +23,7 @@ export class PasswordResetRequest {
 	public userId: User['id'];
 
 	@ManyToOne(type => User, {
-		onDelete: 'CASCADE'
+		onDelete: 'CASCADE',
 	})
 	@JoinColumn()
 	public user: User | null;

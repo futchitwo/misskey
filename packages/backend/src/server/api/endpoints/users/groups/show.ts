@@ -1,25 +1,17 @@
-import $ from 'cafy';
-import { ID } from '@/misc/cafy-id';
-import define from '../../../define';
-import { ApiError } from '../../../error';
-import { UserGroups, UserGroupJoinings } from '@/models/index';
+import define from '../../../define.js';
+import { ApiError } from '../../../error.js';
+import { UserGroups, UserGroupJoinings } from '@/models/index.js';
 
 export const meta = {
 	tags: ['groups', 'account'],
 
-	requireCredential: true as const,
+	requireCredential: true,
 
 	kind: 'read:user-groups',
 
-	params: {
-		groupId: {
-			validator: $.type(ID),
-		},
-	},
-
 	res: {
-		type: 'object' as const,
-		optional: false as const, nullable: false as const,
+		type: 'object',
+		optional: false, nullable: false,
 		ref: 'UserGroup',
 	},
 
@@ -27,14 +19,23 @@ export const meta = {
 		noSuchGroup: {
 			message: 'No such group.',
 			code: 'NO_SUCH_GROUP',
-			id: 'ea04751e-9b7e-487b-a509-330fb6bd6b9b'
+			id: 'ea04751e-9b7e-487b-a509-330fb6bd6b9b',
 		},
-	}
-};
+	},
+} as const;
 
-export default define(meta, async (ps, me) => {
+export const paramDef = {
+	type: 'object',
+	properties: {
+		groupId: { type: 'string', format: 'misskey:id' },
+	},
+	required: ['groupId'],
+} as const;
+
+// eslint-disable-next-line import/no-default-export
+export default define(meta, paramDef, async (ps, me) => {
 	// Fetch the group
-	const userGroup = await UserGroups.findOne({
+	const userGroup = await UserGroups.findOneBy({
 		id: ps.groupId,
 	});
 
@@ -42,9 +43,9 @@ export default define(meta, async (ps, me) => {
 		throw new ApiError(meta.errors.noSuchGroup);
 	}
 
-	const joining = await UserGroupJoinings.findOne({
+	const joining = await UserGroupJoinings.findOneBy({
 		userId: me.id,
-		userGroupId: userGroup.id
+		userGroupId: userGroup.id,
 	});
 
 	if (joining == null && userGroup.userId !== me.id) {

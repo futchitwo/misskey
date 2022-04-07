@@ -1,7 +1,7 @@
 import { PrimaryColumn, Entity, Index, JoinColumn, Column, ManyToOne } from 'typeorm';
-import { User } from './user';
-import { Announcement } from './announcement';
-import { id } from '../id';
+import { User } from './user.js';
+import { Announcement } from './announcement.js';
+import { id } from '../id.js';
 
 @Entity()
 @Index(['userId', 'announcementId'], { unique: true })
@@ -10,7 +10,7 @@ export class AnnouncementRead {
 	public id: string;
 
 	@Column('timestamp with time zone', {
-		comment: 'The created date of the AnnouncementRead.'
+		comment: 'The created date of the AnnouncementRead.',
 	})
 	public createdAt: Date;
 
@@ -19,7 +19,7 @@ export class AnnouncementRead {
 	public userId: User['id'];
 
 	@ManyToOne(type => User, {
-		onDelete: 'CASCADE'
+		onDelete: 'CASCADE',
 	})
 	@JoinColumn()
 	public user: User | null;
@@ -29,7 +29,7 @@ export class AnnouncementRead {
 	public announcementId: Announcement['id'];
 
 	@ManyToOne(type => Announcement, {
-		onDelete: 'CASCADE'
+		onDelete: 'CASCADE',
 	})
 	@JoinColumn()
 	public announcement: Announcement | null;

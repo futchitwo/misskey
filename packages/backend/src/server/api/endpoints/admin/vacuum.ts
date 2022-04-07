@@ -1,25 +1,25 @@
-import $ from 'cafy';
-import define from '../../define';
-import { getConnection } from 'typeorm';
-import { insertModerationLog } from '@/services/insert-moderation-log';
+import define from '../../define.js';
+import { insertModerationLog } from '@/services/insert-moderation-log.js';
+import { db } from '@/db/postgre.js';
 
 export const meta = {
 	tags: ['admin'],
 
-	requireCredential: true as const,
+	requireCredential: true,
 	requireModerator: true,
+} as const;
 
-	params: {
-		full: {
-			validator: $.bool,
-		},
-		analyze: {
-			validator: $.bool,
-		},
-	}
-};
+export const paramDef = {
+	type: 'object',
+	properties: {
+		full: { type: 'boolean' },
+		analyze: { type: 'boolean' },
+	},
+	required: ['full', 'analyze'],
+} as const;
 
-export default define(meta, async (ps, me) => {
+// eslint-disable-next-line import/no-default-export
+export default define(meta, paramDef, async (ps, me) => {
 	const params: string[] = [];
 
 	if (ps.full) {
@@ -30,7 +30,7 @@ export default define(meta, async (ps, me) => {
 		params.push('ANALYZE');
 	}
 
-	getConnection().query('VACUUM ' + params.join(' '));
+	db.query('VACUUM ' + params.join(' '));
 
 	insertModerationLog(me, 'vacuum', ps);
 });

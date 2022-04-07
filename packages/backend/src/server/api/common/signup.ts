@@ -1,15 +1,16 @@
-import * as bcrypt from 'bcryptjs';
-import { generateKeyPair } from 'crypto';
-import generateUserToken from './generate-native-user-token';
-import { User } from '@/models/entities/user';
-import { Users, UsedUsernames } from '@/models/index';
-import { UserProfile } from '@/models/entities/user-profile';
-import { getConnection } from 'typeorm';
-import { genId } from '@/misc/gen-id';
-import { toPunyNullable } from '@/misc/convert-host';
-import { UserKeypair } from '@/models/entities/user-keypair';
-import { usersChart } from '@/services/chart/index';
-import { UsedUsername } from '@/models/entities/used-username';
+import bcrypt from 'bcryptjs';
+import { generateKeyPair } from 'node:crypto';
+import generateUserToken from './generate-native-user-token.js';
+import { User } from '@/models/entities/user.js';
+import { Users, UsedUsernames } from '@/models/index.js';
+import { UserProfile } from '@/models/entities/user-profile.js';
+import { IsNull } from 'typeorm';
+import { genId } from '@/misc/gen-id.js';
+import { toPunyNullable } from '@/misc/convert-host.js';
+import { UserKeypair } from '@/models/entities/user-keypair.js';
+import { usersChart } from '@/services/chart/index.js';
+import { UsedUsername } from '@/models/entities/used-username.js';
+import { db } from '@/db/postgre.js';
 
 export async function signup(opts: {
 	username: User['username'];
@@ -21,13 +22,13 @@ export async function signup(opts: {
 	let hash = passwordHash;
 
 	// Validate username
-	if (!Users.validateLocalUsername.ok(username)) {
+	if (!Users.validateLocalUsername(username)) {
 		throw new Error('INVALID_USERNAME');
 	}
 
 	if (password != null && passwordHash == null) {
 		// Validate password
-		if (!Users.validatePassword.ok(password)) {
+		if (!Users.validatePassword(password)) {
 			throw new Error('INVALID_PASSWORD');
 		}
 
@@ -40,12 +41,12 @@ export async function signup(opts: {
 	const secret = generateUserToken();
 
 	// Check username duplication
-	if (await Users.findOne({ usernameLower: username.toLowerCase(), host: null })) {
+	if (await Users.findOneBy({ usernameLower: username.toLowerCase(), host: IsNull() })) {
 		throw new Error('DUPLICATED_USERNAME');
 	}
 
 	// Check deleted username duplication
-	if (await UsedUsernames.findOne({ username: username.toLowerCase() })) {
+	if (await UsedUsernames.findOneBy({ username: username.toLowerCase() })) {
 		throw new Error('USED_USERNAME');
 	}
 
@@ -54,14 +55,14 @@ export async function signup(opts: {
 			modulusLength: 4096,
 			publicKeyEncoding: {
 				type: 'spki',
-				format: 'pem'
+				format: 'pem',
 			},
 			privateKeyEncoding: {
 				type: 'pkcs8',
 				format: 'pem',
 				cipher: undefined,
-				passphrase: undefined
-			}
+				passphrase: undefined,
+			},
 		} as any, (err, publicKey, privateKey) =>
 			err ? rej(err) : res([publicKey, privateKey])
 		));
@@ -69,10 +70,10 @@ export async function signup(opts: {
 	let account!: User;
 
 	// Start transaction
-	await getConnection().transaction(async transactionalEntityManager => {
-		const exist = await transactionalEntityManager.findOne(User, {
+	await db.transaction(async transactionalEntityManager => {
+		const exist = await transactionalEntityManager.findOneBy(User, {
 			usernameLower: username.toLowerCase(),
-			host: null
+			host: IsNull(),
 		});
 
 		if (exist) throw new Error(' the username is already used');
@@ -84,15 +85,15 @@ export async function signup(opts: {
 			usernameLower: username.toLowerCase(),
 			host: toPunyNullable(host),
 			token: secret,
-			isAdmin: (await Users.count({
-				host: null,
+			isAdmin: (await Users.countBy({
+				host: IsNull(),
 			})) === 0,
 		}));
 
 		await transactionalEntityManager.save(new UserKeypair({
 			publicKey: keyPair[0],
 			privateKey: keyPair[1],
-			userId: account.id
+			userId: account.id,
 		}));
 
 		await transactionalEntityManager.save(new UserProfile({

@@ -1,7 +1,7 @@
 import { PrimaryColumn, Entity, Index, JoinColumn, Column, OneToOne } from 'typeorm';
-import { Note } from './note';
-import { User } from './user';
-import { id } from '../id';
+import { Note } from './note.js';
+import { User } from './user.js';
+import { id } from '../id.js';
 
 @Entity()
 export class PromoNote {
@@ -9,7 +9,7 @@ export class PromoNote {
 	public noteId: Note['id'];
 
 	@OneToOne(type => Note, {
-		onDelete: 'CASCADE'
+		onDelete: 'CASCADE',
 	})
 	@JoinColumn()
 	public note: Note | null;
@@ -21,7 +21,7 @@ export class PromoNote {
 	@Index()
 	@Column({
 		...id(),
-		comment: '[Denormalized]'
+		comment: '[Denormalized]',
 	})
 	public userId: User['id'];
 	//#endregion

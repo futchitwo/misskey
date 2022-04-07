@@ -1,41 +1,36 @@
-import $ from 'cafy';
-import define from '../../../define';
-import { ID } from '@/misc/cafy-id';
-import { Announcements } from '@/models/index';
-import { ApiError } from '../../../error';
+import define from '../../../define.js';
+import { Announcements } from '@/models/index.js';
+import { ApiError } from '../../../error.js';
 
 export const meta = {
 	tags: ['admin'],
 
-	requireCredential: true as const,
+	requireCredential: true,
 	requireModerator: true,
-
-	params: {
-		id: {
-			validator: $.type(ID)
-		},
-		title: {
-			validator: $.str.min(1)
-		},
-		text: {
-			validator: $.str.min(1)
-		},
-		imageUrl: {
-			validator: $.nullable.str.min(1)
-		}
-	},
 
 	errors: {
 		noSuchAnnouncement: {
 			message: 'No such announcement.',
 			code: 'NO_SUCH_ANNOUNCEMENT',
-			id: 'd3aae5a7-6372-4cb4-b61c-f511ffc2d7cc'
-		}
-	}
-};
+			id: 'd3aae5a7-6372-4cb4-b61c-f511ffc2d7cc',
+		},
+	},
+} as const;
 
-export default define(meta, async (ps, me) => {
-	const announcement = await Announcements.findOne(ps.id);
+export const paramDef = {
+	type: 'object',
+	properties: {
+		id: { type: 'string', format: 'misskey:id' },
+		title: { type: 'string', minLength: 1 },
+		text: { type: 'string', minLength: 1 },
+		imageUrl: { type: 'string', nullable: true, minLength: 1 },
+	},
+	required: ['id', 'title', 'text', 'imageUrl'],
+} as const;
+
+// eslint-disable-next-line import/no-default-export
+export default define(meta, paramDef, async (ps, me) => {
+	const announcement = await Announcements.findOneBy({ id: ps.id });
 
 	if (announcement == null) throw new ApiError(meta.errors.noSuchAnnouncement);
 

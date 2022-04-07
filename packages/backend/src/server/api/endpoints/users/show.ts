@@ -1,40 +1,31 @@
-import $ from 'cafy';
-import { resolveUser } from '@/remote/resolve-user';
-import define from '../../define';
-import { apiLogger } from '../../logger';
-import { ApiError } from '../../error';
-import { ID } from '@/misc/cafy-id';
-import { Users } from '@/models/index';
-import { In } from 'typeorm';
-import { User } from '@/models/entities/user';
+import { resolveUser } from '@/remote/resolve-user.js';
+import define from '../../define.js';
+import { apiLogger } from '../../logger.js';
+import { ApiError } from '../../error.js';
+import { Users } from '@/models/index.js';
+import { FindOptionsWhere, In, IsNull } from 'typeorm';
+import { User } from '@/models/entities/user.js';
 
 export const meta = {
 	tags: ['users'],
 
-	requireCredential: false as const,
-
-	params: {
-		userId: {
-			validator: $.optional.type(ID),
-		},
-
-		userIds: {
-			validator: $.optional.arr($.type(ID)).unique(),
-		},
-
-		username: {
-			validator: $.optional.str
-		},
-
-		host: {
-			validator: $.optional.nullable.str
-		}
-	},
+	requireCredential: false,
 
 	res: {
-		type: 'object' as const,
-		optional: false as const, nullable: false as const,
-		ref: 'User',
+		optional: false, nullable: false,
+		oneOf: [
+			{
+				type: 'object',
+				ref: 'UserDetailed',
+			},
+			{
+				type: 'array',
+				items: {
+					type: 'object',
+					ref: 'UserDetailed',
+				},
+			},
+		],
 	},
 
 	errors: {
@@ -42,18 +33,50 @@ export const meta = {
 			message: 'Failed to resolve remote user.',
 			code: 'FAILED_TO_RESOLVE_REMOTE_USER',
 			id: 'ef7b9be4-9cba-4e6f-ab41-90ed171c7d3c',
-			kind: 'server' as const
+			kind: 'server',
 		},
 
 		noSuchUser: {
 			message: 'No such user.',
 			code: 'NO_SUCH_USER',
-			id: '4362f8dc-731f-4ad8-a694-be5a88922a24'
+			id: '4362f8dc-731f-4ad8-a694-be5a88922a24',
 		},
-	}
-};
+	},
+} as const;
 
-export default define(meta, async (ps, me) => {
+export const paramDef = {
+	type: 'object',
+	anyOf: [
+		{
+			properties: {
+				userId: { type: 'string', format: 'misskey:id' },
+			},
+			required: ['userId'],
+		},
+		{
+			properties: {
+				userIds: { type: 'array', uniqueItems: true, items: {
+					type: 'string', format: 'misskey:id',
+				} },
+			},
+			required: ['userIds'],
+		},
+		{
+			properties: {
+				username: { type: 'string' },
+				host: {
+					type: 'string',
+					nullable: true,
+					description: 'The local host is represented with `null`.',
+				},
+			},
+			required: ['username'],
+		},
+	],
+} as const;
+
+// eslint-disable-next-line import/no-default-export
+export default define(meta, paramDef, async (ps, me) => {
 	let user;
 
 	const isAdminOrModerator = me && (me.isAdmin || me.isModerator);
@@ -63,11 +86,11 @@ export default define(meta, async (ps, me) => {
 			return [];
 		}
 
-		const users = await Users.find(isAdminOrModerator ? {
-			id: In(ps.userIds)
+		const users = await Users.findBy(isAdminOrModerator ? {
+			id: In(ps.userIds),
 		} : {
 			id: In(ps.userIds),
-			isSuspended: false
+			isSuspended: false,
 		});
 
 		// リクエストされた通りに並べ替え
@@ -77,7 +100,7 @@ export default define(meta, async (ps, me) => {
 		}
 
 		return await Promise.all(_users.map(u => Users.pack(u, me, {
-			detail: true
+			detail: true,
 		})));
 	} else {
 		// Lookup user
@@ -87,11 +110,11 @@ export default define(meta, async (ps, me) => {
 				throw new ApiError(meta.errors.failedToResolveRemoteUser);
 			});
 		} else {
-			const q: any = ps.userId != null
+			const q: FindOptionsWhere<User> = ps.userId != null
 				? { id: ps.userId }
-				: { usernameLower: ps.username!.toLowerCase(), host: null };
+				: { usernameLower: ps.username!.toLowerCase(), host: IsNull() };
 
-			user = await Users.findOne(q);
+			user = await Users.findOneBy(q);
 		}
 
 		if (user == null || (!isAdminOrModerator && user.isSuspended)) {
@@ -99,7 +122,7 @@ export default define(meta, async (ps, me) => {
 		}
 
 		return await Users.pack(user, me, {
-			detail: true
+			detail: true,
 		});
 	}
 });

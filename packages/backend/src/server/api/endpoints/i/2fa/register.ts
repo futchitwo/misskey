@@ -1,25 +1,27 @@
-import $ from 'cafy';
-import * as bcrypt from 'bcryptjs';
+import bcrypt from 'bcryptjs';
 import * as speakeasy from 'speakeasy';
 import * as QRCode from 'qrcode';
-import config from '@/config/index';
-import define from '../../../define';
-import { UserProfiles } from '@/models/index';
+import config from '@/config/index.js';
+import define from '../../../define.js';
+import { UserProfiles } from '@/models/index.js';
 
 export const meta = {
-	requireCredential: true as const,
+	requireCredential: true,
 
 	secure: true,
+} as const;
 
-	params: {
-		password: {
-			validator: $.str
-		}
-	}
-};
+export const paramDef = {
+	type: 'object',
+	properties: {
+		password: { type: 'string' },
+	},
+	required: ['password'],
+} as const;
 
-export default define(meta, async (ps, user) => {
-	const profile = await UserProfiles.findOneOrFail(user.id);
+// eslint-disable-next-line import/no-default-export
+export default define(meta, paramDef, async (ps, user) => {
+	const profile = await UserProfiles.findOneByOrFail({ userId: user.id });
 
 	// Compare password
 	const same = await bcrypt.compare(ps.password, profile.password!);
@@ -30,11 +32,11 @@ export default define(meta, async (ps, user) => {
 
 	// Generate user's secret key
 	const secret = speakeasy.generateSecret({
-		length: 32
+		length: 32,
 	});
 
 	await UserProfiles.update(user.id, {
-		twoFactorTempSecret: secret.base32
+		twoFactorTempSecret: secret.base32,
 	});
 
 	// Get the data URL of the authenticator URL
@@ -42,13 +44,13 @@ export default define(meta, async (ps, user) => {
 		secret: secret.base32,
 		encoding: 'base32',
 		label: user.username,
-		issuer: config.host
+		issuer: config.host,
 	}));
 
 	return {
 		qr: dataUrl,
 		secret: secret.base32,
 		label: user.username,
-		issuer: config.host
+		issuer: config.host,
 	};
 });

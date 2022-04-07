@@ -1,17 +1,17 @@
-import { publishMainStream, publishGroupMessagingStream } from '@/services/stream';
-import { publishMessagingStream } from '@/services/stream';
-import { publishMessagingIndexStream } from '@/services/stream';
-import { User, IRemoteUser } from '@/models/entities/user';
-import { MessagingMessage } from '@/models/entities/messaging-message';
-import { MessagingMessages, UserGroupJoinings, Users } from '@/models/index';
+import { publishMainStream, publishGroupMessagingStream } from '@/services/stream.js';
+import { publishMessagingStream } from '@/services/stream.js';
+import { publishMessagingIndexStream } from '@/services/stream.js';
+import { User, IRemoteUser } from '@/models/entities/user.js';
+import { MessagingMessage } from '@/models/entities/messaging-message.js';
+import { MessagingMessages, UserGroupJoinings, Users } from '@/models/index.js';
 import { In } from 'typeorm';
-import { IdentifiableError } from '@/misc/identifiable-error';
-import { UserGroup } from '@/models/entities/user-group';
-import { toArray } from '@/prelude/array';
-import { renderReadActivity } from '@/remote/activitypub/renderer/read';
-import { renderActivity } from '@/remote/activitypub/renderer/index';
-import { deliver } from '@/queue/index';
-import orderedCollection from '@/remote/activitypub/renderer/ordered-collection';
+import { IdentifiableError } from '@/misc/identifiable-error.js';
+import { UserGroup } from '@/models/entities/user-group.js';
+import { toArray } from '@/prelude/array.js';
+import { renderReadActivity } from '@/remote/activitypub/renderer/read.js';
+import { renderActivity } from '@/remote/activitypub/renderer/index.js';
+import { deliver } from '@/queue/index.js';
+import orderedCollection from '@/remote/activitypub/renderer/ordered-collection.js';
 
 /**
  * Mark messages as read
@@ -23,8 +23,8 @@ export async function readUserMessagingMessage(
 ) {
 	if (messageIds.length === 0) return;
 
-	const messages = await MessagingMessages.find({
-		id: In(messageIds)
+	const messages = await MessagingMessages.findBy({
+		id: In(messageIds),
 	});
 
 	for (const message of messages) {
@@ -38,9 +38,9 @@ export async function readUserMessagingMessage(
 		id: In(messageIds),
 		userId: otherpartyId,
 		recipientId: userId,
-		isRead: false
+		isRead: false,
 	}, {
-		isRead: true
+		isRead: true,
 	});
 
 	// Publish event
@@ -64,17 +64,17 @@ export async function readGroupMessagingMessage(
 	if (messageIds.length === 0) return;
 
 	// check joined
-	const joining = await UserGroupJoinings.findOne({
+	const joining = await UserGroupJoinings.findOneBy({
 		userId: userId,
-		userGroupId: groupId
+		userGroupId: groupId,
 	});
 
 	if (joining == null) {
 		throw new IdentifiableError('930a270c-714a-46b2-b776-ad27276dc569', 'Access denied (group).');
 	}
 
-	const messages = await MessagingMessages.find({
-		id: In(messageIds)
+	const messages = await MessagingMessages.findBy({
+		id: In(messageIds),
 	});
 
 	const reads: MessagingMessage['id'][] = [];
@@ -86,7 +86,7 @@ export async function readGroupMessagingMessage(
 		// Update document
 		await MessagingMessages.createQueryBuilder().update()
 			.set({
-				reads: (() => `array_append("reads", '${joining.userId}')`) as any
+				reads: (() => `array_append("reads", '${joining.userId}')`) as any,
 			})
 			.where('id = :id', { id: message.id })
 			.execute();
@@ -97,7 +97,7 @@ export async function readGroupMessagingMessage(
 	// Publish event
 	publishGroupMessagingStream(groupId, 'read', {
 		ids: reads,
-		userId: userId
+		userId: userId,
 	});
 	publishMessagingIndexStream(userId, 'read', reads);
 

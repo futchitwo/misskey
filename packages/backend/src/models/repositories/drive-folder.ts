@@ -1,29 +1,21 @@
-import { EntityRepository, Repository } from 'typeorm';
-import { DriveFolders, DriveFiles } from '../index';
-import { DriveFolder } from '@/models/entities/drive-folder';
-import { awaitAll } from '@/prelude/await-all';
-import { Packed } from '@/misc/schema';
+import { db } from '@/db/postgre.js';
+import { DriveFolders, DriveFiles } from '../index.js';
+import { DriveFolder } from '@/models/entities/drive-folder.js';
+import { awaitAll } from '@/prelude/await-all.js';
+import { Packed } from '@/misc/schema.js';
 
-@EntityRepository(DriveFolder)
-export class DriveFolderRepository extends Repository<DriveFolder> {
-	public validateFolderName(name: string): boolean {
-		return (
-			(name.trim().length > 0) &&
-			(name.length <= 200)
-		);
-	}
-
-	public async pack(
+export const DriveFolderRepository = db.getRepository(DriveFolder).extend({
+	async pack(
 		src: DriveFolder['id'] | DriveFolder,
 		options?: {
 			detail: boolean
 		}
 	): Promise<Packed<'DriveFolder'>> {
 		const opts = Object.assign({
-			detail: false
+			detail: false,
 		}, options);
 
-		const folder = typeof src === 'object' ? src : await this.findOneOrFail(src);
+		const folder = typeof src === 'object' ? src : await this.findOneByOrFail({ id: src });
 
 		return await awaitAll({
 			id: folder.id,
@@ -32,60 +24,19 @@ export class DriveFolderRepository extends Repository<DriveFolder> {
 			parentId: folder.parentId,
 
 			...(opts.detail ? {
-				foldersCount: DriveFolders.count({
-					parentId: folder.id
+				foldersCount: DriveFolders.countBy({
+					parentId: folder.id,
 				}),
-				filesCount: DriveFiles.count({
-					folderId: folder.id
+				filesCount: DriveFiles.countBy({
+					folderId: folder.id,
 				}),
 
 				...(folder.parentId ? {
 					parent: this.pack(folder.parentId, {
-						detail: true
-					})
-				} : {})
-			} : {})
+						detail: true,
+					}),
+				} : {}),
+			} : {}),
 		});
-	}
-}
-
-export const packedDriveFolderSchema = {
-	type: 'object' as const,
-	optional: false as const, nullable: false as const,
-	properties: {
-		id: {
-			type: 'string' as const,
-			optional: false as const, nullable: false as const,
-			format: 'id',
-			example: 'xxxxxxxxxx',
-		},
-		createdAt: {
-			type: 'string' as const,
-			optional: false as const, nullable: false as const,
-			format: 'date-time',
-		},
-		name: {
-			type: 'string' as const,
-			optional: false as const, nullable: false as const,
-		},
-		foldersCount: {
-			type: 'number' as const,
-			optional: true as const, nullable: false as const,
-		},
-		filesCount: {
-			type: 'number' as const,
-			optional: true as const, nullable: false as const,
-		},
-		parentId: {
-			type: 'string' as const,
-			optional: false as const, nullable: true as const,
-			format: 'id',
-			example: 'xxxxxxxxxx',
-		},
-		parent: {
-			type: 'object' as const,
-			optional: true as const, nullable: true as const,
-			ref: 'DriveFolder' as const,
-		},
 	},
-};
+});

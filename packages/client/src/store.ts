@@ -17,7 +17,7 @@ export const defaultStore = markRaw(new Storage('base', {
 	},
 	keepCw: {
 		where: 'account',
-		default: false
+		default: true
 	},
 	showFullAcct: {
 		where: 'account',
@@ -43,6 +43,10 @@ export const defaultStore = markRaw(new Storage('base', {
 		where: 'account',
 		default: 'yyyy-MM-dd HH-mm-ss [{{number}}]'
 	},
+	keepOriginalUploading: {
+		where: 'account',
+		default: false
+	},
 	memo: {
 		where: 'account',
 		default: null
@@ -64,11 +68,10 @@ export const defaultStore = markRaw(new Storage('base', {
 		where: 'deviceAccount',
 		default: [
 			'notifications',
-			'messaging',
+			'favorites',
 			'drive',
 			'followRequests',
 			'-',
-			'gallery',
 			'featured',
 			'explore',
 			'announcements',
@@ -97,11 +100,15 @@ export const defaultStore = markRaw(new Storage('base', {
 	tl: {
 		where: 'deviceAccount',
 		default: {
-			src: 'home',
+			src: 'home' as 'home' | 'local' | 'social' | 'global',
 			arg: null
 		}
 	},
 
+	overridedDeviceKind: {
+		where: 'device',
+		default: null as null | 'smartphone' | 'tablet' | 'desktop',
+	},
 	serverDisconnectedBehavior: {
 		where: 'device',
 		default: 'quiet' as 'quiet' | 'reload' | 'dialog'
@@ -138,6 +145,10 @@ export const defaultStore = markRaw(new Storage('base', {
 		where: 'device',
 		default: false
 	},
+	disableDrawer: {
+		where: 'device',
+		default: false
+	},
 	useBlurEffectForModal: {
 		where: 'device',
 		default: true
@@ -156,7 +167,7 @@ export const defaultStore = markRaw(new Storage('base', {
 	},
 	useReactionPickerForContextMenu: {
 		where: 'device',
-		default: true
+		default: false
 	},
 	showGapBetweenNotesInTimeline: {
 		where: 'device',
@@ -170,13 +181,21 @@ export const defaultStore = markRaw(new Storage('base', {
 		where: 'device',
 		default: 'remote' as 'none' | 'remote' | 'always'
 	},
+	reactionPickerSize: {
+		where: 'device',
+		default: 1
+	},
 	reactionPickerWidth: {
 		where: 'device',
 		default: 1
 	},
 	reactionPickerHeight: {
 		where: 'device',
-		default: 1
+		default: 2
+	},
+	reactionPickerUseDrawerForMobile: {
+		where: 'device',
+		default: true,
 	},
 	recentlyUsedEmojis: {
 		where: 'device',
@@ -210,6 +229,10 @@ export const defaultStore = markRaw(new Storage('base', {
 		where: 'device',
 		default: ''
 	},
+	themeInitial: {
+		where: 'device',
+		default: true,
+	},
 	aiChanMode: {
 		where: 'device',
 		default: false
@@ -237,7 +260,6 @@ export class ColdDeviceStorage {
 		lightTheme: require('@/themes/l-light.json5') as Theme,
 		darkTheme: require('@/themes/d-dark.json5') as Theme,
 		syncDeviceDarkMode: true,
-		chatOpenBehavior: 'page' as 'page' | 'window' | 'popout',
 		plugins: [] as Plugin[],
 		mediaVolume: 0.5,
 		sound_masterVolume: 0.3,
@@ -248,10 +270,6 @@ export class ColdDeviceStorage {
 		sound_chatBg: { type: 'syuilo/waon', volume: 1 },
 		sound_antenna: { type: 'syuilo/triple', volume: 1 },
 		sound_channel: { type: 'syuilo/square-pico', volume: 1 },
-		sound_reversiPutBlack: { type: 'syuilo/kick', volume: 0.3 },
-		sound_reversiPutWhite: { type: 'syuilo/snare', volume: 0.3 },
-		roomGraphicsQuality: 'medium' as 'cheep' | 'low' | 'medium' | 'high' | 'ultra',
-		roomUseOrthographicCamera: true,
 	};
 
 	public static watchers = [];

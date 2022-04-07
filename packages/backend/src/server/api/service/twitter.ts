@@ -1,27 +1,28 @@
-import * as Koa from 'koa';
-import * as Router from '@koa/router';
+import Koa from 'koa';
+import Router from '@koa/router';
 import { v4 as uuid } from 'uuid';
 import autwh from 'autwh';
-import { redisClient } from '../../../db/redis';
-import { publishMainStream } from '@/services/stream';
-import config from '@/config/index';
-import signin from '../common/signin';
-import { fetchMeta } from '@/misc/fetch-meta';
-import { Users, UserProfiles } from '@/models/index';
-import { ILocalUser } from '@/models/entities/user';
+import { redisClient } from '../../../db/redis.js';
+import { publishMainStream } from '@/services/stream.js';
+import config from '@/config/index.js';
+import signin from '../common/signin.js';
+import { fetchMeta } from '@/misc/fetch-meta.js';
+import { Users, UserProfiles } from '@/models/index.js';
+import { ILocalUser } from '@/models/entities/user.js';
+import { IsNull } from 'typeorm';
 
-function getUserToken(ctx: Koa.Context) {
+function getUserToken(ctx: Koa.BaseContext): string | null {
 	return ((ctx.headers['cookie'] || '').match(/igi=(\w+)/) || [null, null])[1];
 }
 
-function compareOrigin(ctx: Koa.Context) {
-	function normalizeUrl(url: string) {
-		return url.endsWith('/') ? url.substr(0, url.length - 1) : url;
+function compareOrigin(ctx: Koa.BaseContext): boolean {
+	function normalizeUrl(url?: string): string {
+		return url == null ? '' : url.endsWith('/') ? url.substr(0, url.length - 1) : url;
 	}
 
 	const referer = ctx.headers['referer'];
 
-	return (normalizeUrl(referer) == normalizeUrl(config.url));
+	return (normalizeUrl(referer) === normalizeUrl(config.url));
 }
 
 // Init router
@@ -39,12 +40,12 @@ router.get('/disconnect/twitter', async ctx => {
 		return;
 	}
 
-	const user = await Users.findOneOrFail({
-		host: null,
-		token: userToken
+	const user = await Users.findOneByOrFail({
+		host: IsNull(),
+		token: userToken,
 	});
 
-	const profile = await UserProfiles.findOneOrFail(user.id);
+	const profile = await UserProfiles.findOneByOrFail({ userId: user.id });
 
 	delete profile.integrations.twitter;
 
@@ -57,7 +58,7 @@ router.get('/disconnect/twitter', async ctx => {
 	// Publish i updated event
 	publishMainStream(user.id, 'meUpdated', await Users.pack(user, user, {
 		detail: true,
-		includeSecrets: true
+		includeSecrets: true,
 	}));
 });
 
@@ -68,7 +69,7 @@ async function getTwAuth() {
 		return autwh({
 			consumerKey: meta.twitterConsumerKey,
 			consumerSecret: meta.twitterConsumerSecret,
-			callbackUrl: `${config.url}/api/tw/cb`
+			callbackUrl: `${config.url}/api/tw/cb`,
 		});
 	} else {
 		return null;
@@ -104,7 +105,7 @@ router.get('/signin/twitter', async ctx => {
 	ctx.cookies.set('signin_with_twitter_sid', sessid, {
 		path: '/',
 		secure: config.url.startsWith('https'),
-		httpOnly: true
+		httpOnly: true,
 	});
 
 	ctx.redirect(twCtx.url);
@@ -143,7 +144,7 @@ router.get('/tw/cb', async ctx => {
 			return;
 		}
 
-		signin(ctx, await Users.findOne(link.userId) as ILocalUser, true);
+		signin(ctx, await Users.findOneBy({ id: link.userId }) as ILocalUser, true);
 	} else {
 		const verifier = ctx.query.oauth_verifier;
 
@@ -162,12 +163,12 @@ router.get('/tw/cb', async ctx => {
 
 		const result = await twAuth!.done(JSON.parse(twCtx), verifier);
 
-		const user = await Users.findOneOrFail({
-			host: null,
-			token: userToken
+		const user = await Users.findOneByOrFail({
+			host: IsNull(),
+			token: userToken,
 		});
 
-		const profile = await UserProfiles.findOneOrFail(user.id);
+		const profile = await UserProfiles.findOneByOrFail({ userId: user.id });
 
 		await UserProfiles.update(user.id, {
 			integrations: {
@@ -177,7 +178,7 @@ router.get('/tw/cb', async ctx => {
 					accessTokenSecret: result.accessTokenSecret,
 					userId: result.userId,
 					screenName: result.screenName,
-				}
+				},
 			},
 		});
 
@@ -186,7 +187,7 @@ router.get('/tw/cb', async ctx => {
 		// Publish i updated event
 		publishMainStream(user.id, 'meUpdated', await Users.pack(user, user, {
 			detail: true,
-			includeSecrets: true
+			includeSecrets: true,
 		}));
 	}
 });

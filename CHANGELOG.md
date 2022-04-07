@@ -2,17 +2,291 @@
 ## 12.x.x (unreleased)
 
 ### Improvements
+- 
 
 ### Bugfixes
+- 
 
+You should also include the user name that made the change.
 -->
 
 ## 12.x.x (unreleased)
 
 ### Improvements
+- Improve webhook @syuilo
+
+### Bugfixes
+- API: parameter validation of users/show was wrong
+
+## 12.109.2 (2022/04/03)
+
+### Bugfixes
+- API: admin/update-meta was not working @syuilo
+- Client: テーマを切り替えたり読み込んだりするとmeta[name="theme-color"]のcontentがundefinedになる問題を修正 @tamaina
+
+## 12.109.1 (2022/04/02)
+
+### Bugfixes
+- API: Renoteが行えない問題を修正
+
+## 12.109.0 (2022/04/02)
+
+### Improvements
+- Webhooks @syuilo
+- Bull Dashboardを組み込み、ジョブキューの確認や操作を行えるように @syuilo
+  - Bull Dashboardを開くには、最初だけ一旦ログアウトしてから再度管理者権限を持つアカウントでログインする必要があります
+- Check that installed Node.js version fulfills version requirement @ThatOneCalculator
+- Server: overall performance improvements @syuilo
+- Federation: avoid duplicate activity delivery @Johann150
+- Federation: limit federation of reactions on direct notes @Johann150
+- Client: タッチパッド・タッチスクリーンでのデッキの操作性を向上 @tamaina
+
+### Bugfixes
+- email address validation was not working @ybw2016v
+- API: fix endpoint endpoint @Johann150
+- API: fix admin/meta endpoint @syuilo
+- API: improved validation and documentation for endpoints that accept different variants of input @Johann150
+- API: `notes/create`: The `mediaIds` property is now deprecated. @Johann150
+  - Use `fileIds` instead, it has the same behaviour.
+- Client: URIエンコーディングが異常でdecodeURIComponentが失敗するとURLが表示できなくなる問題を修正 @tamaina
+
+## 12.108.1 (2022/03/12)
+
+### Bugfixes
+- リレーが動作しない問題を修正 @xianonn
+- ulidを使用していると動作しない問題を修正 @syuilo
+- 外部からOGPが正しく取得できない問題を修正 @syuilo
+- instance can not get the files from other instance when there are items in allowedPrivateNetworks in .config/default.yml @ybw2016v
+
+## 12.108.0 (2022/03/09)
+
+### NOTE
+このバージョンからNode v16.14.0以降が必要です
+
+### Changes
+- ノートの最大文字数を設定できる機能が廃止され、デフォルトで一律3000文字になりました @syuilo
+- Misskey can no longer terminate HTTPS connections. @Johann150
+  - If you did not use a reverse proxy (e.g. nginx) before, you will probably need to adjust
+    your configuration file and set up a reverse proxy. The `https` configuration key is no
+    longer recognized!
+
+### Improvements
+- インスタンスデフォルトテーマを設定できるように @syuilo
+- ミュートに期限を設定できるように @syuilo
+- アンケートが終了したときに通知が作成されるように @syuilo
+- プロフィールの追加情報を最大16まで保存できるように @syuilo
+- 連合チャートにPub&Subを追加 @syuilo
+- 連合チャートにActiveを追加 @syuilo
+- デフォルトで10秒以上時間がかかるデータベースへのクエリは中断されるように @syuilo
+	- 設定ファイルの`db.extra`に`statement_timeout`を設定することでタイムアウト時間を変更できます
+- Client: スプラッシュスクリーンにインスタンスのアイコンを表示するように @syuilo
+
+### Bugfixes
+- Client: リアクションピッカーの高さが低くなったまま戻らないことがあるのを修正 @syuilo
+- Client: ユーザー名オートコンプリートが正しく動作しない問題を修正 @syuilo
+- Client: タッチ操作だとウィジェットの編集がしにくいのを修正 @xianonn
+- Client: register_note_view_interruptor()が動かないのを修正 @syuilo
+- Client: iPhone X以降(?)でページの内容が全て表示しきれないのを修正 @tamaina
+- Client: fix image caption on mobile @nullobsi
+
+## 12.107.0 (2022/02/12)
+
+### Improvements
+- クライアント: テーマを追加 @syuilo
+
+### Bugfixes
+- API: stats APIで内部エラーが発生する問題を修正 @syuilo
+- クライアント: ソフトミュートですべてがマッチしてしまう場合があるのを修正 @tamaina
+- クライアント: デバイスのスクリーンのセーフエリアを考慮するように @syuilo
+- クライアント: 一部環境でサイドバーの投稿ボタンが表示されない問題を修正 @syuilo
+
+## 12.106.3 (2022/02/11)
+
+### Improvements
+- クライアント: スマートフォンでの余白を調整 @syuilo
+
+### Bugfixes
+- クライアント: ノートの詳細が表示されない問題を修正 @syuilo
+
+## 12.106.2 (2022/02/11)
+
+### Bugfixes
+- クライアント: 削除したノートがタイムラインから自動で消えない問題を修正 @syuilo
+- クライアント: リアクション数が正しくないことがある問題を修正 @syuilo
+- 一部環境でマイグレーションが動作しない問題を修正 @syuilo
+
+## 12.106.1 (2022/02/11)
+
+### Bugfixes
+- クライアント: ワードミュートが保存できない問題を修正 @syuilo
+
+## 12.106.0 (2022/02/11)
+
+### Improvements
+- Improve federation chart @syuilo
+- クライアント: リアクションピッカーのサイズを設定できるように @syuilo
+- クライアント: リアクションピッカーの幅、高さ制限を緩和 @syuilo
+- Docker: Update to Node v16.13.2 @mei23
+- Update dependencies
+
+### Bugfixes
+- validate regular expressions in word mutes @Johann150
+
+## 12.105.0 (2022/02/09)
+
+### Improvements
+- インスタンスのテーマカラーを設定できるように @syuilo
+
+### Bugfixes
+- 一部環境でマイグレーションが失敗する問題を修正 @syuilo
+
+## 12.104.0 (2022/02/09)
+
+### Note
+ビルドする前に`npm run clean`を実行してください。
+
+このリリースはマイグレーションの規模が大きいため、インスタンスによってはマイグレーションに時間がかかる可能性があります。
+マイグレーションが終わらない場合は、チャートの情報はリセットされてしまいますが`__chart__`で始まるテーブルの**レコード**を全て削除(テーブル自体は消さないでください)してから再度試す方法もあります。
+
+### Improvements
+- チャートエンジンの強化 @syuilo
+	- テーブルサイズの削減
+	- notes/instance/perUserNotesチャートに添付ファイル付きノートの数を追加
+	- activeUsersチャートに新しい項目を追加
+	- federationチャートに新しい項目を追加
+	- apRequestチャートを追加
+	- networkチャート廃止
+- クライアント: 自インスタンス情報ページでチャートを見れるように @syuilo
+- クライアント: デバイスの種類を手動指定できるように @syuilo
+- クライアント: UIのアイコンを更新 @syuilo
+- クライアント: UIのアイコンをセルフホスティングするように @syuilo
+- NodeInfo のユーザー数と投稿数の内容を見直す @xianonn
+
+### Bugfixes
+- Client: タイムライン種別を切り替えると「新しいノートがあります」の表示が残留してしまうのを修正 @tamaina
+- Client: UIのサイズがおかしくなる問題の修正 @tamaina
+- Client: Setting instance information of notes to always show breaks the timeline @Johann150
+- Client: 環境に依っては返信する際のカーソル位置が正しくない問題を修正 @syuilo
+- Client: コントロールパネルのユーザー、ファイルにて、インスタンスの表示範囲切り替えが機能しない問題を修正 @syuilo
+- Client: アップデートお知らせダイアログが出ないのを修正 @syuilo
+- Client: Follows/Followers Visibility changes won't be saved unless clicking on an other checkbox @Johann150
+- API: Fix API cast @mei23
+- add instance favicon where it's missing @solfisher
+- チャートの定期resyncが動作していない問題を修正 @syuilo
+
+## 12.103.1 (2022/02/02)
+
+### Bugfixes
+- クライアント: ツールチップの表示位置が正しくない問題を修正
+
+## 12.103.0 (2022/02/02)
+
+### Improvements
+- クライアント: 連合インスタンスページからインスタンス情報再取得を行えるように
+
+### Bugfixes
+- クライアント: 投稿のNSFW画像を表示したあとにリアクションが更新されると画像が非表示になる問題を修正
+- クライアント: 「クリップ」ページが開かない問題を修正
+- クライアント: トレンドウィジェットが動作しないのを修正
+- クライアント: フェデレーションウィジェットが動作しないのを修正
+- クライアント: リアクション設定で絵文字ピッカーが開かないのを修正
+- クライアント: DMページでメンションが含まれる問題を修正
+- クライアント: 投稿フォームのハッシュタグ保持フィールドが動作しない問題を修正
+- クライアント: サイドビューが動かないのを修正
+- クライアント: ensure that specified users does not get duplicates
+- Add `img-src` and `media-src` directives to `Content-Security-Policy` for
+  files and media proxy
+
+## 12.102.1 (2022/01/27)
+### Bugfixes
+- チャットが表示できない問題を修正
+
+## 12.102.0 (2022/01/27)
+
+### NOTE
+アップデート後、一部カスタム絵文字が表示できなくなる場合があります。その場合、一旦絵文字管理ページから絵文字を一括エクスポートし、再度コントロールパネルから一括インポートすると直ります。
+⚠ 12.102.0以前にエクスポートされたzipとは互換性がありません。アップデートしてからエクスポートを行なってください。
+
+### Changes
+- Room機能が削除されました
+  - 後日別リポジトリとして復活予定です
+- リバーシ機能が削除されました
+  - 後日別リポジトリとして復活予定です
+- Chat UIが削除されました
+- ノートに添付できるファイルの数が16に増えました
+- カスタム絵文字にSVGを指定した場合、PNGに変換されて表示されるようになりました
+
+### Improvements
+- カスタム絵文字一括編集機能
+- カスタム絵文字一括インポート
+- 投稿フォームで一時的に投稿するアカウントを切り替えられるように
+- Unifying Misskey-specific IRIs in JSON-LD `@context`
+- クライアントのパフォーマンス向上
+- セキュリティの向上
+
+### Bugfixes
+- アップロードエラー時の処理を修正
+
+## 12.101.1 (2021/12/29)
+
+### Bugfixes
+- SVG絵文字が表示できないのを修正
+- エクスポートした絵文字の拡張子がfalseになることがあるのを修正
+
+## 12.101.0 (2021/12/29)
+
+### Improvements
+- クライアント: ノートプレビューの精度を改善
+- クライアント: MFM sparkleエフェクトの改善
+- クライアント: デザインの調整
+- セキュリティの向上
+
+### Bugfixes
+- クライアント: 一部のコンポーネントが裏に隠れるのを修正
+- fix html blockquote conversion
+
+## 12.100.2 (2021/12/18)
+
+### Bugfixes
+- クライアント: Deckカラムの増減がページをリロードするまで正しく反映されない問題を修正
+- クライアント: 一部のコンポーネントが裏に隠れるのを修正
+- クライアント: カスタム絵文字一覧ページの負荷が高いのを修正
+
+## 12.100.1 (2021/12/17)
+
+### Bugfixes
+- クライアント: デザインの調整
+
+## 12.100.0 (2021/12/17)
+
+### Improvements
+- クライアント: モバイルでの各種メニュー、リアクションピッカーの表示を改善
+
+### Bugfixes
+- クライアント: 一部のコンポーネントが裏に隠れるのを修正
+
+## 12.99.3 (2021/12/14)
+### Bugfixes
+- クライアント: オートコンプリートがダイアログの裏に隠れる問題を修正
+
+## 12.99.2 (2021/12/14)
+
+## 12.99.1 (2021/12/14)
+
+## 12.99.0 (2021/12/14)
+
+### Improvements
+- Added a user-level instance mute in user settings
+- フォローエクスポートでミュートしているユーザーを含めないオプションを追加
+- フォローエクスポートで使われていないアカウントを含めないオプションを追加
+- カスタム絵文字エクスポート機能
+- チャートのパフォーマンスの改善
+- グループから抜けられるように
 
 ### Bugfixes
 - クライアント: タッチ機能付きディスプレイを使っていてマウス操作をしている場合に一部機能が動作しない問題を修正
+- クライアント: クリップの設定を編集できない問題を修正
+- クライアント: メニューなどがウィンドウの裏に隠れる問題を修正
 
 ## 12.98.0 (2021/12/03)
 

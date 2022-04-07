@@ -1,34 +1,35 @@
-import $ from 'cafy';
-import { ID } from '@/misc/cafy-id';
-import define from '../../../define';
-import { ApiError } from '../../../error';
-import { MessagingMessages } from '@/models/index';
-import { readUserMessagingMessage, readGroupMessagingMessage } from '../../../common/read-messaging-message';
+import define from '../../../define.js';
+import { ApiError } from '../../../error.js';
+import { MessagingMessages } from '@/models/index.js';
+import { readUserMessagingMessage, readGroupMessagingMessage } from '../../../common/read-messaging-message.js';
 
 export const meta = {
 	tags: ['messaging'],
 
-	requireCredential: true as const,
+	requireCredential: true,
 
 	kind: 'write:messaging',
-
-	params: {
-		messageId: {
-			validator: $.type(ID),
-		}
-	},
 
 	errors: {
 		noSuchMessage: {
 			message: 'No such message.',
 			code: 'NO_SUCH_MESSAGE',
-			id: '86d56a2f-a9c3-4afb-b13c-3e9bfef9aa14'
+			id: '86d56a2f-a9c3-4afb-b13c-3e9bfef9aa14',
 		},
-	}
-};
+	},
+} as const;
 
-export default define(meta, async (ps, user) => {
-	const message = await MessagingMessages.findOne(ps.messageId);
+export const paramDef = {
+	type: 'object',
+	properties: {
+		messageId: { type: 'string', format: 'misskey:id' },
+	},
+	required: ['messageId'],
+} as const;
+
+// eslint-disable-next-line import/no-default-export
+export default define(meta, paramDef, async (ps, user) => {
+	const message = await MessagingMessages.findOneBy({ id: ps.messageId });
 
 	if (message == null) {
 		throw new ApiError(meta.errors.noSuchMessage);

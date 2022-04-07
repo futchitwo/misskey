@@ -1,28 +1,29 @@
-import * as Koa from 'koa';
-import * as Router from '@koa/router';
-import { getJson } from '@/misc/fetch';
+import Koa from 'koa';
+import Router from '@koa/router';
+import { getJson } from '@/misc/fetch.js';
 import { OAuth2 } from 'oauth';
-import config from '@/config/index';
-import { publishMainStream } from '@/services/stream';
-import { redisClient } from '../../../db/redis';
+import config from '@/config/index.js';
+import { publishMainStream } from '@/services/stream.js';
+import { redisClient } from '../../../db/redis.js';
 import { v4 as uuid } from 'uuid';
-import signin from '../common/signin';
-import { fetchMeta } from '@/misc/fetch-meta';
-import { Users, UserProfiles } from '@/models/index';
-import { ILocalUser } from '@/models/entities/user';
+import signin from '../common/signin.js';
+import { fetchMeta } from '@/misc/fetch-meta.js';
+import { Users, UserProfiles } from '@/models/index.js';
+import { ILocalUser } from '@/models/entities/user.js';
+import { IsNull } from 'typeorm';
 
-function getUserToken(ctx: Koa.Context) {
+function getUserToken(ctx: Koa.BaseContext): string | null {
 	return ((ctx.headers['cookie'] || '').match(/igi=(\w+)/) || [null, null])[1];
 }
 
-function compareOrigin(ctx: Koa.Context) {
-	function normalizeUrl(url: string) {
+function compareOrigin(ctx: Koa.BaseContext): boolean {
+	function normalizeUrl(url?: string): string {
 		return url ? url.endsWith('/') ? url.substr(0, url.length - 1) : url : '';
 	}
 
 	const referer = ctx.headers['referer'];
 
-	return (normalizeUrl(referer) == normalizeUrl(config.url));
+	return (normalizeUrl(referer) === normalizeUrl(config.url));
 }
 
 // Init router
@@ -40,12 +41,12 @@ router.get('/disconnect/discord', async ctx => {
 		return;
 	}
 
-	const user = await Users.findOneOrFail({
-		host: null,
-		token: userToken
+	const user = await Users.findOneByOrFail({
+		host: IsNull(),
+		token: userToken,
 	});
 
-	const profile = await UserProfiles.findOneOrFail(user.id);
+	const profile = await UserProfiles.findOneByOrFail({ userId: user.id });
 
 	delete profile.integrations.discord;
 
@@ -58,7 +59,7 @@ router.get('/disconnect/discord', async ctx => {
 	// Publish i updated event
 	publishMainStream(user.id, 'meUpdated', await Users.pack(user, user, {
 		detail: true,
-		includeSecrets: true
+		includeSecrets: true,
 	}));
 });
 
@@ -93,7 +94,7 @@ router.get('/connect/discord', async ctx => {
 		redirect_uri: `${config.url}/api/dc/cb`,
 		scope: ['identify'],
 		state: uuid(),
-		response_type: 'code'
+		response_type: 'code',
 	};
 
 	redisClient.set(userToken, JSON.stringify(params));
@@ -109,13 +110,13 @@ router.get('/signin/discord', async ctx => {
 		redirect_uri: `${config.url}/api/dc/cb`,
 		scope: ['identify'],
 		state: uuid(),
-		response_type: 'code'
+		response_type: 'code',
 	};
 
 	ctx.cookies.set('signin_with_discord_sid', sessid, {
 		path: '/',
 		secure: config.url.startsWith('https'),
-		httpOnly: true
+		httpOnly: true,
 	});
 
 	redisClient.set(sessid, JSON.stringify(params));
@@ -158,7 +159,7 @@ router.get('/dc/cb', async ctx => {
 		const { accessToken, refreshToken, expiresDate } = await new Promise<any>((res, rej) =>
 			oauth2!.getOAuthAccessToken(code, {
 				grant_type: 'authorization_code',
-				redirect_uri
+				redirect_uri,
 			}, (err, accessToken, refreshToken, result) => {
 				if (err) {
 					rej(err);
@@ -168,7 +169,7 @@ router.get('/dc/cb', async ctx => {
 					res({
 						accessToken,
 						refreshToken,
-						expiresDate: Date.now() + Number(result.expires_in) * 1000
+						expiresDate: Date.now() + Number(result.expires_in) * 1000,
 					});
 				}
 			}));
@@ -201,12 +202,12 @@ router.get('/dc/cb', async ctx => {
 					refreshToken: refreshToken,
 					expiresDate: expiresDate,
 					username: username,
-					discriminator: discriminator
-				}
+					discriminator: discriminator,
+				},
 			},
 		});
 
-		signin(ctx, await Users.findOne(profile.userId) as ILocalUser, true);
+		signin(ctx, await Users.findOneBy({ id: profile.userId }) as ILocalUser, true);
 	} else {
 		const code = ctx.query.code;
 
@@ -229,7 +230,7 @@ router.get('/dc/cb', async ctx => {
 		const { accessToken, refreshToken, expiresDate } = await new Promise<any>((res, rej) =>
 			oauth2!.getOAuthAccessToken(code, {
 				grant_type: 'authorization_code',
-				redirect_uri
+				redirect_uri,
 			}, (err, accessToken, refreshToken, result) => {
 				if (err) {
 					rej(err);
@@ -239,7 +240,7 @@ router.get('/dc/cb', async ctx => {
 					res({
 						accessToken,
 						refreshToken,
-						expiresDate: Date.now() + Number(result.expires_in) * 1000
+						expiresDate: Date.now() + Number(result.expires_in) * 1000,
 					});
 				}
 			}));
@@ -252,12 +253,12 @@ router.get('/dc/cb', async ctx => {
 			return;
 		}
 
-		const user = await Users.findOneOrFail({
-			host: null,
-			token: userToken
+		const user = await Users.findOneByOrFail({
+			host: IsNull(),
+			token: userToken,
 		});
 
-		const profile = await UserProfiles.findOneOrFail(user.id);
+		const profile = await UserProfiles.findOneByOrFail({ userId: user.id });
 
 		await UserProfiles.update(user.id, {
 			integrations: {
@@ -268,9 +269,9 @@ router.get('/dc/cb', async ctx => {
 					expiresDate: expiresDate,
 					id: id,
 					username: username,
-					discriminator: discriminator
-				}
-			}
+					discriminator: discriminator,
+				},
+			},
 		});
 
 		ctx.body = `Discord: @${username}#${discriminator} を、Misskey: @${user.username} に接続しました！`;
@@ -278,7 +279,7 @@ router.get('/dc/cb', async ctx => {
 		// Publish i updated event
 		publishMainStream(user.id, 'meUpdated', await Users.pack(user, user, {
 			detail: true,
-			includeSecrets: true
+			includeSecrets: true,
 		}));
 	}
 });

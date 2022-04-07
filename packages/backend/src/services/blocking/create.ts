@@ -1,15 +1,17 @@
-import { publishMainStream, publishUserEvent } from '@/services/stream';
-import { renderActivity } from '@/remote/activitypub/renderer/index';
-import renderFollow from '@/remote/activitypub/renderer/follow';
-import renderUndo from '@/remote/activitypub/renderer/undo';
-import renderBlock from '@/remote/activitypub/renderer/block';
-import { deliver } from '@/queue/index';
-import renderReject from '@/remote/activitypub/renderer/reject';
-import { User } from '@/models/entities/user';
-import { Blockings, Users, FollowRequests, Followings, UserListJoinings, UserLists } from '@/models/index';
-import { perUserFollowingChart } from '@/services/chart/index';
-import { genId } from '@/misc/gen-id';
-import { IdentifiableError } from '@/misc/identifiable-error';
+import { publishMainStream, publishUserEvent } from '@/services/stream.js';
+import { renderActivity } from '@/remote/activitypub/renderer/index.js';
+import renderFollow from '@/remote/activitypub/renderer/follow.js';
+import renderUndo from '@/remote/activitypub/renderer/undo.js';
+import renderBlock from '@/remote/activitypub/renderer/block.js';
+import { deliver } from '@/queue/index.js';
+import renderReject from '@/remote/activitypub/renderer/reject.js';
+import { User } from '@/models/entities/user.js';
+import { Blockings, Users, FollowRequests, Followings, UserListJoinings, UserLists } from '@/models/index.js';
+import { perUserFollowingChart } from '@/services/chart/index.js';
+import { genId } from '@/misc/gen-id.js';
+import { IdentifiableError } from '@/misc/identifiable-error.js';
+import { getActiveWebhooks } from '@/misc/webhook-cache.js';
+import { webhookDeliver } from '@/queue/index.js';
 
 export default async function(blocker: User, blockee: User) {
 	await Promise.all([
@@ -34,9 +36,9 @@ export default async function(blocker: User, blockee: User) {
 }
 
 async function cancelRequest(follower: User, followee: User) {
-	const request = await FollowRequests.findOne({
+	const request = await FollowRequests.findOneBy({
 		followeeId: followee.id,
-		followerId: follower.id
+		followerId: follower.id,
 	});
 
 	if (request == null) {
@@ -45,21 +47,28 @@ async function cancelRequest(follower: User, followee: User) {
 
 	await FollowRequests.delete({
 		followeeId: followee.id,
-		followerId: follower.id
+		followerId: follower.id,
 	});
 
 	if (Users.isLocalUser(followee)) {
 		Users.pack(followee, followee, {
-			detail: true
+			detail: true,
 		}).then(packed => publishMainStream(followee.id, 'meUpdated', packed));
 	}
 
 	if (Users.isLocalUser(follower)) {
 		Users.pack(followee, follower, {
-			detail: true
-		}).then(packed => {
+			detail: true,
+		}).then(async packed => {
 			publishUserEvent(follower.id, 'unfollow', packed);
 			publishMainStream(follower.id, 'unfollow', packed);
+
+			const webhooks = (await getActiveWebhooks()).filter(x => x.userId === follower.id && x.on.includes('unfollow'));
+			for (const webhook of webhooks) {
+				webhookDeliver(webhook, 'unfollow', {
+					user: packed,
+				});
+			}
 		});
 	}
 
@@ -77,9 +86,9 @@ async function cancelRequest(follower: User, followee: User) {
 }
 
 async function unFollow(follower: User, followee: User) {
-	const following = await Followings.findOne({
+	const following = await Followings.findOneBy({
 		followerId: follower.id,
-		followeeId: followee.id
+		followeeId: followee.id,
 	});
 
 	if (following == null) {
@@ -101,10 +110,17 @@ async function unFollow(follower: User, followee: User) {
 	// Publish unfollow event
 	if (Users.isLocalUser(follower)) {
 		Users.pack(followee, follower, {
-			detail: true
-		}).then(packed => {
+			detail: true,
+		}).then(async packed => {
 			publishUserEvent(follower.id, 'unfollow', packed);
 			publishMainStream(follower.id, 'unfollow', packed);
+
+			const webhooks = (await getActiveWebhooks()).filter(x => x.userId === follower.id && x.on.includes('unfollow'));
+			for (const webhook of webhooks) {
+				webhookDeliver(webhook, 'unfollow', {
+					user: packed,
+				});
+			}
 		});
 	}
 
@@ -116,7 +132,7 @@ async function unFollow(follower: User, followee: User) {
 }
 
 async function removeFromList(listOwner: User, user: User) {
-	const userLists = await UserLists.find({
+	const userLists = await UserLists.findBy({
 		userId: listOwner.id,
 	});
 

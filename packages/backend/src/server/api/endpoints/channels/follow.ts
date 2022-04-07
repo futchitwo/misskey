@@ -1,35 +1,36 @@
-import $ from 'cafy';
-import { ID } from '@/misc/cafy-id';
-import define from '../../define';
-import { ApiError } from '../../error';
-import { Channels, ChannelFollowings } from '@/models/index';
-import { genId } from '@/misc/gen-id';
-import { publishUserEvent } from '@/services/stream';
+import define from '../../define.js';
+import { ApiError } from '../../error.js';
+import { Channels, ChannelFollowings } from '@/models/index.js';
+import { genId } from '@/misc/gen-id.js';
+import { publishUserEvent } from '@/services/stream.js';
 
 export const meta = {
 	tags: ['channels'],
 
-	requireCredential: true as const,
+	requireCredential: true,
 
 	kind: 'write:channels',
-
-	params: {
-		channelId: {
-			validator: $.type(ID),
-		},
-	},
 
 	errors: {
 		noSuchChannel: {
 			message: 'No such channel.',
 			code: 'NO_SUCH_CHANNEL',
-			id: 'c0031718-d573-4e85-928e-10039f1fbb68'
+			id: 'c0031718-d573-4e85-928e-10039f1fbb68',
 		},
-	}
-};
+	},
+} as const;
 
-export default define(meta, async (ps, user) => {
-	const channel = await Channels.findOne({
+export const paramDef = {
+	type: 'object',
+	properties: {
+		channelId: { type: 'string', format: 'misskey:id' },
+	},
+	required: ['channelId'],
+} as const;
+
+// eslint-disable-next-line import/no-default-export
+export default define(meta, paramDef, async (ps, user) => {
+	const channel = await Channels.findOneBy({
 		id: ps.channelId,
 	});
 

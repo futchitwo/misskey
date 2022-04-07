@@ -1,10 +1,9 @@
-import autobind from 'autobind-decorator';
-import Channel from '../channel';
-import { Notes, UserListJoinings, UserLists } from '@/models/index';
-import { isMutedUserRelated } from '@/misc/is-muted-user-related';
-import { User } from '@/models/entities/user';
-import { isBlockerUserRelated } from '@/misc/is-blocker-user-related';
-import { Packed } from '@/misc/schema';
+import Channel from '../channel.js';
+import { Notes, UserListJoinings, UserLists } from '@/models/index.js';
+import { isMutedUserRelated } from '@/misc/is-muted-user-related.js';
+import { User } from '@/models/entities/user.js';
+import { isBlockerUserRelated } from '@/misc/is-blocker-user-related.js';
+import { Packed } from '@/misc/schema.js';
 
 export default class extends Channel {
 	public readonly chName = 'userList';
@@ -14,14 +13,19 @@ export default class extends Channel {
 	public listUsers: User['id'][] = [];
 	private listUsersClock: NodeJS.Timer;
 
-	@autobind
+	constructor(id: string, connection: Channel['connection']) {
+		super(id, connection);
+		this.updateListUsers = this.updateListUsers.bind(this);
+		this.onNote = this.onNote.bind(this);
+	}
+
 	public async init(params: any) {
 		this.listId = params.listId as string;
 
 		// Check existence and owner
-		const list = await UserLists.findOne({
+		const list = await UserLists.findOneBy({
 			id: this.listId,
-			userId: this.user!.id
+			userId: this.user!.id,
 		});
 		if (!list) return;
 
@@ -34,25 +38,23 @@ export default class extends Channel {
 		this.listUsersClock = setInterval(this.updateListUsers, 5000);
 	}
 
-	@autobind
 	private async updateListUsers() {
 		const users = await UserListJoinings.find({
 			where: {
 				userListId: this.listId,
 			},
-			select: ['userId']
+			select: ['userId'],
 		});
 
 		this.listUsers = users.map(x => x.userId);
 	}
 
-	@autobind
 	private async onNote(note: Packed<'Note'>) {
 		if (!this.listUsers.includes(note.userId)) return;
 
 		if (['followers', 'specified'].includes(note.visibility)) {
 			note = await Notes.pack(note.id, this.user, {
-				detail: true
+				detail: true,
 			});
 
 			if (note.isHidden) {
@@ -62,13 +64,13 @@ export default class extends Channel {
 			// リプライなら再pack
 			if (note.replyId != null) {
 				note.reply = await Notes.pack(note.replyId, this.user, {
-					detail: true
+					detail: true,
 				});
 			}
 			// Renoteなら再pack
 			if (note.renoteId != null) {
 				note.renote = await Notes.pack(note.renoteId, this.user, {
-					detail: true
+					detail: true,
 				});
 			}
 		}
@@ -81,7 +83,6 @@ export default class extends Channel {
 		this.send('note', note);
 	}
 
-	@autobind
 	public dispose() {
 		// Unsubscribe events
 		this.subscriber.off(`userListStream:${this.listId}`, this.send);

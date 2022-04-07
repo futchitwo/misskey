@@ -1,7 +1,7 @@
-import Xev from 'xev';
-import { deliverQueue, inboxQueue } from '../queue/queues';
+import { default as Xev } from 'xev';
+import { deliverQueue, inboxQueue } from '../queue/queues.js';
 
-const ev = new Xev();
+const ev = new Xev.default();
 
 const interval = 10000;
 
@@ -35,13 +35,13 @@ export default function() {
 				activeSincePrevTick: activeDeliverJobs,
 				active: deliverJobCounts.active,
 				waiting: deliverJobCounts.waiting,
-				delayed: deliverJobCounts.delayed
+				delayed: deliverJobCounts.delayed,
 			},
 			inbox: {
 				activeSincePrevTick: activeInboxJobs,
 				active: inboxJobCounts.active,
 				waiting: inboxJobCounts.waiting,
-				delayed: inboxJobCounts.delayed
+				delayed: inboxJobCounts.delayed,
 			},
 		};
 

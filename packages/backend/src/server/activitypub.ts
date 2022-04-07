@@ -1,23 +1,23 @@
-import * as Router from '@koa/router';
-import * as json from 'koa-json-body';
-import * as httpSignature from 'http-signature';
+import Router from '@koa/router';
+import json from 'koa-json-body';
+import httpSignature from 'http-signature';
 
-import { renderActivity } from '@/remote/activitypub/renderer/index';
-import renderNote from '@/remote/activitypub/renderer/note';
-import renderKey from '@/remote/activitypub/renderer/key';
-import { renderPerson } from '@/remote/activitypub/renderer/person';
-import renderEmoji from '@/remote/activitypub/renderer/emoji';
-import Outbox, { packActivity } from './activitypub/outbox';
-import Followers from './activitypub/followers';
-import Following from './activitypub/following';
-import Featured from './activitypub/featured';
-import { inbox as processInbox } from '@/queue/index';
-import { isSelfHost } from '@/misc/convert-host';
-import { Notes, Users, Emojis, NoteReactions } from '@/models/index';
-import { ILocalUser, User } from '@/models/entities/user';
-import { In } from 'typeorm';
-import { renderLike } from '@/remote/activitypub/renderer/like';
-import { getUserKeypair } from '@/misc/keypair-store';
+import { renderActivity } from '@/remote/activitypub/renderer/index.js';
+import renderNote from '@/remote/activitypub/renderer/note.js';
+import renderKey from '@/remote/activitypub/renderer/key.js';
+import { renderPerson } from '@/remote/activitypub/renderer/person.js';
+import renderEmoji from '@/remote/activitypub/renderer/emoji.js';
+import Outbox, { packActivity } from './activitypub/outbox.js';
+import Followers from './activitypub/followers.js';
+import Following from './activitypub/following.js';
+import Featured from './activitypub/featured.js';
+import { inbox as processInbox } from '@/queue/index.js';
+import { isSelfHost } from '@/misc/convert-host.js';
+import { Notes, Users, Emojis, NoteReactions } from '@/models/index.js';
+import { ILocalUser, User } from '@/models/entities/user.js';
+import { In, IsNull } from 'typeorm';
+import { renderLike } from '@/remote/activitypub/renderer/like.js';
+import { getUserKeypair } from '@/misc/keypair-store.js';
 
 // Init router
 const router = new Router();
@@ -65,10 +65,10 @@ router.post('/users/:user/inbox', json(), inbox);
 router.get('/notes/:note', async (ctx, next) => {
 	if (!isActivityPubReq(ctx)) return await next();
 
-	const note = await Notes.findOne({
+	const note = await Notes.findOneBy({
 		id: ctx.params.note,
-		visibility: In(['public', 'home']),
-		localOnly: false
+		visibility: In(['public' as const, 'home' as const]),
+		localOnly: false,
 	});
 
 	if (note == null) {
@@ -93,11 +93,11 @@ router.get('/notes/:note', async (ctx, next) => {
 
 // note activity
 router.get('/notes/:note/activity', async ctx => {
-	const note = await Notes.findOne({
+	const note = await Notes.findOneBy({
 		id: ctx.params.note,
-		userHost: null,
-		visibility: In(['public', 'home']),
-		localOnly: false
+		userHost: IsNull(),
+		visibility: In(['public' as const, 'home' as const]),
+		localOnly: false,
 	});
 
 	if (note == null) {
@@ -126,9 +126,9 @@ router.get('/users/:user/collections/featured', Featured);
 router.get('/users/:user/publickey', async ctx => {
 	const userId = ctx.params.user;
 
-	const user = await Users.findOne({
+	const user = await Users.findOneBy({
 		id: userId,
-		host: null
+		host: IsNull(),
 	});
 
 	if (user == null) {
@@ -148,7 +148,7 @@ router.get('/users/:user/publickey', async ctx => {
 });
 
 // user
-async function userInfo(ctx: Router.RouterContext, user: User | undefined) {
+async function userInfo(ctx: Router.RouterContext, user: User | null) {
 	if (user == null) {
 		ctx.status = 404;
 		return;
@@ -164,10 +164,10 @@ router.get('/users/:user', async (ctx, next) => {
 
 	const userId = ctx.params.user;
 
-	const user = await Users.findOne({
+	const user = await Users.findOneBy({
 		id: userId,
-		host: null,
-		isSuspended: false
+		host: IsNull(),
+		isSuspended: false,
 	});
 
 	await userInfo(ctx, user);
@@ -176,10 +176,10 @@ router.get('/users/:user', async (ctx, next) => {
 router.get('/@:user', async (ctx, next) => {
 	if (!isActivityPubReq(ctx)) return await next();
 
-	const user = await Users.findOne({
+	const user = await Users.findOneBy({
 		usernameLower: ctx.params.user.toLowerCase(),
-		host: null,
-		isSuspended: false
+		host: IsNull(),
+		isSuspended: false,
 	});
 
 	await userInfo(ctx, user);
@@ -188,9 +188,9 @@ router.get('/@:user', async (ctx, next) => {
 
 // emoji
 router.get('/emojis/:emoji', async ctx => {
-	const emoji = await Emojis.findOne({
-		host: null,
-		name: ctx.params.emoji
+	const emoji = await Emojis.findOneBy({
+		host: IsNull(),
+		name: ctx.params.emoji,
 	});
 
 	if (emoji == null) {
@@ -205,14 +205,14 @@ router.get('/emojis/:emoji', async ctx => {
 
 // like
 router.get('/likes/:like', async ctx => {
-	const reaction = await NoteReactions.findOne(ctx.params.like);
+	const reaction = await NoteReactions.findOneBy({ id: ctx.params.like });
 
 	if (reaction == null) {
 		ctx.status = 404;
 		return;
 	}
 
-	const note = await Notes.findOne(reaction.noteId);
+	const note = await Notes.findOneBy({ id: reaction.noteId });
 
 	if (note == null) {
 		ctx.status = 404;

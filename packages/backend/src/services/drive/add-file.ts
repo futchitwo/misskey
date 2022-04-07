@@ -1,25 +1,27 @@
-import * as fs from 'fs';
+import * as fs from 'node:fs';
 
 import { v4 as uuid } from 'uuid';
 
-import { publishMainStream, publishDriveStream } from '@/services/stream';
-import { deleteFile } from './delete-file';
-import { fetchMeta } from '@/misc/fetch-meta';
-import { GenerateVideoThumbnail } from './generate-video-thumbnail';
-import { driveLogger } from './logger';
-import { IImage, convertSharpToJpeg, convertSharpToWebp, convertSharpToPng, convertSharpToPngOrJpeg } from './image-processor';
-import { contentDisposition } from '@/misc/content-disposition';
-import { getFileInfo } from '@/misc/get-file-info';
-import { DriveFiles, DriveFolders, Users, Instances, UserProfiles } from '@/models/index';
-import { InternalStorage } from './internal-storage';
-import { DriveFile } from '@/models/entities/drive-file';
-import { IRemoteUser, User } from '@/models/entities/user';
-import { driveChart, perUserDriveChart, instanceChart } from '@/services/chart/index';
-import { genId } from '@/misc/gen-id';
-import { isDuplicateKeyValueError } from '@/misc/is-duplicate-key-value-error';
-import * as S3 from 'aws-sdk/clients/s3';
-import { getS3 } from './s3';
-import * as sharp from 'sharp';
+import { publishMainStream, publishDriveStream } from '@/services/stream.js';
+import { deleteFile } from './delete-file.js';
+import { fetchMeta } from '@/misc/fetch-meta.js';
+import { GenerateVideoThumbnail } from './generate-video-thumbnail.js';
+import { driveLogger } from './logger.js';
+import { IImage, convertSharpToJpeg, convertSharpToWebp, convertSharpToPng, convertSharpToPngOrJpeg } from './image-processor.js';
+import { contentDisposition } from '@/misc/content-disposition.js';
+import { getFileInfo } from '@/misc/get-file-info.js';
+import { DriveFiles, DriveFolders, Users, Instances, UserProfiles } from '@/models/index.js';
+import { InternalStorage } from './internal-storage.js';
+import { DriveFile } from '@/models/entities/drive-file.js';
+import { IRemoteUser, User } from '@/models/entities/user.js';
+import { driveChart, perUserDriveChart, instanceChart } from '@/services/chart/index.js';
+import { genId } from '@/misc/gen-id.js';
+import { isDuplicateKeyValueError } from '@/misc/is-duplicate-key-value-error.js';
+import S3 from 'aws-sdk/clients/s3.js';
+import { getS3 } from './s3.js';
+import sharp from 'sharp';
+import { FILE_TYPE_BROWSERSAFE } from '@/const.js';
+import { IsNull } from 'typeorm';
 
 const logger = driveLogger.createSubLogger('register', 'yellow');
 
@@ -49,6 +51,12 @@ async function save(file: DriveFile, path: string, name: string, type: string, h
 			if (type === 'image/vnd.mozilla.apng') ext = '.apng';
 		}
 
+		// 拡張子からContent-Typeを設定してそうな挙動を示すオブジェクトストレージ (upcloud?) も存在するので、
+		// 許可されているファイル形式でしか拡張子をつけない
+		if (!FILE_TYPE_BROWSERSAFE.includes(type)) {
+			ext = '';
+		}
+
 		const baseUrl = meta.objectStorageBaseUrl
 			|| `${ meta.objectStorageUseSSL ? 'https' : 'http' }://${ meta.objectStorageEndpoint }${ meta.objectStoragePort ? `:${meta.objectStoragePort}` : '' }/${ meta.objectStorageBucket }`;
 
@@ -66,7 +74,7 @@ async function save(file: DriveFile, path: string, name: string, type: string, h
 		//#region Uploads
 		logger.info(`uploading original: ${key}`);
 		const uploads = [
-			upload(key, fs.createReadStream(path), type, name)
+			upload(key, fs.createReadStream(path), type, name),
 		];
 
 		if (alts.webpublic) {
@@ -94,13 +102,14 @@ async function save(file: DriveFile, path: string, name: string, type: string, h
 		file.accessKey = key;
 		file.thumbnailAccessKey = thumbnailKey;
 		file.webpublicAccessKey = webpublicKey;
+		file.webpublicType = alts.webpublic?.type ?? null;
 		file.name = name;
 		file.type = type;
 		file.md5 = hash;
 		file.size = size;
 		file.storedInternal = false;
 
-		return await DriveFiles.save(file);
+		return await DriveFiles.insert(file).then(x => DriveFiles.findOneByOrFail(x.identifiers[0]));
 	} else { // use internal storage
 		const accessKey = uuid();
 		const thumbnailAccessKey = 'thumbnail-' + uuid();
@@ -128,12 +137,13 @@ async function save(file: DriveFile, path: string, name: string, type: string, h
 		file.accessKey = accessKey;
 		file.thumbnailAccessKey = thumbnailAccessKey;
 		file.webpublicAccessKey = webpublicAccessKey;
+		file.webpublicType = alts.webpublic?.type ?? null;
 		file.name = name;
 		file.type = type;
 		file.md5 = hash;
 		file.size = size;
 
-		return await DriveFiles.save(file);
+		return await DriveFiles.insert(file).then(x => DriveFiles.findOneByOrFail(x.identifiers[0]));
 	}
 }
 
@@ -149,22 +159,22 @@ export async function generateAlts(path: string, type: string, generateWeb: bool
 			const thumbnail = await GenerateVideoThumbnail(path);
 			return {
 				webpublic: null,
-				thumbnail
+				thumbnail,
 			};
-		} catch (e) {
-			logger.warn(`GenerateVideoThumbnail failed: ${e}`);
+		} catch (err) {
+			logger.warn(`GenerateVideoThumbnail failed: ${err}`);
 			return {
 				webpublic: null,
-				thumbnail: null
+				thumbnail: null,
 			};
 		}
 	}
 
-	if (!['image/jpeg', 'image/png', 'image/webp'].includes(type)) {
+	if (!['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'].includes(type)) {
 		logger.debug(`web image and thumbnail not created (not an required file)`);
 		return {
 			webpublic: null,
-			thumbnail: null
+			thumbnail: null,
 		};
 	}
 
@@ -179,14 +189,14 @@ export async function generateAlts(path: string, type: string, generateWeb: bool
 		if (isAnimated) {
 			return {
 				webpublic: null,
-				thumbnail: null
+				thumbnail: null,
 			};
 		}
-	} catch (e) {
-		logger.warn(`sharp failed: ${e}`);
+	} catch (err) {
+		logger.warn(`sharp failed: ${err}`);
 		return {
 			webpublic: null,
-			thumbnail: null
+			thumbnail: null,
 		};
 	}
 
@@ -201,13 +211,13 @@ export async function generateAlts(path: string, type: string, generateWeb: bool
 				webpublic = await convertSharpToJpeg(img, 2048, 2048);
 			} else if (['image/webp'].includes(type)) {
 				webpublic = await convertSharpToWebp(img, 2048, 2048);
-			} else if (['image/png'].includes(type)) {
+			} else if (['image/png', 'image/svg+xml'].includes(type)) {
 				webpublic = await convertSharpToPng(img, 2048, 2048);
 			} else {
 				logger.debug(`web image not created (not an required image)`);
 			}
-		} catch (e) {
-			logger.warn(`web image not created (an error occured)`, e);
+		} catch (err) {
+			logger.warn(`web image not created (an error occured)`, err as Error);
 		}
 	} else {
 		logger.info(`web image not created (from remote)`);
@@ -220,13 +230,13 @@ export async function generateAlts(path: string, type: string, generateWeb: bool
 	try {
 		if (['image/jpeg', 'image/webp'].includes(type)) {
 			thumbnail = await convertSharpToJpeg(img, 498, 280);
-		} else if (['image/png'].includes(type)) {
+		} else if (['image/png', 'image/svg+xml'].includes(type)) {
 			thumbnail = await convertSharpToPngOrJpeg(img, 498, 280);
 		} else {
 			logger.debug(`thumbnail not created (not an required file)`);
 		}
-	} catch (e) {
-		logger.warn(`thumbnail not created (an error occured)`, e);
+	} catch (err) {
+		logger.warn(`thumbnail not created (an error occured)`, err as Error);
 	}
 	// #endregion thumbnail
 
@@ -241,6 +251,7 @@ export async function generateAlts(path: string, type: string, generateWeb: bool
  */
 async function upload(key: string, stream: fs.ReadStream | Buffer, type: string, filename?: string) {
 	if (type === 'image/apng') type = 'image/png';
+	if (!FILE_TYPE_BROWSERSAFE.includes(type)) type = 'application/octet-stream';
 
 	const meta = await fetchMeta();
 
@@ -258,7 +269,7 @@ async function upload(key: string, stream: fs.ReadStream | Buffer, type: string,
 	const s3 = getS3(meta);
 
 	const upload = s3.upload(params, {
-		partSize: s3.endpoint?.hostname === 'storage.googleapis.com' ? 500 * 1024 * 1024 : 8 * 1024 * 1024
+		partSize: s3.endpoint?.hostname === 'storage.googleapis.com' ? 500 * 1024 * 1024 : 8 * 1024 * 1024,
 	});
 
 	const result = await upload.promise();
@@ -287,33 +298,45 @@ async function deleteOldFile(user: IRemoteUser) {
 	}
 }
 
+type AddFileArgs = {
+	/** User who wish to add file */
+	user: { id: User['id']; host: User['host'] } | null;
+	/** File path */
+	path: string;
+	/** Name */
+	name?: string | null;
+	/** Comment */
+	comment?: string | null;
+	/** Folder ID */
+	folderId?: any;
+	/** If set to true, forcibly upload the file even if there is a file with the same hash. */
+	force?: boolean;
+	/** Do not save file to local */
+	isLink?: boolean;
+	/** URL of source (URLからアップロードされた場合(ローカル/リモート)の元URL) */
+	url?: string | null;
+	/** URL of source (リモートインスタンスのURLからアップロードされた場合の元URL) */
+	uri?: string | null;
+	/** Mark file as sensitive */
+	sensitive?: boolean | null;
+};
+
 /**
  * Add file to drive
  *
- * @param user User who wish to add file
- * @param path File path
- * @param name Name
- * @param comment Comment
- * @param folderId Folder ID
- * @param force If set to true, forcibly upload the file even if there is a file with the same hash.
- * @param isLink Do not save file to local
- * @param url URL of source (URLからアップロードされた場合(ローカル/リモート)の元URL)
- * @param uri URL of source (リモートインスタンスのURLからアップロードされた場合の元URL)
- * @param sensitive Mark file as sensitive
- * @return Created drive file
  */
-export default async function(
-	user: { id: User['id']; host: User['host'] } | null,
-	path: string,
-	name: string | null = null,
-	comment: string | null = null,
-	folderId: any = null,
-	force: boolean = false,
-	isLink: boolean = false,
-	url: string | null = null,
-	uri: string | null = null,
-	sensitive: boolean | null = null
-): Promise<DriveFile> {
+export async function addFile({
+	user,
+	path,
+	name = null,
+	comment = null,
+	folderId = null,
+	force = false,
+	isLink = false,
+	url = null,
+	uri = null,
+	sensitive = null
+}: AddFileArgs): Promise<DriveFile> {
 	const info = await getFileInfo(path);
 	logger.info(`${JSON.stringify(info)}`);
 
@@ -322,7 +345,7 @@ export default async function(
 
 	if (user && !force) {
 		// Check if there is a file with the same hash
-		const much = await DriveFiles.findOne({
+		const much = await DriveFiles.findOneBy({
 			md5: info.md5,
 			userId: user.id,
 		});
@@ -348,7 +371,7 @@ export default async function(
 				throw new Error('no-free-space');
 			} else {
 				// (アバターまたはバナーを含まず)最も古いファイルを削除する
-				deleteOldFile(await Users.findOneOrFail(user.id) as IRemoteUser);
+				deleteOldFile(await Users.findOneByOrFail({ id: user.id }) as IRemoteUser);
 			}
 		}
 	}
@@ -359,9 +382,9 @@ export default async function(
 			return null;
 		}
 
-		const driveFolder = await DriveFolders.findOne({
+		const driveFolder = await DriveFolders.findOneBy({
 			id: folderId,
-			userId: user ? user.id : null
+			userId: user ? user.id : IsNull(),
 		});
 
 		if (driveFolder == null) throw new Error('folder-not-found');
@@ -383,7 +406,7 @@ export default async function(
 		properties['orientation'] = info.orientation;
 	}
 
-	const profile = user ? await UserProfiles.findOne(user.id) : null;
+	const profile = user ? await UserProfiles.findOneBy({ userId: user.id }) : null;
 
 	const folder = await fetchFolder();
 
@@ -428,19 +451,19 @@ export default async function(
 			file.type = info.type.mime;
 			file.storedInternal = false;
 
-			file = await DriveFiles.save(file);
-		} catch (e) {
+			file = await DriveFiles.insert(file).then(x => DriveFiles.findOneByOrFail(x.identifiers[0]));
+		} catch (err) {
 			// duplicate key error (when already registered)
-			if (isDuplicateKeyValueError(e)) {
+			if (isDuplicateKeyValueError(err)) {
 				logger.info(`already registered ${file.uri}`);
 
-				file = await DriveFiles.findOne({
-					uri: file.uri,
-					userId: user ? user.id : null
+				file = await DriveFiles.findOneBy({
+					uri: file.uri!,
+					userId: user ? user.id : IsNull(),
 				}) as DriveFile;
 			} else {
-				logger.error(e);
-				throw e;
+				logger.error(err as Error);
+				throw err;
 			}
 		}
 	} else {
@@ -462,8 +485,6 @@ export default async function(
 	perUserDriveChart.update(file, true);
 	if (file.userHost !== null) {
 		instanceChart.updateDrive(file, true);
-		Instances.increment({ host: file.userHost }, 'driveUsage', file.size);
-		Instances.increment({ host: file.userHost }, 'driveFiles', 1);
 	}
 
 	return file;

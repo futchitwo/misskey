@@ -1,59 +1,60 @@
-import $ from 'cafy';
-import { ID } from '@/misc/cafy-id';
 import ms from 'ms';
-import create from '@/services/blocking/create';
-import define from '../../define';
-import { ApiError } from '../../error';
-import { getUser } from '../../common/getters';
-import { Blockings, NoteWatchings, Users } from '@/models/index';
+import create from '@/services/blocking/create.js';
+import define from '../../define.js';
+import { ApiError } from '../../error.js';
+import { getUser } from '../../common/getters.js';
+import { Blockings, NoteWatchings, Users } from '@/models/index.js';
 
 export const meta = {
 	tags: ['account'],
 
 	limit: {
 		duration: ms('1hour'),
-		max: 100
+		max: 100,
 	},
 
-	requireCredential: true as const,
+	requireCredential: true,
 
 	kind: 'write:blocks',
-
-	params: {
-		userId: {
-			validator: $.type(ID),
-		}
-	},
 
 	errors: {
 		noSuchUser: {
 			message: 'No such user.',
 			code: 'NO_SUCH_USER',
-			id: '7cc4f851-e2f1-4621-9633-ec9e1d00c01e'
+			id: '7cc4f851-e2f1-4621-9633-ec9e1d00c01e',
 		},
 
 		blockeeIsYourself: {
 			message: 'Blockee is yourself.',
 			code: 'BLOCKEE_IS_YOURSELF',
-			id: '88b19138-f28d-42c0-8499-6a31bbd0fdc6'
+			id: '88b19138-f28d-42c0-8499-6a31bbd0fdc6',
 		},
 
 		alreadyBlocking: {
 			message: 'You are already blocking that user.',
 			code: 'ALREADY_BLOCKING',
-			id: '787fed64-acb9-464a-82eb-afbd745b9614'
+			id: '787fed64-acb9-464a-82eb-afbd745b9614',
 		},
 	},
 
 	res: {
-		type: 'object' as const,
-		optional: false as const, nullable: false as const,
-		ref: 'User'
-	}
-};
+		type: 'object',
+		optional: false, nullable: false,
+		ref: 'UserDetailedNotMe',
+	},
+} as const;
 
-export default define(meta, async (ps, user) => {
-	const blocker = await Users.findOneOrFail(user.id);
+export const paramDef = {
+	type: 'object',
+	properties: {
+		userId: { type: 'string', format: 'misskey:id' },
+	},
+	required: ['userId'],
+} as const;
+
+// eslint-disable-next-line import/no-default-export
+export default define(meta, paramDef, async (ps, user) => {
+	const blocker = await Users.findOneByOrFail({ id: user.id });
 
 	// 自分自身
 	if (user.id === ps.userId) {
@@ -67,9 +68,9 @@ export default define(meta, async (ps, user) => {
 	});
 
 	// Check if already blocking
-	const exist = await Blockings.findOne({
+	const exist = await Blockings.findOneBy({
 		blockerId: blocker.id,
-		blockeeId: blockee.id
+		blockeeId: blockee.id,
 	});
 
 	if (exist != null) {
@@ -80,10 +81,10 @@ export default define(meta, async (ps, user) => {
 
 	NoteWatchings.delete({
 		userId: blocker.id,
-		noteUserId: blockee.id
+		noteUserId: blockee.id,
 	});
 
 	return await Users.pack(blockee.id, blocker, {
-		detail: true
+		detail: true,
 	});
 });

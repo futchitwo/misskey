@@ -1,34 +1,34 @@
-import { ApObject, getApIds } from './type';
-import Resolver from './resolver';
-import { resolvePerson } from './models/person';
-import { unique, concat } from '@/prelude/array';
-import * as promiseLimit from 'promise-limit';
-import { User, IRemoteUser } from '@/models/entities/user';
+import { ApObject, getApIds } from './type.js';
+import Resolver from './resolver.js';
+import { resolvePerson } from './models/person.js';
+import { unique, concat } from '@/prelude/array.js';
+import promiseLimit from 'promise-limit';
+import { User, CacheableRemoteUser, CacheableUser } from '@/models/entities/user.js';
 
 type Visibility = 'public' | 'home' | 'followers' | 'specified';
 
 type AudienceInfo = {
 	visibility: Visibility,
-	mentionedUsers: User[],
-	visibleUsers: User[],
+	mentionedUsers: CacheableUser[],
+	visibleUsers: CacheableUser[],
 };
 
-export async function parseAudience(actor: IRemoteUser, to?: ApObject, cc?: ApObject, resolver?: Resolver): Promise<AudienceInfo> {
+export async function parseAudience(actor: CacheableRemoteUser, to?: ApObject, cc?: ApObject, resolver?: Resolver): Promise<AudienceInfo> {
 	const toGroups = groupingAudience(getApIds(to), actor);
 	const ccGroups = groupingAudience(getApIds(cc), actor);
 
 	const others = unique(concat([toGroups.other, ccGroups.other]));
 
-	const limit = promiseLimit<User | null>(2);
+	const limit = promiseLimit<CacheableUser | null>(2);
 	const mentionedUsers = (await Promise.all(
 		others.map(id => limit(() => resolvePerson(id, resolver).catch(() => null)))
-	)).filter((x): x is User => x != null);
+	)).filter((x): x is CacheableUser => x != null);
 
 	if (toGroups.public.length > 0) {
 		return {
 			visibility: 'public',
 			mentionedUsers,
-			visibleUsers: []
+			visibleUsers: [],
 		};
 	}
 
@@ -36,7 +36,7 @@ export async function parseAudience(actor: IRemoteUser, to?: ApObject, cc?: ApOb
 		return {
 			visibility: 'home',
 			mentionedUsers,
-			visibleUsers: []
+			visibleUsers: [],
 		};
 	}
 
@@ -44,18 +44,18 @@ export async function parseAudience(actor: IRemoteUser, to?: ApObject, cc?: ApOb
 		return {
 			visibility: 'followers',
 			mentionedUsers,
-			visibleUsers: []
+			visibleUsers: [],
 		};
 	}
 
 	return {
 		visibility: 'specified',
 		mentionedUsers,
-		visibleUsers: mentionedUsers
+		visibleUsers: mentionedUsers,
 	};
 }
 
-function groupingAudience(ids: string[], actor: IRemoteUser) {
+function groupingAudience(ids: string[], actor: CacheableRemoteUser) {
 	const groups = {
 		public: [] as string[],
 		followers: [] as string[],
@@ -85,7 +85,7 @@ function isPublic(id: string) {
 	].includes(id);
 }
 
-function isFollowers(id: string, actor: IRemoteUser) {
+function isFollowers(id: string, actor: CacheableRemoteUser) {
 	return (
 		id === (actor.followersUri || `${actor.uri}/followers`)
 	);

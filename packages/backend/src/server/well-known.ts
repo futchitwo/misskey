@@ -1,11 +1,12 @@
-import * as Router from '@koa/router';
+import Router from '@koa/router';
 
-import config from '@/config/index';
-import * as Acct from 'misskey-js/built/acct';
-import { links } from './nodeinfo';
-import { escapeAttribute, escapeValue } from '@/prelude/xml';
-import { Users } from '@/models/index';
-import { User } from '@/models/entities/user';
+import config from '@/config/index.js';
+import * as Acct from '@/misc/acct.js';
+import { links } from './nodeinfo.js';
+import { escapeAttribute, escapeValue } from '@/prelude/xml.js';
+import { Users } from '@/models/index.js';
+import { User } from '@/models/entities/user.js';
+import { FindOptionsWhere, IsNull } from 'typeorm';
 
 // Init router
 const router = new Router();
@@ -66,13 +67,13 @@ router.get('/.well-known/change-password', async ctx => {
 */
 
 router.get(webFingerPath, async ctx => {
-	const fromId = (id: User['id']): Record<string, any> => ({
+	const fromId = (id: User['id']): FindOptionsWhere<User> => ({
 		id,
-		host: null,
-		isSuspended: false
+		host: IsNull(),
+		isSuspended: false,
 	});
 
-	const generateQuery = (resource: string) =>
+	const generateQuery = (resource: string): FindOptionsWhere<User> | number =>
 		resource.startsWith(`${config.url.toLowerCase()}/users/`) ?
 			fromId(resource.split('/').pop()!) :
 			fromAcct(Acct.parse(
@@ -80,11 +81,11 @@ router.get(webFingerPath, async ctx => {
 				resource.startsWith('acct:') ? resource.slice('acct:'.length) :
 				resource));
 
-	const fromAcct = (acct: Acct.Acct): Record<string, any> | number =>
+	const fromAcct = (acct: Acct.Acct): FindOptionsWhere<User> | number =>
 		!acct.host || acct.host === config.host.toLowerCase() ? {
 			usernameLower: acct.username,
-			host: null,
-			isSuspended: false
+			host: IsNull(),
+			isSuspended: false,
 		} : 422;
 
 	if (typeof ctx.query.resource !== 'string') {
@@ -99,7 +100,7 @@ router.get(webFingerPath, async ctx => {
 		return;
 	}
 
-	const user = await Users.findOne(query);
+	const user = await Users.findOneBy(query);
 
 	if (user == null) {
 		ctx.status = 404;
@@ -110,16 +111,16 @@ router.get(webFingerPath, async ctx => {
 	const self = {
 		rel: 'self',
 		type: 'application/activity+json',
-		href: `${config.url}/users/${user.id}`
+		href: `${config.url}/users/${user.id}`,
 	};
 	const profilePage = {
 		rel: 'http://webfinger.net/rel/profile-page',
 		type: 'text/html',
-		href: `${config.url}/@${user.username}`
+		href: `${config.url}/@${user.username}`,
 	};
 	const subscribe = {
 		rel: 'http://ostatus.org/schema/1.0/subscribe',
-		template: `${config.url}/authorize-follow?acct={uri}`
+		template: `${config.url}/authorize-follow?acct={uri}`,
 	};
 
 	if (ctx.accepts(jrd, xrd) === xrd) {
@@ -132,7 +133,7 @@ router.get(webFingerPath, async ctx => {
 	} else {
 		ctx.body = {
 			subject,
-			links: [self, profilePage, subscribe]
+			links: [self, profilePage, subscribe],
 		};
 		ctx.type = jrd;
 	}
