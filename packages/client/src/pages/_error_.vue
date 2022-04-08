@@ -11,7 +11,7 @@
 			<p>{{ i18n.ts.youShouldUpgradeClient }}</p>
 			<MkButton class="button primary" @click="reload">{{ i18n.ts.reload }}</MkButton>
 		</template>
-		<p><MkA to="/docs/general/troubleshooting" class="_link">{{ i18n.ts.troubleshooting }}</MkA></p>
+		<p><a href="https://misskey-hub.net/docs/troubleshooting.html" class="_link">{{ i18n.ts.troubleshooting }}</MkA></p>
 		<p v-if="error" class="error">ERROR: {{ error }}</p>
 	</div>
 </transition>
