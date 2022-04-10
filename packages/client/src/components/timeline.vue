@@ -138,8 +138,10 @@ onUnmounted(() => {
 	if (connection2) connection2.dispose();
 });
 
-export const timetravel = (dateInput?: Date) => {
+const timetravel = (dateInput?: Date) => {
 	date = dateInput;
 	tlComponent.pagingComponent?.reload();
 };
+
+defineExpose({ timetravel });
 </script>
