@@ -6,7 +6,7 @@
 
 		<div v-if="queue > 0" class="new"><button class="_buttonPrimary" @click="top()">{{ $ts.newNoteRecived }}</button></div>
 		<div class="tl _block">
-			<XTimeline ref="tl" :key="src"
+			<XTimeline ref="tlComponent" :key="src"
 				class="tl"
 				:src="src"
 				:sound="true"
@@ -104,7 +104,7 @@ async function timetravel(): Promise<void> {
 	});
 	if (canceled) return;
 
-	tlComponent.timetravel(date);
+	tlComponent.value.timetravel(date);
 }
 
 function focus(): void {

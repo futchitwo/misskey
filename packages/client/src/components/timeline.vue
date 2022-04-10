@@ -53,6 +53,7 @@ const onChangeFollowing = () => {
 
 let endpoint;
 let query;
+let date;
 let connection;
 let connection2;
 
@@ -126,7 +127,10 @@ if (props.src === 'antenna') {
 const pagination = {
 	endpoint: endpoint,
 	limit: 10,
-	params: query,
+	params: {
+		untilDate: date?.getTime(),
+		...query,
+	},
 };
 
 onUnmounted(() => {
@@ -134,10 +138,10 @@ onUnmounted(() => {
 	if (connection2) connection2.dispose();
 });
 
-/* TODO
-const timetravel = (date?: Date) => {
-	this.date = date;
-	this.$refs.tl.reload();
+const timetravel = (dateInput?: Date) => {
+	date = dateInput;
+	tlComponent.pagingComponent?.reload();
 };
-*/
+
+defineExpose({ timetravel });
 </script>
