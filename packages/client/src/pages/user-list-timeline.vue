@@ -91,7 +91,7 @@ export default defineComponent({
 			});
 			if (canceled) return;
 
-			this.$refs.tl.timetravel(date);
+			this.$refs.tl.value.timetravel(date);
 		},
 
 		focus() {

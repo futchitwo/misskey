@@ -104,7 +104,7 @@ async function timetravel(): Promise<void> {
 	});
 	if (canceled) return;
 
-	tlComponent.timetravel(date);
+	tlComponent.value.timetravel(date);
 }
 
 function focus(): void {
