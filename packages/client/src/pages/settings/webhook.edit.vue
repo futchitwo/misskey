@@ -34,7 +34,7 @@
 </template>
 
 <script lang="ts" setup>
-import { } from 'vue';
+import { onMounted } from 'vue';
 import FormInput from '@/components/form/input.vue';
 import FormSection from '@/components/form/section.vue';
 import FormSwitch from '@/components/form/switch.vue';
@@ -88,11 +88,11 @@ async function save(): Promise<void> {
 	});
 };
 
-onMounted(){
+onMounted(() => {
 	webhook = await os.api('i/webhooks/show', {
 		webhookId: new URLSearchParams(window.location.search).get('id')
 	});
-};
+});
 
 defineExpose({
 	[symbols.PAGE_INFO]: {
