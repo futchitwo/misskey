@@ -43,18 +43,26 @@ import * as os from '@/os';
 import * as symbols from '@/symbols';
 import { i18n } from '@/i18n';
 
-const webhook = await os.api('i/webhooks/show', {
+const webhook = {
+	active: true,
+	createdAt: "2022-04-11T03:05:03.606Z",
+	id: "8yxp4nlijm",
+	latestSentAt: null,
+	latestStatus: null,
+	name: "hunlilh",
+	on: [],
+	secret: "ihhio",
+	url: "hoh",
+	userId: "8yxoykbmjk",
+}
+/*await os.api('i/webhooks/show', {
 	webhookId: new URLSearchParams(window.location.search).get('id')
-});
-
-console.log(webhook)
+});*/
 
 let name = $ref(webhook.name);
 let url = $ref(webhook.url);
 let secret = $ref(webhook.secret);
 let active = $ref(webhook.active);
-
-console.log("honi1")
 
 let event_follow = $ref(webhook.on.includes('follow'));
 let event_followed = $ref(webhook.on.includes('followed'));
@@ -63,8 +71,6 @@ let event_reply = $ref(webhook.on.includes('reply'));
 let event_renote = $ref(webhook.on.includes('renote'));
 let event_reaction = $ref(webhook.on.includes('reaction'));
 let event_mention = $ref(webhook.on.includes('mention'));
-
-console.log("honi2")
 
 async function save(): Promise<void> {
 	const events = [];
@@ -84,8 +90,6 @@ async function save(): Promise<void> {
 		active,
 	});
 }
-
-console.log("honi3")
 
 defineExpose({
 	[symbols.PAGE_INFO]: {
