@@ -88,7 +88,7 @@ async function save(): Promise<void> {
 	});
 };
 
-onMounted(() => {
+onMounted(async () => {
 	webhook = await os.api('i/webhooks/show', {
 		webhookId: new URLSearchParams(window.location.search).get('id')
 	});
