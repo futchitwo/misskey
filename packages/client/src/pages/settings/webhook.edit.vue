@@ -50,18 +50,18 @@ let webhook;
 	});
 });
 
-let name = $ref(webhook.name);
-let url = $ref(webhook.url);
-let secret = $ref(webhook.secret);
-let active = $ref(webhook.active);
+let name = $ref(webhook?.name);
+let url = $ref(webhook?.url);
+let secret = $ref(webhook?.secret);
+let active = $ref(webhook?.active);
 
-let event_follow = $ref(webhook.on.includes('follow'));
-let event_followed = $ref(webhook.on.includes('followed'));
-let event_note = $ref(webhook.on.includes('note'));
-let event_reply = $ref(webhook.on.includes('reply'));
-let event_renote = $ref(webhook.on.includes('renote'));
-let event_reaction = $ref(webhook.on.includes('reaction'));
-let event_mention = $ref(webhook.on.includes('mention'));
+let event_follow = $ref(webhook?.on.includes('follow'));
+let event_followed = $ref(webhook?.on.includes('followed'));
+let event_note = $ref(webhook?.on.includes('note'));
+let event_reply = $ref(webhook?.on.includes('reply'));
+let event_renote = $ref(webhook?.on.includes('renote'));
+let event_reaction = $ref(webhook?.on.includes('reaction'));
+let event_mention = $ref(webhook?.on.includes('mention'));
 
 async function save(): Promise<void> {
 	const events = [];
