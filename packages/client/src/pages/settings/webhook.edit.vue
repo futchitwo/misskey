@@ -34,7 +34,7 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted } from 'vue';
+import { reactive, onMounted } from 'vue';
 import FormInput from '@/components/form/input.vue';
 import FormSection from '@/components/form/section.vue';
 import FormSwitch from '@/components/form/switch.vue';
@@ -43,7 +43,7 @@ import * as os from '@/os';
 import * as symbols from '@/symbols';
 import { i18n } from '@/i18n';
 
-let webhook = {
+let webhook = reactive({
 	active: true,
 	createdAt: "2022-04-11T03:05:03.606Z",
 	id: "8yxp4nlijm",
@@ -54,7 +54,7 @@ let webhook = {
 	secret: "ihhio",
 	url: "hoh",
 	userId: "8yxoykbmjk",
-}
+});
 
 let name = $ref(webhook.name);
 let url = $ref(webhook.url);
