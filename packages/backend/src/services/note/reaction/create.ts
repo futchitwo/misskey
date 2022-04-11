@@ -14,6 +14,8 @@ import deleteReaction from './delete.js';
 import { isDuplicateKeyValueError } from '@/misc/is-duplicate-key-value-error.js';
 import { NoteReaction } from '@/models/entities/note-reaction.js';
 import { IdentifiableError } from '@/misc/identifiable-error.js';
+import { getActiveWebhooks } from '@/misc/webhook-cache.js';
+import { webhookDeliver } from '@/queue/index.js';
 
 export default async (user: { id: User['id']; host: User['host']; }, note: Note, reaction?: string) => {
 	// Check blocking
@@ -95,6 +97,20 @@ export default async (user: { id: User['id']; host: User['host']; }, note: Note,
 
 	// リアクションされたユーザーがローカルユーザーなら通知を作成
 	if (note.userHost === null) {
+		// リアクションされたユーザーがローカルユーザーならwebhookを作成
+		const webhooks = (await getActiveWebhooks()).filter(x => x.userId === note.userId && x.on.includes('reaction'));
+		for (const webhook of webhooks) {
+			webhookDeliver(webhook, 'reaction', {
+				notifier: user,
+				note: note,
+				reaction: reaction,
+				emoji: emoji != null ? {
+					name: emoji.host ? `${emoji.name}@${emoji.host}` : `${emoji.name}@.`,
+					url: emoji.publicUrl || emoji.originalUrl, // || emoji.originalUrl してるのは後方互換性のため
+				} : null,
+			});
+		}
+
 		createNotification(note.userId, 'reaction', {
 			notifierId: user.id,
 			noteId: note.id,
