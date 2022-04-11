@@ -48,7 +48,9 @@ let webhook;
 	webhook = await os.api('i/webhooks/show', {
 		webhookId: new URLSearchParams(window.location.search).get('id')
 	});
+	console.log("inner", webhook)
 })();
+console.log("outer", webhook)
 
 let name = $ref(webhook?.name);
 let url = $ref(webhook?.url);
