@@ -3,7 +3,6 @@ import * as config from '@/config';
 export function popout(path: string, w?: HTMLElement) {
 	let url = path.startsWith('http://') || path.startsWith('https://') ? path : config.url + "/" + path;
 	url += '?zen';
-	console.log('config.url:',config.url, 'url:',url)
 	if (w) {
 		const position = w.getBoundingClientRect();
 		const width = parseInt(getComputedStyle(w, '').width, 10);
