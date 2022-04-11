@@ -69,7 +69,6 @@ let event_renote = $ref(webhook.on.includes('renote'));
 let event_reaction = $ref(webhook.on.includes('reaction'));
 let event_mention = $ref(webhook.on.includes('mention'));
 
-
 async function save(): Promise<void> {
 	const events = [];
 	if (event_follow) events.push('follow');
@@ -87,7 +86,8 @@ async function save(): Promise<void> {
 		on: events,
 		active,
 	});
-}
+};
+
 onMounted(){
 	webhook = await os.api('i/webhooks/show', {
 		webhookId: new URLSearchParams(window.location.search).get('id')
