@@ -43,8 +43,11 @@ import * as os from '@/os';
 import * as symbols from '@/symbols';
 import { i18n } from '@/i18n';
 
-const webhook = await os.api('i/webhooks/show', {
-	webhookId: new URLSearchParams(window.location.search).get('id')
+let webhook;
+(async() => {
+	webhook = await os.api('i/webhooks/show', {
+		webhookId: new URLSearchParams(window.location.search).get('id')
+	});
 });
 
 let name = $ref(webhook.name);
