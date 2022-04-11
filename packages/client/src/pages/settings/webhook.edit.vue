@@ -43,7 +43,7 @@ import * as os from '@/os';
 import * as symbols from '@/symbols';
 import { i18n } from '@/i18n';
 
-const webhook = {
+let webhook = {
 	active: true,
 	createdAt: "2022-04-11T03:05:03.606Z",
 	id: "8yxp4nlijm",
@@ -55,9 +55,9 @@ const webhook = {
 	url: "hoh",
 	userId: "8yxoykbmjk",
 }
-/*await os.api('i/webhooks/show', {
+webhook = await os.api('i/webhooks/show', {
 	webhookId: new URLSearchParams(window.location.search).get('id')
-});*/
+});
 
 let name = $ref(webhook.name);
 let url = $ref(webhook.url);
