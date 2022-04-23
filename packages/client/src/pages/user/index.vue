@@ -214,11 +214,11 @@ export default defineComponent({
 					onClick: () => { this.mkNav.push('/gallery'); },
 				}],
 			} : null),
+			mkNav: new MisskeyNavigator(),
 			user: null,
 			error: null,
 			parallaxAnimationId: null,
 			narrow: null,
-			mkNav: null,
 		};
 	},
 
@@ -239,14 +239,8 @@ export default defineComponent({
 		acct: 'fetch'
 	},
 
-	inject: [
-		'navHook',
-		'sideViewHook',
-	],
-
 	created() {
 		this.fetch();
-		this.mkNav = new MisskeyNavigator();
 	},
 
 	mounted() {
