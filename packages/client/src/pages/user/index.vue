@@ -141,7 +141,7 @@ import number from '@/filters/number';
 import { userPage, acct as getAcct } from '@/filters/user';
 import * as os from '@/os';
 import * as symbols from '@/symbols';
-import { defaultStore } from '@/store';
+import { MisskeyNavigator } from '@/scripts/navigate';
 
 export default defineComponent({
 	components: {
@@ -196,28 +196,29 @@ export default defineComponent({
 					active: this.page === 'reactions',
 					title: this.$ts.reaction,
 					icon: 'fas fa-laugh',
-					onClick: () => { this.nav('/reactions'); },
+					onClick: () => { this.mkNav.push('/reactions'); },
 				}] : [], {
 					active: this.page === 'clips',
 					title: this.$ts.clips,
 					icon: 'fas fa-paperclip',
-					onClick: () => { this.nav('/clips'); },
+					onClick: () => { this.mkNav.push('/clips'); },
 				}, {
 					active: this.page === 'pages',
 					title: this.$ts.pages,
 					icon: 'fas fa-file-alt',
-					onClick: () => { this.nav('/pages'); },
+					onClick: () => { this.mkNav.push('/pages'); },
 				}, {
 					active: this.page === 'gallery',
 					title: this.$ts.gallery,
 					icon: 'fas fa-icons',
-					onClick: () => { this.nav('/gallery'); },
+					onClick: () => { this.mkNav.push('/gallery'); },
 				}],
 			} : null),
 			user: null,
 			error: null,
 			parallaxAnimationId: null,
 			narrow: null,
+			mkNav: null,
 		};
 	},
 
@@ -245,6 +246,7 @@ export default defineComponent({
 
 	created() {
 		this.fetch();
+		this.mkNav = new MisskeyNavigator();
 	},
 
 	mounted() {
@@ -294,17 +296,6 @@ export default defineComponent({
 		number,
 
 		userPage,
-
-		nav(to) {
-			const path = '/@' + getAcct(this.user) + to;
-			if (this.navHook) {
-				this.navHook(path)
-			} else if (defaultStore.state.defaultSideView && this.sideViewHook) {
-				this.sideViewHook(path)
-			} else {
-				this.$router.push(path)
-			}
-		},
 	}
 });
 </script>
