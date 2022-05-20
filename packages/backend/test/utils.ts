@@ -9,7 +9,7 @@ import * as childProcess from 'child_process';
 import * as http from 'node:http';
 import loadConfig from '../src/config/load.js';
 import { SIGKILL } from 'constants';
-import { entities } from '../src/db/postgre.js';
+import { entities, db } from '../src/db/postgre.js';
 
 const _filename = fileURLToPath(import.meta.url);
 const _dirname = dirname(_filename);
@@ -159,21 +159,10 @@ export async function initTestDb(justBorrow = false, initEntities?: any[]) {
 	if (process.env.NODE_ENV !== 'test') throw 'NODE_ENV is not a test';
 
 	try {
-		const conn = await getConnection();
-		await conn.close();
+		await db.close();
 	} catch (e) {}
 
-	return await createConnection({
-		type: 'postgres',
-		host: config.db.host,
-		port: config.db.port,
-		username: config.db.user,
-		password: config.db.pass,
-		database: config.db.db,
-		synchronize: true && !justBorrow,
-		dropSchema: true && !justBorrow,
-		entities: initEntities || entities
-	});
+	return await db.connect();
 }
 
 export function startServer(timeout = 30 * 1000): Promise<childProcess.ChildProcess> {
