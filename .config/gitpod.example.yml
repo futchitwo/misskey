@@ -1,0 +1,12 @@
+# url: https://8080-<yourname>-misskey-<id>.<region>.gitpod.io
+port: 8080
+db:
+  host: 127.0.0.1
+  port: 5432
+  db: postgres
+  user: gitpod
+  pass: 
+redis:
+  host: 127.0.0.1
+  port: 6379
+id: 'aid'

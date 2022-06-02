@@ -17,6 +17,7 @@ cypress/videos
 /.config/*
 !/.config/example.yml
 !/.config/docker_example.env
+!/.config/gitpod.example.yml
 
 # misskey
 /build
