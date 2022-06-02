@@ -7,14 +7,14 @@ tasks:
   - before: |
       nvm i 18
       brew install redis
-      if [ -z "$GITTAG" ]; then export GITTAG=master; fi
+      # if [ -z "$GITTAG" ]; then export GITTAG=master; fi
       export FFMPEG_PATH=/workspace/ffmpeg/ffmpeg
       export FFPROBE_PATH=/workspace/ffmpeg/ffprobe
       redis-server --daemonize yes
     init: |
-      git clone -b "$GITTAG" https://github.com/misskey-dev/misskey.git
-      cd misskey
-      git checkout "$GITTAG"
+      # git clone -b "$GITTAG" https://github.com/misskey-dev/misskey.git
+      # cd misskey
+      # git checkout "$GITTAG"
       echo "url: $(gp url 8080)" > .config/default.yml
       cat ../default.yml.example >> .config/default.yml
       yarn install
