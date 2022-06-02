@@ -15,6 +15,7 @@ export const menuDef = reactive({
 		indicated: computed(() => $i != null && $i.hasUnreadNotification),
 		to: '/my/notifications',
 	},
+	/*
 	messaging: {
 		title: 'messaging',
 		icon: 'fas fa-comments',
@@ -28,6 +29,7 @@ export const menuDef = reactive({
 		show: computed(() => $i != null),
 		to: '/my/drive',
 	},
+	*/
 	followRequests: {
 		title: 'followRequests',
 		icon: 'fas fa-user-clock',
@@ -35,11 +37,13 @@ export const menuDef = reactive({
 		indicated: computed(() => $i != null && $i.hasPendingReceivedFollowRequest),
 		to: '/my/follow-requests',
 	},
+	/*
 	featured: {
 		title: 'featured',
 		icon: 'fas fa-fire-alt',
 		to: '/featured',
 	},
+	*/
 	explore: {
 		title: 'explore',
 		icon: 'fas fa-hashtag',
@@ -56,6 +60,7 @@ export const menuDef = reactive({
 		icon: 'fas fa-search',
 		action: () => search(),
 	},
+	/*
 	lists: {
 		title: 'lists',
 		icon: 'fas fa-list-ul',
@@ -126,12 +131,14 @@ export const menuDef = reactive({
 		indicated: computed(() => $i != null && $i.hasUnreadSpecifiedNotes),
 		to: '/my/messages',
 	},
+	*/
 	favorites: {
 		title: 'favorites',
 		icon: 'fas fa-star',
 		show: computed(() => $i != null),
 		to: '/my/favorites',
 	},
+	/*
 	pages: {
 		title: 'pages',
 		icon: 'fas fa-file-alt',
@@ -142,12 +149,14 @@ export const menuDef = reactive({
 		icon: 'fas fa-icons',
 		to: '/gallery',
 	},
+	*/
 	clips: {
 		title: 'clip',
 		icon: 'fas fa-paperclip',
 		show: computed(() => $i != null),
 		to: '/my/clips',
 	},
+	/*
 	channels: {
 		title: 'channel',
 		icon: 'fas fa-satellite-dish',
@@ -200,7 +209,8 @@ export const menuDef = reactive({
 					localStorage.setItem('ui', 'desktop');
 					unisonReload();
 				}
-			}*/], ev.currentTarget ?? ev.target);
+			}], ev.currentTarget ?? ev.target);
 		},
 	},
+	*/
 });

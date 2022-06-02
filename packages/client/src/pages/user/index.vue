@@ -202,7 +202,7 @@ export default defineComponent({
 					title: this.$ts.clips,
 					icon: 'fas fa-paperclip',
 					onClick: () => { this.mkNav.push('/@' + getAcct(this.user) + '/clips'); },
-				}, {
+				},/* {
 					active: this.page === 'pages',
 					title: this.$ts.pages,
 					icon: 'fas fa-file-alt',
@@ -212,7 +212,7 @@ export default defineComponent({
 					title: this.$ts.gallery,
 					icon: 'fas fa-icons',
 					onClick: () => { this.mkNav.push('/@' + getAcct(this.user) + '/gallery'); },
-				}],
+				}*/],
 			} : null),
 			user: null,
 			error: null,

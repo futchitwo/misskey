@@ -117,12 +117,12 @@ const menuDef = computed(() => [{
 		text: i18n.ts.theme,
 		to: '/settings/theme',
 		active: props.initialPage === 'theme',
-	}, {
+	}, /*{
 		icon: 'fas fa-list-ul',
 		text: i18n.ts.menu,
 		to: '/settings/menu',
 		active: props.initialPage === 'menu',
-	}, {
+	},*/ {
 		icon: 'fas fa-music',
 		text: i18n.ts.sounds,
 		to: '/settings/sounds',
@@ -140,12 +140,12 @@ const menuDef = computed(() => [{
 		text: i18n.ts.importAndExport,
 		to: '/settings/import-export',
 		active: props.initialPage === 'import-export',
-	}, {
+	},/* {
 		icon: 'fas fa-volume-mute',
 		text: i18n.ts.instanceMute,
 		to: '/settings/instance-mute',
 		active: props.initialPage === 'instance-mute',
-	}, {
+	},*/ {
 		icon: 'fas fa-ban',
 		text: i18n.ts.muteAndBlock,
 		to: '/settings/mute-block',

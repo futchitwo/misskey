@@ -509,7 +509,7 @@ export function contextMenu(items: MenuItem[] | Ref<MenuItem[]>, ev: MouseEvent)
 }
 
 export function post(props: Record<string, any> = {}) {
-	return new Promise((resolve, reject) => {
+	return null;/*new Promise((resolve, reject) => {
 		// NOTE: MkPostFormDialogをdynamic importするとiOSでテキストエリアに自動フォーカスできない
 		// NOTE: ただ、dynamic importしない場合、MkPostFormDialogインスタンスが使いまわされ、
 		//       Vueが渡されたコンポーネントに内部的に__propsというプロパティを生やす影響で、
@@ -524,7 +524,7 @@ export function post(props: Record<string, any> = {}) {
 		}).then(res => {
 			dispose = res.dispose;
 		});
-	});
+	});*/
 }
 
 export const deckGlobalEvents = new EventEmitter();

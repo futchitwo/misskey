@@ -20,14 +20,14 @@
 		<option value="desktop"><i class="fas fa-desktop"/> {{ i18n.ts.desktop }}</option>
 	</FormRadios>
 
-	<FormSwitch v-model="showFixedPostForm" class="_formBlock">{{ i18n.ts.showFixedPostForm }}</FormSwitch>
+	<!--FormSwitch v-model="showFixedPostForm" class="_formBlock">{{ i18n.ts.showFixedPostForm }}</FormSwitch-->
 
 	<FormSection>
 		<template #label>{{ i18n.ts.behavior }}</template>
 		<FormSwitch v-model="imageNewTab" class="_formBlock">{{ i18n.ts.openImageInNewTab }}</FormSwitch>
 		<FormSwitch v-model="enableInfiniteScroll" class="_formBlock">{{ i18n.ts.enableInfiniteScroll }}</FormSwitch>
 		<FormSwitch v-model="useReactionPickerForContextMenu" class="_formBlock">{{ i18n.ts.useReactionPickerForContextMenu }}</FormSwitch>
-		<FormSwitch v-model="disablePagesScript" class="_formBlock">{{ i18n.ts.disablePagesScript }}</FormSwitch>
+		<!--FormSwitch v-model="disablePagesScript" class="_formBlock">{{ i18n.ts.disablePagesScript }}</FormSwitch-->
 
 		<FormSelect v-model="serverDisconnectedBehavior" class="_formBlock">
 			<template #label>{{ i18n.ts.whenServerDisconnected }}</template>
@@ -62,16 +62,16 @@
 		</FormRadios>
 	</FormSection>
 
-	<FormSection>
+	<!--FormSection>
 		<FormSwitch v-model="aiChanMode">{{ i18n.ts.aiChanMode }}</FormSwitch>
-	</FormSection>
+	</FormSection-->
 
-	<FormSelect v-model="instanceTicker" class="_formBlock">
+	<!--FormSelect v-model="instanceTicker" class="_formBlock">
 		<template #label>{{ i18n.ts.instanceTicker }}</template>
 		<option value="none">{{ i18n.ts._instanceTicker.none }}</option>
 		<option value="remote">{{ i18n.ts._instanceTicker.remote }}</option>
 		<option value="always">{{ i18n.ts._instanceTicker.always }}</option>
-	</FormSelect>
+	</FormSelect-->
 
 	<FormSelect v-model="nsfw" class="_formBlock">
 		<template #label>{{ i18n.ts.nsfw }}</template>
@@ -80,12 +80,12 @@
 		<option value="force">{{ i18n.ts._nsfw.force }}</option>
 	</FormSelect>
 
-	<FormGroup>
+	<!--FormGroup>
 		<template #label>{{ i18n.ts.defaultNavigationBehaviour }}</template>
 		<FormSwitch v-model="defaultSideView">{{ i18n.ts.openInSideView }}</FormSwitch>
-	</FormGroup>
+	</FormGroup-->
 
-	<FormLink to="/settings/deck" class="_formBlock">{{ i18n.ts.deck }}</FormLink>
+	<!--FormLink to="/settings/deck" class="_formBlock">{{ i18n.ts.deck }}</FormLink-->
 
 	<FormLink to="/settings/custom-css" class="_formBlock"><template #icon><i class="fas fa-code"></i></template>{{ i18n.ts.customCss }}</FormLink>
 </div>

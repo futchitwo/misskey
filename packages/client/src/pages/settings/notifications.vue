@@ -3,8 +3,8 @@
 	<FormLink class="_formBlock" @click="configure"><template #icon><i class="fas fa-cog"></i></template>{{ i18n.ts.notificationSetting }}</FormLink>
 	<FormSection>
 		<FormLink class="_formBlock" @click="readAllNotifications">{{ i18n.ts.markAsReadAllNotifications }}</FormLink>
-		<FormLink class="_formBlock" @click="readAllUnreadNotes">{{ i18n.ts.markAsReadAllUnreadNotes }}</FormLink>
-		<FormLink class="_formBlock" @click="readAllMessagingMessages">{{ i18n.ts.markAsReadAllTalkMessages }}</FormLink>
+		<!--FormLink class="_formBlock" @click="readAllUnreadNotes">{{ i18n.ts.markAsReadAllUnreadNotes }}</FormLink-->
+		<!--FormLink class="_formBlock" @click="readAllMessagingMessages">{{ i18n.ts.markAsReadAllTalkMessages }}</FormLink-->
 	</FormSection>
 </div>
 </template>

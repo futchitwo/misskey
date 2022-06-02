@@ -29,7 +29,7 @@
 		<template #caption>{{ $ts.makeExplorableDescription }}</template>
 	</FormSwitch>
 
-	<FormSection>
+	<!--FormSection>
 		<FormSwitch v-model="rememberNoteVisibility" class="_formBlock" @update:modelValue="save()">{{ $ts.rememberNoteVisibility }}</FormSwitch>
 		<FormGroup v-if="!rememberNoteVisibility" class="_formBlock">
 			<template #label>{{ $ts.defaultNoteVisibility }}</template>
@@ -41,7 +41,7 @@
 			</FormSelect>
 			<FormSwitch v-model="defaultNoteLocalOnly" class="_formBlock">{{ $ts._visibility.localOnly }}</FormSwitch>
 		</FormGroup>
-	</FormSection>
+	</FormSection-->
 
 	<FormSwitch v-model="keepCw" class="_formBlock" @update:modelValue="save()">{{ $ts.keepCw }}</FormSwitch>
 </div>

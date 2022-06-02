@@ -27,7 +27,7 @@
 					</MkFolder>
 				</template>
 			</div>
-			<div v-else-if="tab === 'remote'">
+			<!--div v-else-if="tab === 'remote'">
 				<div v-if="tag == null" class="localfedi7 _block _isolated" :style="{ backgroundImage: `url(/client-assets/fedi.jpg)` }">
 					<header><span>{{ $ts.exploreFediverse }}</span></header>
 				</div>
@@ -60,18 +60,18 @@
 						<XUserList :pagination="recentlyRegisteredUsersF"/>
 					</MkFolder>
 				</template>
-			</div>
+			</div-->
 			<div v-else-if="tab === 'search'">
 				<div class="_isolated">
 					<MkInput v-model="searchQuery" :debounce="true" type="search">
 						<template #prefix><i class="fas fa-search"></i></template>
 						<template #label>{{ $ts.searchUser }}</template>
 					</MkInput>
-					<MkRadios v-model="searchOrigin">
+					<!--MkRadios v-model="searchOrigin">
 						<option value="combined">{{ $ts.all }}</option>
 						<option value="local">{{ $ts.local }}</option>
 						<option value="remote">{{ $ts.remote }}</option>
-					</MkRadios>
+					</MkRadios-->
 				</div>
 
 				<XUserList v-if="searchQuery" ref="search" class="_gap" :pagination="searchPagination"/>
@@ -116,11 +116,11 @@ export default defineComponent({
 					active: this.tab === 'local',
 					title: this.$ts.local,
 					onClick: () => { this.tab = 'local'; },
-				}, {
+				},/* {
 					active: this.tab === 'remote',
 					title: this.$ts.remote,
 					onClick: () => { this.tab = 'remote'; },
-				}, {
+				},*/ {
 					active: this.tab === 'search',
 					title: this.$ts.search,
 					onClick: () => { this.tab = 'search'; },
