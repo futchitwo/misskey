@@ -86,6 +86,11 @@ import * as ep___channels_show from './endpoints/channels/show.js';
 import * as ep___channels_timeline from './endpoints/channels/timeline.js';
 import * as ep___channels_unfollow from './endpoints/channels/unfollow.js';
 import * as ep___channels_update from './endpoints/channels/update.js';
+
+import * as ep___channels_forceUnfollow from './endpoints/channels/force-unfollow.js';
+import * as ep___channels_changeLeader from './endpoints/channels/change-leader.js';
+
+
 import * as ep___charts_activeUsers from './endpoints/charts/active-users.js';
 import * as ep___charts_apRequest from './endpoints/charts/ap-request.js';
 import * as ep___charts_drive from './endpoints/charts/drive.js';
@@ -370,12 +375,14 @@ const eps = [
 	['admin/update-meta', ep___admin_updateMeta],
 	['admin/vacuum', ep___admin_vacuum],
 	['announcements', ep___announcements],
+	/*
 	['antennas/create', ep___antennas_create],
 	['antennas/delete', ep___antennas_delete],
 	['antennas/list', ep___antennas_list],
 	['antennas/notes', ep___antennas_notes],
 	['antennas/show', ep___antennas_show],
 	['antennas/update', ep___antennas_update],
+	*/
 	['ap/get', ep___ap_get],
 	['ap/show', ep___ap_show],
 	['app/create', ep___app_create],
@@ -396,6 +403,11 @@ const eps = [
 	['channels/timeline', ep___channels_timeline],
 	['channels/unfollow', ep___channels_unfollow],
 	['channels/update', ep___channels_update],
+
+	['channels/force-unfollow', ep___channels_forceUnfollow],
+	['channels/change-leader', ep___channels_changeLeader],
+
+
 	['charts/active-users', ep___charts_activeUsers],
 	['charts/ap-request', ep___charts_apRequest],
 	['charts/drive', ep___charts_drive],
@@ -595,8 +607,9 @@ const eps = [
 	['users/clips', ep___users_clips],
 	['users/followers', ep___users_followers],
 	['users/following', ep___users_following],
-	['users/gallery/posts', ep___users_gallery_posts],
+	//['users/gallery/posts', ep___users_gallery_posts],
 	['users/get-frequently-replied-users', ep___users_getFrequentlyRepliedUsers],
+	/*
 	['users/groups/create', ep___users_groups_create],
 	['users/groups/delete', ep___users_groups_delete],
 	['users/groups/invitations/accept', ep___users_groups_invitations_accept],
@@ -616,8 +629,9 @@ const eps = [
 	['users/lists/push', ep___users_lists_push],
 	['users/lists/show', ep___users_lists_show],
 	['users/lists/update', ep___users_lists_update],
+	*/
 	['users/notes', ep___users_notes],
-	['users/pages', ep___users_pages],
+	//['users/pages', ep___users_pages],
 	['users/reactions', ep___users_reactions],
 	['users/recommendation', ep___users_recommendation],
 	['users/relation', ep___users_relation],

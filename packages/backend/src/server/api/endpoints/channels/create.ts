@@ -1,6 +1,6 @@
 import define from '../../define.js';
 import { ApiError } from '../../error.js';
-import { Channels, DriveFiles } from '@/models/index.js';
+import { Channels, ChannelFollowings, DriveFiles } from '@/models/index.js';
 import { Channel } from '@/models/entities/channel.js';
 import { genId } from '@/misc/gen-id.js';
 
@@ -58,6 +58,13 @@ export default define(meta, paramDef, async (ps, user) => {
 		description: ps.description || null,
 		bannerId: banner ? banner.id : null,
 	} as Channel).then(x => Channels.findOneByOrFail(x.identifiers[0]));
+
+	await ChannelFollowings.insert({
+		id: genId(),
+		createdAt: new Date(),
+		followerId: user.id,
+		followeeId: channel.id,
+	});
 
 	return await Channels.pack(channel, user);
 });

@@ -2,7 +2,7 @@ import ms from 'ms';
 import { In } from 'typeorm';
 import create from '@/services/note/create.js';
 import { User } from '@/models/entities/user.js';
-import { Users, DriveFiles, Notes, Channels, Blockings } from '@/models/index.js';
+import { Users, DriveFiles, Notes, Channels, ChannelFollowings, Blockings } from '@/models/index.js';
 import { DriveFile } from '@/models/entities/drive-file.js';
 import { Note } from '@/models/entities/note.js';
 import { Channel } from '@/models/entities/channel.js';
@@ -70,6 +70,12 @@ export const meta = {
 			message: 'No such channel.',
 			code: 'NO_SUCH_CHANNEL',
 			id: 'b1653923-5453-4edc-b786-7c4f39bb0bbb',
+		},
+    
+		cannotPostToChannelYouDoNotFollow: {
+			message: 'Cannot post to channel you do not follow', 
+			code: 'CANNOT_POST_TO_CHANNEL_YOU_DO_NOT_FOLLOW',
+			id: '059fe38f-88c8-4d8d-a551-78e09139dc4f',
 		},
 
 		youHaveBeenBlocked: {
@@ -244,6 +250,16 @@ export default define(meta, paramDef, async (ps, user) => {
 
 		if (channel == null) {
 			throw new ApiError(meta.errors.noSuchChannel);
+		}
+
+		// chack following channel
+		const channelFollowing = await ChannelFollowings.findOneBy({
+			followerId: user.id,
+			followeeId: channel.id,
+		});
+
+		if (channelFollowing == null) {
+			throw new ApiError(meta.errors.cannotPostToChannelYouDoNotFollow);
 		}
 	} else {
 		throw new ApiError(meta.errors.noSuchChannel);
