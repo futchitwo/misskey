@@ -28,12 +28,12 @@
 				<i v-if="isMyRenote" class="fas fa-ellipsis-h dropdownIcon"></i>
 				<MkTime :time="note.createdAt"/>
 			</button>
-			<span v-if="note.visibility !== 'public'" class="visibility">
+			<!--span v-if="note.visibility !== 'public'" class="visibility">
 				<i v-if="note.visibility === 'home'" class="fas fa-home"></i>
 				<i v-else-if="note.visibility === 'followers'" class="fas fa-unlock"></i>
 				<i v-else-if="note.visibility === 'specified'" class="fas fa-envelope"></i>
-			</span>
-			<span v-if="note.localOnly" class="localOnly"><i class="fas fa-biohazard"></i></span>
+			</span-->
+			<!--span v-if="note.localOnly" class="localOnly"><i class="fas fa-biohazard"></i></span-->
 		</div>
 	</div>
 	<article class="article" @contextmenu.stop="onContextmenu">

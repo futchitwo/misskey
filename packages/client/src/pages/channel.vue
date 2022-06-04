@@ -1,6 +1,16 @@
 <template>
 <MkSpacer :content-max="700">
 	<div v-if="channel">
+		<!--div class="abvloaje">
+			<template v-if="!showPostForm">
+				<div class="folded" @click="() => showPostForm = true">
+					<span>チャンネルに投稿…</span>
+				</div>
+			</template>
+			<template v-else>
+				<XPostForm v-if="$i" :channel="channel" class="post-form _panel _gap" fixed/>
+			</template>
+		</div-->
 		<div class="wpgynlbz _panel _gap" :class="{ hide: !showBanner }">
 			<XChannelFollowButton :channel="channel" :full="true" class="subscribe"/>
 			<button class="_button toggle" @click="() => showBanner = !showBanner">
@@ -66,6 +76,7 @@ export default defineComponent({
 			} : null),
 			channel: null,
 			showBanner: true,
+			//showPostForm: false,
 			pagination: {
 				endpoint: 'channels/timeline' as const,
 				limit: 10,
@@ -191,6 +202,17 @@ export default defineComponent({
 		> .description {
 			display: none;
 		}
+	}
+}
+
+.abvloaje {
+  position: relative;
+  bottom: 0px;
+
+  > .folded {
+		padding: 16px;
+		background: var(--panel);
+		border-radius: 16px 16px 0px 0px;
 	}
 }
 </style>

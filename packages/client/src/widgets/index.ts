@@ -3,7 +3,7 @@ import { App, defineAsyncComponent } from 'vue';
 export default function(app: App) {
 	app.component('MkwMemo', defineAsyncComponent(() => import('./memo.vue')));
 	app.component('MkwNotifications', defineAsyncComponent(() => import('./notifications.vue')));
-	app.component('MkwTimeline', defineAsyncComponent(() => import('./timeline.vue')));
+	//app.component('MkwTimeline', defineAsyncComponent(() => import('./timeline.vue')));
 	app.component('MkwCalendar', defineAsyncComponent(() => import('./calendar.vue')));
 	app.component('MkwRss', defineAsyncComponent(() => import('./rss.vue')));
 	app.component('MkwTrends', defineAsyncComponent(() => import('./trends.vue')));
@@ -25,7 +25,7 @@ export default function(app: App) {
 export const widgets = [
 	'memo',
 	'notifications',
-	'timeline',
+	//'timeline',
 	'calendar',
 	'rss',
 	'trends',

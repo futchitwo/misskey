@@ -178,7 +178,7 @@ export default defineComponent({
 				}
 			}
 
-			&:last-child {
+			/*&:last-child {
 				bottom: 0;
 				color: var(--fgOnAccent);
 
@@ -202,7 +202,7 @@ export default defineComponent({
 						background: var(--accentLighten);
 					}
 				}
-			}
+			}*/
 		}
 	}
 }

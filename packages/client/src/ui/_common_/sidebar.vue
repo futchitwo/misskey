@@ -198,7 +198,7 @@ function more(ev: MouseEvent) {
 				}
 			}
 
-			&:last-child {
+			/*&:last-child {
 				bottom: 0;
 				color: var(--fgOnAccent);
 
@@ -222,7 +222,7 @@ function more(ev: MouseEvent) {
 						background: var(--accentLighten);
 					}
 				}
-			}
+			}*/
 		}
 	}
 

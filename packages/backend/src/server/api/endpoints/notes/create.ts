@@ -245,6 +245,8 @@ export default define(meta, paramDef, async (ps, user) => {
 		if (channel == null) {
 			throw new ApiError(meta.errors.noSuchChannel);
 		}
+	} else {
+		throw new ApiError(meta.errors.noSuchChannel);
 	}
 
 	// 投稿を作成
