@@ -3,7 +3,7 @@ import define from '../../define.js';
 import ms from 'ms';
 import { getNote } from '../../common/getters.js';
 import { ApiError } from '../../error.js';
-import { Users } from '@/models/index.js';
+import { Users, Channels } from '@/models/index.js';
 
 export const meta = {
 	tags: ['notes'],
@@ -48,7 +48,15 @@ export default define(meta, paramDef, async (ps, user) => {
 		throw e;
 	});
 
-	if ((!user.isAdmin && !user.isModerator) && (note.userId !== user.id)) {
+	let isChannelLeader = false;
+	if (note.channelId != null) {
+		const channel = await Channels.findOneBy({
+			id: note.channelId,
+		});
+		isChannelLeader = channel?.userId === user.id;
+	}
+
+	if ((!user.isAdmin && !user.isModerator && !isChannelLeader) && (note.userId !== user.id)) {
 		throw new ApiError(meta.errors.accessDenied);
 	}
 

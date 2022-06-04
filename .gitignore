@@ -5,6 +5,9 @@
 # Intelij-IDEA
 /.idea
 
+# Gitpod
+dump.rdb
+
 # Node.js
 node_modules
 report.*.json
