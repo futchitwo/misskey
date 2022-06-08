@@ -89,6 +89,9 @@ import * as ep___channels_update from './endpoints/channels/update.js';
 
 import * as ep___channels_forceUnfollow from './endpoints/channels/force-unfollow.js';
 import * as ep___channels_changeLeader from './endpoints/channels/change-leader.js';
+import * as ep___channels_pinNote from './endpoints/channels/pin-note.js';
+import * as ep___channels_unpinNote from './endpoints/channels/unpin-note.js';
+import * as ep___channels_showPinned from './endpoints/channels/show-pinned.js';
 
 
 import * as ep___charts_activeUsers from './endpoints/charts/active-users.js';
@@ -406,7 +409,9 @@ const eps = [
 
 	['channels/force-unfollow', ep___channels_forceUnfollow],
 	['channels/change-leader', ep___channels_changeLeader],
-
+	['channels/pin-note', ep___channels_pinNote],
+	['channels/unpin-note', ep___channels_unpinNote],
+	['channels/show-pinned', ep___channels_showPinned],
 
 	['charts/active-users', ep___charts_activeUsers],
 	['charts/ap-request', ep___charts_apRequest],

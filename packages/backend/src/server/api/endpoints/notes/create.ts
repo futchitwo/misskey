@@ -10,6 +10,7 @@ import { MAX_NOTE_TEXT_LENGTH } from '@/const.js';
 import { noteVisibilities } from '../../../../types.js';
 import { ApiError } from '../../error.js';
 import define from '../../define.js';
+import watch from '@/services/note/watch.js';
 
 export const meta = {
 	tags: ['notes'],
@@ -118,6 +119,7 @@ export const paramDef = {
 		replyId: { type: 'string', format: 'misskey:id', nullable: true },
 		renoteId: { type: 'string', format: 'misskey:id', nullable: true },
 		channelId: { type: 'string', format: 'misskey:id', nullable: true },
+		shout: { type: 'boolean', default: false },
 		poll: {
 			type: 'object',
 			nullable: true,
@@ -243,10 +245,12 @@ export default define(meta, paramDef, async (ps, user) => {
 			ps.poll.expiresAt = Date.now() + ps.poll.expiredAfter;
 		}
 	}
+  
+	const channelId = ps.channelId || reply?.channelId;
 
 	let channel: Channel | null = null;
-	if (ps.channelId != null) {
-		channel = await Channels.findOneBy({ id: ps.channelId });
+	if (channelId != null) {
+		channel = await Channels.findOneBy({ id: channelId });
 
 		if (channel == null) {
 			throw new ApiError(meta.errors.noSuchChannel);
@@ -282,11 +286,17 @@ export default define(meta, paramDef, async (ps, user) => {
 		visibility: ps.visibility,
 		visibleUsers,
 		channel,
+		shout: ps.shout,
 		apMentions: ps.noExtractMentions ? [] : undefined,
 		apHashtags: ps.noExtractHashtags ? [] : undefined,
 		apEmojis: ps.noExtractEmojis ? [] : undefined,
 	});
 
+	// watch parent note
+	if (reply != null) {
+		await watch(user.id, reply);	
+	}
+	
 	return {
 		createdNote: await Notes.pack(note, user),
 	};

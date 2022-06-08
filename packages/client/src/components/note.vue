@@ -180,7 +180,7 @@ const showTicker = (defaultStore.state.instanceTicker === 'always') || (defaultS
 const keymap = {
 	'r': () => reply(true),
 	'e|a|plus': () => react(true),
-	'q': () => renoteButton.value.renote(true),
+	//'q': () => renoteButton.value.renote(true),
 	'up|k|shift+tab': focusBefore,
 	'down|j|tab': focusAfter,
 	'esc': blur,

@@ -298,7 +298,7 @@ document.addEventListener('keydown', makeHotkey({
 	'd': () => {
 		defaultStore.set('darkMode', !defaultStore.state.darkMode);
 	},
-	'p|n': post,
+	//'p|n': post,
 	's': search,
 	//TODO: 'h|/': help
 }));

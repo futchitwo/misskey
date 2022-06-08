@@ -42,7 +42,7 @@ export const meta = {
 		},
 
 		newLeaderIsNotFollowingChannel: {
-			message: 'New leader is not following channel',
+			message: 'New leader is not following channel.',
 			code: 'NEW_LEADER_IS_NOT_FOLLOWING_CHANNEL',
 			id: '41f1d409-2055-4646-b723-86c24a2fbb16',
 		},

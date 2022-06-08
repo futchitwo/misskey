@@ -38,6 +38,24 @@ export const packedChannelSchema = {
 			type: 'number',
 			nullable: false, optional: false,
 		},
+		pinnedNoteIds: {
+			type: 'array',
+			nullable: false, optional: false,
+			items: {
+				type: 'string',
+				nullable: false, optional: false,
+				format: 'id',
+			},
+		},
+		pinnedNotes: {
+			type: 'array',
+			nullable: false, optional: false,
+			items: {
+				type: 'object',
+				nullable: false, optional: false,
+				ref: 'Note',
+			},
+		},
 		isFollowing: {
 			type: 'boolean',
 			optional: true, nullable: false,

@@ -45,5 +45,7 @@ export default define(meta, paramDef, async (ps, user) => {
 		followeeId: channel.id,
 	});
 
+	Channels.increment({ id: channel.id }, 'usersCount', 1);
+
 	publishUserEvent(user.id, 'followChannel', channel);
 });

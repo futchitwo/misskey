@@ -1,7 +1,6 @@
 import define from '../../define.js';
 import { ApiError } from '../../error.js';
-import { Channels, ChannelFollowings } from '@/models/index.js';
-import { publishUserEvent } from '@/services/stream.js';
+import { Channels, ChannelNotePinings, Notes } from '@/models/index.js';
 
 export const meta = {
 	tags: ['channels'],
@@ -10,23 +9,29 @@ export const meta = {
 
 	kind: 'write:channels',
 
+	res: {
+		type: 'object',
+		optional: false, nullable: false,
+		ref: 'Channel',
+	},
+
 	errors: {
 		noSuchChannel: {
 			message: 'No such channel.',
 			code: 'NO_SUCH_CHANNEL',
-			id: '19959ee9-0153-4c51-bbd9-a98c49dc59d6',
+			id: '6f6c314b-7486-4897-8966-c04a66a02923',
 		},
 
 		accessDenied: {
 			message: 'You do not have edit privilege of the channel.',
 			code: 'ACCESS_DENIED',
-			id: '5b43d65d-0c9b-4c72-9c9b-e09436940e10',
+			id: '82b179d8-ff32-41f0-bc5c-28c8cdcd6229',
 		},
 
-		followerIsYourself: {
-			message: 'Follower is yourself.',
-			code: 'FOLLOWER_IS_YOURSELF',
-			id: '68683042-afa4-4324-8b06-169fb4707d56',
+		noSuchNote: {
+			message: 'No such note.',
+			code: 'NO_SUCH_NOTE',
+			id: '6d52697f-74cb-4c9f-8bd4-a7d2e1193fd1',
 		},
 	},
 } as const;
@@ -35,9 +40,9 @@ export const paramDef = {
 	type: 'object',
 	properties: {
 		channelId: { type: 'string', format: 'misskey:id' },
-		userId: { type: 'string', format: 'misskey:id' },
+		noteId: { type: 'string', format: 'misskey:id' },
 	},
-	required: ['channelId', 'userId'],
+	required: ['channelId', 'noteId'],
 } as const;
 
 // eslint-disable-next-line import/no-default-export
@@ -53,18 +58,19 @@ export default define(meta, paramDef, async (ps, me) => {
 	if (channel.userId !== me.id) {
 		throw new ApiError(meta.errors.accessDenied);
 	}
-  
-  // 自分自身
-	if (me.id === ps.userId) {
-		throw new ApiError(meta.errors.followerIsYourself);
-	}
 
-	await ChannelFollowings.delete({
-		followerId: ps.userId,
-		followeeId: channel.id,
+	const note = await Notes.findOneBy({
+		id: ps.noteId,
 	});
 
-	Channels.decrement({ id: channel.id }, 'usersCount', 1);
+	if (note == null) {
+		throw new ApiError(meta.errors.noSuchNote);
+	}
 
-	publishUserEvent(ps.userId, 'unfollowChannel', channel);
+	await ChannelNotePinings.delete({
+		channelId: channel.id,
+		noteId: ps.noteId,
+	});
+
+	//return await Channels.pack(channel, me);
 });

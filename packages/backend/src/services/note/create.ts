@@ -40,6 +40,7 @@ import { Cache } from '@/misc/cache.js';
 import { UserProfile } from '@/models/entities/user-profile.js';
 import { db } from '@/db/postgre.js';
 import { getActiveWebhooks } from '@/misc/webhook-cache.js';
+import { ChannelFollowing } from '@/models/entities/channel-following.js';
 
 const mutedWordsCache = new Cache<{ userId: UserProfile['userId']; mutedWords: UserProfile['mutedWords']; }[]>(1000 * 60 * 5);
 
@@ -118,6 +119,7 @@ type Option = {
 	visibility?: string;
 	visibleUsers?: MinimumUser[] | null;
 	channel?: Channel | null;
+	shout?: boolean | null;
 	apMentions?: MinimumUser[] | null;
 	apHashtags?: string[] | null;
 	apEmojis?: string[] | null;
@@ -287,15 +289,15 @@ export default async (user: { id: User['id']; username: User['username']; host: 
 	}
 
 	// Channel
+	let channelFollowings: ChannelFollowing[] = [];
 	if (note.channelId) {
-		ChannelFollowings.findBy({ followeeId: note.channelId }).then(followings => {
-			for (const following of followings) {
-				insertNoteUnread(following.followerId, note, {
-					isSpecified: false,
-					isMentioned: false,
-				});
-			}
-		});
+		channelFollowings = await ChannelFollowings.findBy({ followeeId: note.channelId });
+		for (const following of channelFollowings) {
+			insertNoteUnread(following.followerId, note, {
+				isSpecified: false,
+				isMentioned: false,
+			});
+		}
 	}
 
 	if (data.reply) {
@@ -414,6 +416,13 @@ export default async (user: { id: User['id']; username: User['username']; host: 
 				}
 			}
 		}
+		
+		if (note.channelId && data.shout && (data.channel?.userId === note.userId)) {
+			console.log(channelFollowings.length);
+			for (const following of channelFollowings) {
+				nm.push(following.followerId, 'mention');
+			}
+		}
 
 		Promise.all(nmRelatedPromises).then(() => {
 			nm.deliver();
@@ -463,6 +472,7 @@ export default async (user: { id: User['id']; username: User['username']; host: 
 			lastNotedAt: new Date(),
 		});
 
+		/*
 		Notes.countBy({
 			userId: user.id,
 			channelId: data.channel.id,
@@ -473,6 +483,7 @@ export default async (user: { id: User['id']; username: User['username']; host: 
 				Channels.increment({ id: data.channel!.id }, 'usersCount', 1);
 			}
 		});
+		*/
 	}
 
 	// Register to search database

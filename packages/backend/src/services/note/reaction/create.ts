@@ -107,6 +107,7 @@ export default async (user: { id: User['id']; host: User['host']; }, note: Note,
 		});
 	}
 
+	/*
 	// Fetch watchers
 	NoteWatchings.findBy({
 		noteId: note.id,
@@ -120,6 +121,7 @@ export default async (user: { id: User['id']; host: User['host']; }, note: Note,
 			});
 		}
 	});
+	*/
 
 	//#region 配信
 	if (Users.isLocalUser(user) && !note.localOnly) {

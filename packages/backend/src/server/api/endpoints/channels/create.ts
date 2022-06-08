@@ -66,5 +66,7 @@ export default define(meta, paramDef, async (ps, user) => {
 		followeeId: channel.id,
 	});
 
+	Channels.increment({ id: channel.id }, 'usersCount', 1);
+	
 	return await Channels.pack(channel, user);
 });

@@ -1,10 +1,10 @@
 import { SelectQueryBuilder } from 'typeorm';
 
-export function makePaginationQuery<T>(q: SelectQueryBuilder<T>, sinceId?: string, untilId?: string, sinceDate?: number, untilDate?: number) {
+export function makePaginationQuery<T>(q: SelectQueryBuilder<T>, sinceId?: string, untilId?: string, sinceDate?: number, untilDate?: number, order? :'ASC' | 'DESC') {
 	if (sinceId && untilId) {
 		q.andWhere(`${q.alias}.id > :sinceId`, { sinceId: sinceId });
 		q.andWhere(`${q.alias}.id < :untilId`, { untilId: untilId });
-		q.orderBy(`${q.alias}.id`, 'DESC');
+		q.orderBy(`${q.alias}.id`, order || 'DESC');
 	} else if (sinceId) {
 		q.andWhere(`${q.alias}.id > :sinceId`, { sinceId: sinceId });
 		q.orderBy(`${q.alias}.id`, 'ASC');
@@ -14,7 +14,7 @@ export function makePaginationQuery<T>(q: SelectQueryBuilder<T>, sinceId?: strin
 	} else if (sinceDate && untilDate) {
 		q.andWhere(`${q.alias}.createdAt > :sinceDate`, { sinceDate: new Date(sinceDate) });
 		q.andWhere(`${q.alias}.createdAt < :untilDate`, { untilDate: new Date(untilDate) });
-		q.orderBy(`${q.alias}.createdAt`, 'DESC');
+		q.orderBy(`${q.alias}.createdAt`, order || 'DESC');
 	} else if (sinceDate) {
 		q.andWhere(`${q.alias}.createdAt > :sinceDate`, { sinceDate: new Date(sinceDate) });
 		q.orderBy(`${q.alias}.createdAt`, 'ASC');
@@ -22,7 +22,7 @@ export function makePaginationQuery<T>(q: SelectQueryBuilder<T>, sinceId?: strin
 		q.andWhere(`${q.alias}.createdAt < :untilDate`, { untilDate: new Date(untilDate) });
 		q.orderBy(`${q.alias}.createdAt`, 'DESC');
 	} else {
-		q.orderBy(`${q.alias}.id`, 'DESC');
+		q.orderBy(`${q.alias}.id`, order || 'DESC');
 	}
 	return q;
 }

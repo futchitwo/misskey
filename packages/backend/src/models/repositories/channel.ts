@@ -1,7 +1,7 @@
 import { db } from '@/db/postgre.js';
 import { Channel } from '@/models/entities/channel.js';
 import { Packed } from '@/misc/schema.js';
-import { DriveFiles, ChannelFollowings, NoteUnreads } from '../index.js';
+import { DriveFiles, ChannelFollowings, NoteUnreads, ChannelNotePinings, Notes } from '../index.js';
 import { User } from '@/models/entities/user.js';
 
 export const ChannelRepository = db.getRepository(Channel).extend({
@@ -20,6 +20,12 @@ export const ChannelRepository = db.getRepository(Channel).extend({
 			followerId: meId,
 			followeeId: channel.id,
 		}) : null;
+		
+		const pins = await ChannelNotePinings.createQueryBuilder('pin')
+		.where('pin.channelId = :channelId', { channelId: channel.id })
+		.innerJoinAndSelect('pin.note', 'note')
+		.orderBy('pin.id', 'DESC')
+		.getMany();
 
 		return {
 			id: channel.id,
@@ -31,6 +37,10 @@ export const ChannelRepository = db.getRepository(Channel).extend({
 			bannerUrl: banner ? DriveFiles.getPublicUrl(banner, false) : null,
 			usersCount: channel.usersCount,
 			notesCount: channel.notesCount,
+			pinnedNoteIds: pins.map(pin => pin.noteId),
+			pinnedNotes: await Notes.packMany(pins.map(pin => pin.note!), me, {
+				detail: true,
+			}),
 
 			...(me ? {
 				isFollowing: following != null,

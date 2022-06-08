@@ -1,5 +1,5 @@
 <template>
-<button v-if="canRenote"
+<!--button v-if="canRenote"
 	ref="buttonRef"
 	class="eddddedb _button canRenote"
 	@click="renote()"
@@ -9,10 +9,11 @@
 </button>
 <button v-else class="eddddedb _button">
 	<i class="fas fa-ban"></i>
-</button>
+</button-->
 </template>
 
 <script lang="ts">
+
 import { computed, defineComponent, ref } from 'vue';
 import XDetails from '@/components/renote.details.vue';
 import { pleaseLogin } from '@/scripts/please-login';
@@ -86,6 +87,7 @@ export default defineComponent({
 		};
 	},
 });
+
 </script>
 
 <style lang="scss" scoped>

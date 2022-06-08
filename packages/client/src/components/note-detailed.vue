@@ -194,7 +194,7 @@ const replies = ref<misskey.entities.Note[]>([]);
 const keymap = {
 	'r': () => reply(true),
 	'e|a|plus': () => react(true),
-	'q': () => renoteButton.value.renote(true),
+	//'q': () => renoteButton.value.renote(true),
 	'esc': blur,
 	'm|o': () => menu(true),
 	's': () => showContent.value !== showContent.value,
@@ -288,7 +288,8 @@ function blur() {
 
 os.api('notes/children', {
 	noteId: appearNote.id,
-	limit: 30
+	limit: 100,
+	order: 'ASC',
 }).then(res => {
 	replies.value = res;
 });

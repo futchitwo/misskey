@@ -30,13 +30,14 @@ export const paramDef = {
 		limit: { type: 'integer', minimum: 1, maximum: 100, default: 10 },
 		sinceId: { type: 'string', format: 'misskey:id' },
 		untilId: { type: 'string', format: 'misskey:id' },
+		order: { type: 'string', enum: ['DESC', 'ASC'] },
 	},
 	required: ['noteId'],
 } as const;
 
 // eslint-disable-next-line import/no-default-export
 export default define(meta, paramDef, async (ps, user) => {
-	const query = makePaginationQuery(Notes.createQueryBuilder('note'), ps.sinceId, ps.untilId)
+	const query = makePaginationQuery(Notes.createQueryBuilder('note'), ps.sinceId, ps.untilId, undefined, undefined, ps.order)
 		.andWhere(new Brackets(qb => { qb
 			.where(`note.replyId = :noteId`, { noteId: ps.noteId })
 			.orWhere(new Brackets(qb => { qb
