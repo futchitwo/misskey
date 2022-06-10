@@ -1,6 +1,15 @@
-import { Channel } from "@/models/entities/channel";
+import { ChannelSubLeaders } from '@/models/index.js';
+import { Channel } from '@/models/entities/channel.js';
 
-export function isChannelManager(myId: string, channel?: Channel | null): boolean {
+export async function isChannelManager(myId: string, channel?: Channel | null): Promise<boolean> {
 	if (!channel) return false;
-	return channel.userId === myId;
+	
+	const leader = channel.userId === myId;
+	if (leader) return true;
+
+	const subLeader = await ChannelSubLeaders.findOneBy({
+		channelId: channel.id,
+		userId: myId,
+	});
+	return !!subLeader;
 }

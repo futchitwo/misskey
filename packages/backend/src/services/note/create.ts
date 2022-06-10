@@ -418,7 +418,7 @@ export default async (user: { id: User['id']; username: User['username']; host: 
 			}
 		}
 		
-		if (data.shout && isChannelManager(note.userId, data.channel)) {
+		if (data.shout && await isChannelManager(note.userId, data.channel)) {
 			console.log(channelFollowings.length);
 			for (const following of channelFollowings) {
 				nm.push(following.followerId, 'mention');

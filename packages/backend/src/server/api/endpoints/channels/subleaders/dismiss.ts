@@ -1,7 +1,7 @@
-import define from '../../define.js';
-import { ApiError } from '../../error.js';
-import { Channels, ChannelNotePinings, Notes } from '@/models/index.js';
-import { isChannelManager } from '@/misc/is-channel-manager.js';
+import define from '../../../define.js';
+import { ApiError } from '../../../error.js';
+import { getUser } from '../../../common/getters.js';
+import { Channels, ChannelSubLeaders } from '@/models/index.js';
 
 export const meta = {
 	tags: ['channels'],
@@ -20,19 +20,19 @@ export const meta = {
 		noSuchChannel: {
 			message: 'No such channel.',
 			code: 'NO_SUCH_CHANNEL',
-			id: '6f6c314b-7486-4897-8966-c04a66a02923',
+			id: 'f9c5467f-d492-4c3c-9a8d-a70dacc86512',
 		},
 
 		accessDenied: {
 			message: 'You do not have edit privilege of the channel.',
 			code: 'ACCESS_DENIED',
-			id: '82b179d8-ff32-41f0-bc5c-28c8cdcd6229',
+			id: '1fb7cb09-d46a-4fdf-b8df-057788cce513',
 		},
 
-		noSuchNote: {
-			message: 'No such note.',
-			code: 'NO_SUCH_NOTE',
-			id: '6d52697f-74cb-4c9f-8bd4-a7d2e1193fd1',
+		noSuchUser: {
+			message: 'No such user.',
+			code: 'NO_SUCH_USER',
+			id: '8514183b-0c33-4694-bbb0-127ff58b44b2',
 		},
 	},
 } as const;
@@ -41,9 +41,9 @@ export const paramDef = {
 	type: 'object',
 	properties: {
 		channelId: { type: 'string', format: 'misskey:id' },
-		noteId: { type: 'string', format: 'misskey:id' },
+		userId: { type: 'string', format: 'misskey:id' },
 	},
-	required: ['channelId', 'noteId'],
+	required: ['channelId', 'userId'],
 } as const;
 
 // eslint-disable-next-line import/no-default-export
@@ -56,22 +56,20 @@ export default define(meta, paramDef, async (ps, me) => {
 		throw new ApiError(meta.errors.noSuchChannel);
 	}
 
-	if (! await isChannelManager(me.id, channel)) {
+	if (channel.userId !== me.id) {
 		throw new ApiError(meta.errors.accessDenied);
 	}
 
-	const note = await Notes.findOneBy({
-		id: ps.noteId,
+	// Get oldSubLeader
+	const oldSubLeader = await getUser(ps.userId).catch(err => {
+		if (err.id === '15348ddd-432d-49c2-8a5a-8069753becff') throw new ApiError(meta.errors.noSuchUser);
+		throw err;
 	});
 
-	if (note == null) {
-		throw new ApiError(meta.errors.noSuchNote);
-	}
-
-	await ChannelNotePinings.delete({
+	await ChannelSubLeaders.delete({
+		userId: oldSubLeader.id,
 		channelId: channel.id,
-		noteId: ps.noteId,
 	});
 
-	//return await Channels.pack(channel, me);
+	return await Channels.pack(channel.id, me);
 });

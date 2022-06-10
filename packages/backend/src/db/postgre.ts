@@ -64,6 +64,7 @@ import { MutedNote } from '@/models/entities/muted-note.js';
 import { Channel } from '@/models/entities/channel.js';
 import { ChannelFollowing } from '@/models/entities/channel-following.js';
 import { ChannelNotePining } from '@/models/entities/channel-note-pining.js';
+import { ChannelSubLeader } from '@/models/entities/channel-sub-leader.js';
 import { RegistryItem } from '@/models/entities/registry-item.js';
 import { Ad } from '@/models/entities/ad.js';
 import { PasswordResetRequest } from '@/models/entities/password-reset-request.js';
@@ -167,6 +168,7 @@ export const entities = [
 	Channel,
 	ChannelFollowing,
 	ChannelNotePining,
+	ChannelSubLeader,
 	RegistryItem,
 	Ad,
 	PasswordResetRequest,

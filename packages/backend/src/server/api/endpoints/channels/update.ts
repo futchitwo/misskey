@@ -58,7 +58,7 @@ export default define(meta, paramDef, async (ps, me) => {
 		throw new ApiError(meta.errors.noSuchChannel);
 	}
 
-	if (!isChannelManager(me.id, channel)) {
+	if (! await isChannelManager(me.id, channel)) {
 		throw new ApiError(meta.errors.accessDenied);
 	}
 

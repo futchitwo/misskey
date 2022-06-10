@@ -1,7 +1,7 @@
 import { db } from '@/db/postgre.js';
 import { Channel } from '@/models/entities/channel.js';
 import { Packed } from '@/misc/schema.js';
-import { DriveFiles, ChannelFollowings, NoteUnreads, ChannelNotePinings, Notes } from '../index.js';
+import { DriveFiles, ChannelFollowings, NoteUnreads, ChannelNotePinings, Notes, ChannelSubLeaders, Users } from '../index.js';
 import { User } from '@/models/entities/user.js';
 
 export const ChannelRepository = db.getRepository(Channel).extend({
@@ -11,6 +11,11 @@ export const ChannelRepository = db.getRepository(Channel).extend({
 	): Promise<Packed<'Channel'>> {
 		const channel = typeof src === 'object' ? src : await this.findOneByOrFail({ id: src });
 		const meId = me ? me.id : null;
+
+		const subLeaders = await ChannelSubLeaders.createQueryBuilder('subleader')
+		.where('subleader.channelId = :channelId', { channelId: channel.id })
+		.innerJoinAndSelect('subleader.user', 'user')
+		.getMany();
 
 		const banner = channel.bannerId ? await DriveFiles.findOneBy({ id: channel.bannerId }) : null;
 
@@ -34,6 +39,10 @@ export const ChannelRepository = db.getRepository(Channel).extend({
 			name: channel.name,
 			description: channel.description,
 			userId: channel.userId,
+			subLeaderIds: subLeaders.map(sl => sl.userId),
+			/*subLeaders: await Users.packMany(subLeaders.map(sl => sl.user!), me, {
+				detail: true,
+			}),*/
 			bannerUrl: banner ? DriveFiles.getPublicUrl(banner, false) : null,
 			usersCount: channel.usersCount,
 			notesCount: channel.notesCount,

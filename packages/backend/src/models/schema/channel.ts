@@ -65,5 +65,23 @@ export const packedChannelSchema = {
 			nullable: true, optional: false,
 			format: 'id',
 		},
+		subLeaderIds: {
+			type: 'array',
+			nullable: false, optional: false,
+			items: {
+				type: 'string',
+				nullable: false, optional: false,
+				format: 'id',
+			},
+		},/*
+		subLeaders: {
+			type: 'array',
+			nullable: false, optional: false,
+			items: {
+				type: 'object',
+				nullable: false, optional: false,
+				ref: 'User',
+			},
+		},*/
 	},
 } as const;

@@ -92,6 +92,8 @@ import * as ep___channels_changeLeader from './endpoints/channels/change-leader.
 import * as ep___channels_pinNote from './endpoints/channels/pin-note.js';
 import * as ep___channels_unpinNote from './endpoints/channels/unpin-note.js';
 import * as ep___channels_showPinned from './endpoints/channels/show-pinned.js';
+import * as ep___channels_subLeaders_appoint from './endpoints/channels/subleaders/appoint.js';
+import * as ep___channels_subLeaders_dismiss from './endpoints/channels/subleaders/dismiss.js';
 
 
 import * as ep___charts_activeUsers from './endpoints/charts/active-users.js';
@@ -412,6 +414,8 @@ const eps = [
 	['channels/pin-note', ep___channels_pinNote],
 	['channels/unpin-note', ep___channels_unpinNote],
 	['channels/show-pinned', ep___channels_showPinned],
+	['channels/sub-leaders/appoint', ep___channels_subLeaders_appoint],
+	['channels/sub-leaders/dismiss', ep___channels_subLeaders_dismiss],
 
 	['charts/active-users', ep___charts_activeUsers],
 	['charts/ap-request', ep___charts_apRequest],
