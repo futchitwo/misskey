@@ -1,6 +1,7 @@
 import define from '../../define.js';
 import { ApiError } from '../../error.js';
 import { Channels, ChannelNotePinings, Notes } from '@/models/index.js';
+import { isChannelManager } from '@/misc/is-channel-manager.js';
 
 export const meta = {
 	tags: ['channels'],
@@ -55,7 +56,7 @@ export default define(meta, paramDef, async (ps, me) => {
 		throw new ApiError(meta.errors.noSuchChannel);
 	}
 
-	if (channel.userId !== me.id) {
+	if (!isChannelManager(me.id, channel)) {
 		throw new ApiError(meta.errors.accessDenied);
 	}
 

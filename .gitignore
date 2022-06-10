@@ -6,7 +6,7 @@
 /.idea
 
 # Gitpod
-dump.rdb
+/dump.rdb
 
 # Node.js
 node_modules

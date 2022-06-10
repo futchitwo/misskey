@@ -41,6 +41,7 @@ import { UserProfile } from '@/models/entities/user-profile.js';
 import { db } from '@/db/postgre.js';
 import { getActiveWebhooks } from '@/misc/webhook-cache.js';
 import { ChannelFollowing } from '@/models/entities/channel-following.js';
+import { isChannelManager } from '@/misc/is-channel-manager.js';
 
 const mutedWordsCache = new Cache<{ userId: UserProfile['userId']; mutedWords: UserProfile['mutedWords']; }[]>(1000 * 60 * 5);
 
@@ -417,7 +418,7 @@ export default async (user: { id: User['id']; username: User['username']; host: 
 			}
 		}
 		
-		if (note.channelId && data.shout && (data.channel?.userId === note.userId)) {
+		if (data.shout && isChannelManager(note.userId, data.channel)) {
 			console.log(channelFollowings.length);
 			for (const following of channelFollowings) {
 				nm.push(following.followerId, 'mention');
