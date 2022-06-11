@@ -30,12 +30,18 @@ export default defineComponent({
 		XNotes,
 	},
 
+	provide() {
+		return {
+			cullentClipPage: this.clip,
+		};
+	},
+
 	props: {
 		clipId: {
 			type: String,
 			required: true
 		}
-	},
+	},	
 
 	data() {
 		return {
@@ -128,12 +134,6 @@ export default defineComponent({
 					});
 				}
 			} : undefined], ev.currentTarget ?? ev.target);
-		}
-	},
-
-	provide() {
-		return {
-			clipId: this.clipId,
 		}
 	},
 });
