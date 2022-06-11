@@ -129,7 +129,13 @@ export default defineComponent({
 				}
 			} : undefined], ev.currentTarget ?? ev.target);
 		}
-	}
+	},
+
+	provide(): {
+		return {
+			clipId: this.clip.id,
+		}
+	},
 });
 </script>
 
