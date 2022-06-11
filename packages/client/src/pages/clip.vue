@@ -133,7 +133,7 @@ export default defineComponent({
 
 	provide() {
 		return {
-			clipId: this.clip.id,
+			clipId: this.clipId,
 		}
 	},
 });
