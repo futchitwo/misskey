@@ -72,4 +72,10 @@ export class Channel {
 		comment: 'The count of users.',
 	})
 	public usersCount: number;
+
+	@Column('boolean', {
+		default: false,
+		comment: 'Whether the group is approval-only.',
+	})
+	public approvalOnly: boolean;
 }
