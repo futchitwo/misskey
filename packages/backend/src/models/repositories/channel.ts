@@ -44,6 +44,7 @@ export const ChannelRepository = db.getRepository(Channel).extend({
 				detail: true,
 			}),*/
 			bannerUrl: banner ? DriveFiles.getPublicUrl(banner, false) : null,
+			approvalOnly: channel.approvalOnly,
 			usersCount: channel.usersCount,
 			notesCount: channel.notesCount,
 			pinnedNoteIds: pins.map(pin => pin.noteId),

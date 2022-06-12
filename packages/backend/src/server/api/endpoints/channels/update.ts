@@ -44,6 +44,7 @@ export const paramDef = {
 		name: { type: 'string', minLength: 1, maxLength: 128 },
 		description: { type: 'string', nullable: true, minLength: 1, maxLength: 2048 },
 		bannerId: { type: 'string', format: 'misskey:id', nullable: true },
+		approvalOnly: { type: 'boolean', nullable: true },
 	},
 	required: ['channelId'],
 } as const;
@@ -81,6 +82,7 @@ export default define(meta, paramDef, async (ps, me) => {
 		...(ps.name !== undefined ? { name: ps.name } : {}),
 		...(ps.description !== undefined ? { description: ps.description } : {}),
 		...(banner ? { bannerId: banner.id } : {}),
+		...(ps.approvalOnly !== undefined ? { approvalOnly: ps.approvalOnly } : {}),
 	});
 
 	return await Channels.pack(channel.id, me);

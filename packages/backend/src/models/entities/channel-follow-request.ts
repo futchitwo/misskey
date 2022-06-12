@@ -1,10 +1,11 @@
 import { PrimaryColumn, Entity, Index, JoinColumn, Column, ManyToOne } from 'typeorm';
 import { User } from './user.js';
 import { id } from '../id.js';
+import { Channel } from './channel.js';
 
 @Entity()
 @Index(['followerId', 'followeeId'], { unique: true })
-export class FollowRequest {
+export class ChannelFollowRequest {
 	@PrimaryColumn(id())
 	public id: string;
 
@@ -16,15 +17,15 @@ export class FollowRequest {
 	@Index()
 	@Column({
 		...id(),
-		comment: 'The followee user ID.',
+		comment: 'The followee channel ID.',
 	})
-	public followeeId: User['id'];
+	public followeeId: Channel['id'];
 
-	@ManyToOne(type => User, {
+	@ManyToOne(type => Channel, {
 		onDelete: 'CASCADE',
 	})
 	@JoinColumn()
-	public followee: User | null;
+	public followee: Channel | null;
 
 	@Index()
 	@Column({
@@ -38,48 +39,4 @@ export class FollowRequest {
 	})
 	@JoinColumn()
 	public follower: User | null;
-
-	@Column('varchar', {
-		length: 128, nullable: true,
-		comment: 'id of Follow Activity.',
-	})
-	public requestId: string | null;
-
-	//#region Denormalized fields
-	@Column('varchar', {
-		length: 128, nullable: true,
-		comment: '[Denormalized]',
-	})
-	public followerHost: string | null;
-
-	@Column('varchar', {
-		length: 512, nullable: true,
-		comment: '[Denormalized]',
-	})
-	public followerInbox: string | null;
-
-	@Column('varchar', {
-		length: 512, nullable: true,
-		comment: '[Denormalized]',
-	})
-	public followerSharedInbox: string | null;
-
-	@Column('varchar', {
-		length: 128, nullable: true,
-		comment: '[Denormalized]',
-	})
-	public followeeHost: string | null;
-
-	@Column('varchar', {
-		length: 512, nullable: true,
-		comment: '[Denormalized]',
-	})
-	public followeeInbox: string | null;
-
-	@Column('varchar', {
-		length: 512, nullable: true,
-		comment: '[Denormalized]',
-	})
-	public followeeSharedInbox: string | null;
-	//#endregion
 }

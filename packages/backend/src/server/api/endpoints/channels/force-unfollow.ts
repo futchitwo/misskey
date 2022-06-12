@@ -1,6 +1,6 @@
 import define from '../../define.js';
 import { ApiError } from '../../error.js';
-import { Channels, ChannelFollowings } from '@/models/index.js';
+import { Channels, ChannelFollowings, ChannelBannedUsers } from '@/models/index.js';
 import { publishUserEvent } from '@/services/stream.js';
 import { isChannelManager } from '@/misc/is-channel-manager.js';
 
@@ -37,6 +37,7 @@ export const paramDef = {
 	properties: {
 		channelId: { type: 'string', format: 'misskey:id' },
 		userId: { type: 'string', format: 'misskey:id' },
+		ban: { type: 'boolean', default: false },
 	},
 	required: ['channelId', 'userId'],
 } as const;
@@ -64,6 +65,15 @@ export default define(meta, paramDef, async (ps, me) => {
 		followerId: ps.userId,
 		followeeId: channel.id,
 	});
+
+	if (ps.ban) {
+		await ChannelBannedUsers.insert({
+			id: genId(),
+			createdAt: new Date(),
+			userId: user.id,
+			channelId: channel.id,
+		});
+	}
 
 	Channels.decrement({ id: channel.id }, 'usersCount', 1);
 
