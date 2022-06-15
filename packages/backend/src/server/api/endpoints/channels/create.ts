@@ -32,7 +32,7 @@ export const paramDef = {
 		name: { type: 'string', minLength: 1, maxLength: 128 },
 		description: { type: 'string', nullable: true, minLength: 1, maxLength: 2048 },
 		bannerId: { type: 'string', format: 'misskey:id', nullable: true },
-		approvalOnly: { type: 'boolern', default:false },
+		approvalOnly: { type: 'boolean' },
 	},
 	required: ['name'],
 } as const;
@@ -58,7 +58,7 @@ export default define(meta, paramDef, async (ps, user) => {
 		name: ps.name,
 		description: ps.description || null,
 		bannerId: banner ? banner.id : null,
-		approvalOnly: ps.approvalOnly,
+		approvalOnly: ps.approvalOnly || false,
 	} as Channel).then(x => Channels.findOneByOrFail(x.identifiers[0]));
 
 	await ChannelFollowings.insert({

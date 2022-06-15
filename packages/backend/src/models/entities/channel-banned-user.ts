@@ -4,7 +4,7 @@ import { id } from '../id.js';
 import { Channel } from './channel.js';
 
 @Entity()
-@Index(['followerId', 'followeeId'], { unique: true })
+@Index(['channelId', 'userId'], { unique: true })
 export class ChannelBannedUser {
 	@PrimaryColumn(id())
 	public id: string;

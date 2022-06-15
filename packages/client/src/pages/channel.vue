@@ -1,6 +1,6 @@
 <template>
 <MkSpacer :content-max="700">
-	<div v-if="channel && tab ==='timeline'">
+	<div v-if="channel">
 		<!--div class="abvloaje">
 			<template v-if="!showPostForm">
 				<div class="folded" @click="() => showPostForm = true">
@@ -36,11 +36,11 @@
 
 			<XTimeline :key="channelId" class="_gap" src="channel" :channel="channelId" @before="before" @after="after"/>
 		</template>
-		<template v-else-if="channel && tab === 'pinned'">
-			<XNotes :pagination="pinPagenation"/>
+		<template v-else-if="tab === 'pinned'">
+			<XNotes :pagination="pinPagination"/>
 		</template>
-		<template v-else-if="channel && tab === 'info'">
-			<div v-if="leader">
+		<template v-else-if="tab === 'info'">
+			<div v-if="leader" class="sivpwjiw">
 				<span>{{'リーダー'}}</span>
 				<div class="users">
 					<div class="user _panel">
@@ -52,10 +52,10 @@
 					</div>
 				</div>
 			</div>
-			<div v-if="subLeaders">
+			<div v-if="subLeaders" class="sivpwjiw">
 				<span>{{'サブリーダー'}}</span>
 				<div class="users">
-					<div v-for="subleader in subLeaders" :key="user.id" class="user _panel">
+					<div v-for="subleader in subLeaders" :key="subleader.id" class="user _panel">
 						<MkAvatar :user="subleader" class="avatar" :show-indicator="true"/>
 						<div class="body">
 							<MkUserName :user="subleader" class="name"/>
@@ -78,13 +78,14 @@ import XNotes from '@/components/notes.vue';
 import XChannelFollowButton from '@/components/channel-follow-button.vue';
 import * as os from '@/os';
 import * as symbols from '@/symbols';
-import { isChannelManager } from '@/scripts/is-channel-manager.js'
+import { isChannelManager } from '@/scripts/is-channel-manager.js';
 
 export default defineComponent({
 	components: {
 		MkContainer,
 		XPostForm,
 		XTimeline,
+		XNotes,
 		XChannelFollowButton
 	},
 
@@ -137,7 +138,7 @@ export default defineComponent({
 				}))
 			},
 			pinPagination: {
-				endpoint: 'channels/pin-note' as const,
+				endpoint: 'channels/show-pinned' as const,
 				limit: 10,
 				params: computed(() => ({
 					channelId: this.channelId,
@@ -152,16 +153,14 @@ export default defineComponent({
 				this.channel = await os.api('channels/show', {
 					channelId: this.channelId,
 				});
-				const leaders = await Promise.all({
+				const leaders = await Promise.all([
 					os.api('users/show', {
-						userId: this.channel.userId,
+						userId: this.channel?.userId,
 					}),
-					...[...new Array(this.channel.subLeaderIds)].map(userId => {
-						os.api('users/show', { userId }),
-					}),
-				});
-				this.leader = leaders.slice();
-				this.subleaders = leaders;
+					...this.channel?.subLeaderIds.map(userId => os.api('users/show', { userId })),
+				]);
+				this.leader = leaders.shift();
+				this.subLeaders = leaders;
 			},
 			immediate: true
 		}
@@ -282,6 +281,35 @@ export default defineComponent({
 		padding: 16px;
 		background: var(--panel);
 		border-radius: 16px 16px 0px 0px;
+	}
+}
+
+.sivpwjiw {
+	> .users {
+		> .user {
+			display: flex;
+			align-items: center;
+			padding: 16px;
+
+			> .avatar {
+				width: 50px;
+				height: 50px;
+			}
+
+			> .body {
+				flex: 1;
+				padding: 8px;
+
+				> .name {
+					display: block;
+					font-weight: bold;
+				}
+
+				> .acct {
+					opacity: 0.5;
+				}
+			}
+		}
 	}
 }
 </style>

@@ -38,6 +38,10 @@ export const packedChannelSchema = {
 			type: 'number',
 			nullable: false, optional: false,
 		},
+		approvalOnly: {
+			type: 'boolean',
+			nullable: false, optional: false,
+		},
 		pinnedNoteIds: {
 			type: 'array',
 			nullable: false, optional: false,
