@@ -67,6 +67,8 @@ import { ChannelNotePining } from '@/models/entities/channel-note-pining.js';
 import { ChannelSubLeader } from '@/models/entities/channel-sub-leader.js';
 import { ChannelFollowRequest } from '@/models/entities/channel-follow-request.js'; 
 import { ChannelBannedUser } from '@/models/entities/channel-banned-user.js';
+import { ChannelCategory } from '@/models/index.js';
+import { ChannelSubCategory } from '@/models/index.js';
 import { RegistryItem } from '@/models/entities/registry-item.js';
 import { Ad } from '@/models/entities/ad.js';
 import { PasswordResetRequest } from '@/models/entities/password-reset-request.js';
@@ -173,6 +175,8 @@ export const entities = [
 	ChannelSubLeader,
 	ChannelFollowRequest,
 	ChannelBannedUser,
+	ChannelCategory,
+	ChannelSubCategory,
 	RegistryItem,
 	Ad,
 	PasswordResetRequest,

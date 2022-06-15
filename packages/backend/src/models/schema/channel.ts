@@ -25,6 +25,15 @@ export const packedChannelSchema = {
 			type: 'string',
 			nullable: true, optional: false,
 		},
+		subCategoryId: {
+			type: 'string',
+			optional: false, nullable: true,
+		},
+		subCategory: {
+			type: 'object',
+			optional: false, nullable: false,
+			ref: 'ChannelSubCategory',
+		},
 		bannerUrl: {
 			type: 'string',
 			format: 'url',

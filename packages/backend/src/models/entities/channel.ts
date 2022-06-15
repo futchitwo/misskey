@@ -2,6 +2,7 @@ import { PrimaryColumn, Entity, Index, JoinColumn, Column, ManyToOne } from 'typ
 import { User } from './user.js';
 import { id } from '../id.js';
 import { DriveFile } from './drive-file.js';
+import { ChannelSubCategory } from './channel-sub-category.js';
 
 @Entity()
 export class Channel {
@@ -45,6 +46,20 @@ export class Channel {
 		comment: 'The description of the Channel.',
 	})
 	public description: string | null;
+
+	@Index()
+	@Column({
+		...id(),
+        nullable: true,
+		comment: 'The sub category ID.',
+	})
+	public subCategoryId: ChannelSubCategory['id'] | null;
+
+	@ManyToOne(type => Channel, {
+		onDelete: 'SET NULL',//'CASCADE'?
+	})
+	@JoinColumn()
+	public subCategory: ChannelSubCategory | null;
 
 	@Column({
 		...id(),

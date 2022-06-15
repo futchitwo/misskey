@@ -23,6 +23,8 @@ import { packedPageSchema } from '@/models/schema/page.js';
 import { packedUserGroupSchema } from '@/models/schema/user-group.js';
 import { packedNoteFavoriteSchema } from '@/models/schema/note-favorite.js';
 import { packedChannelSchema } from '@/models/schema/channel.js';
+import { packedChannelCategorySchema } from '@/models/schema/channel-category.js';
+import { packedChannelSubCategorySchema } from '@/models/schema/channel-subcategory.js';
 import { packedAntennaSchema } from '@/models/schema/antenna.js';
 import { packedClipSchema } from '@/models/schema/clip.js';
 import { packedFederationInstanceSchema } from '@/models/schema/federation-instance.js';
@@ -55,6 +57,8 @@ export const refs = {
 	Hashtag: packedHashtagSchema,
 	Page: packedPageSchema,
 	Channel: packedChannelSchema,
+	ChannelCategory: packedChannelCategorySchema,
+	ChannelSubCategory: packedChannelSubCategorySchema,
 	QueueCount: packedQueueCountSchema,
 	Antenna: packedAntennaSchema,
 	Clip: packedClipSchema,

@@ -38,6 +38,7 @@ export const ChannelRepository = db.getRepository(Channel).extend({
 			lastNotedAt: channel.lastNotedAt ? channel.lastNotedAt.toISOString() : null,
 			name: channel.name,
 			description: channel.description,
+			subCategoryId: channel.subCategoryId,
 			userId: channel.userId,
 			subLeaderIds: subLeaders.map(sl => sl.userId),
 			/*subLeaders: await Users.packMany(subLeaders.map(sl => sl.user!), me, {
