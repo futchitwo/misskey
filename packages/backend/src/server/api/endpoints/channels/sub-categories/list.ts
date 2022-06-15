@@ -1,8 +1,7 @@
-import define from '../../define.js';
-import { ApiError } from '../../error.js';
 import { ChannelSubCategories } from '@/models/index.js';
-import { Channel } from '@/models/entities/channel.js';
-import { genId } from '@/misc/gen-id.js';
+import { CHANNEL_CATEGORIES } from '@/const.js';
+import define from '../../../define.js';
+import { ApiError } from '../../../error.js';
 
 export const meta = {
 	tags: ['channels'],
@@ -10,13 +9,13 @@ export const meta = {
 	requireCredential: false,
 
 	res: {
-        type: 'array',
-        optional: false, nullable: false,
+		type: 'array',
+		optional: false, nullable: false,
 		items: {
-            type: 'object',
-            optional: false, nullable: false,
-            ref: 'Channel',
-        },
+			type: 'object',
+			optional: false, nullable: false,
+			ref: 'Channel',
+		},
 	},
 
 	errors: {
@@ -38,13 +37,14 @@ export const paramDef = {
 
 // eslint-disable-next-line import/no-default-export
 export default define(meta, paramDef, async (ps, user) => {
-    const category = CHANNEL_CATEGORIES.find(cat => cat.category === ps.category);
+	const category = CHANNEL_CATEGORIES.find(cat => cat.category === ps.category);
 
-    if (!category) throw new ApiError(meta.errors.noSuchCategory);
+	if (!category) throw new ApiError(meta.errors.noSuchCategory);
 
-	const subCategories = await ChannelSubCategories.createQueryBuilder('subCategory')
+	const query = await ChannelSubCategories.createQueryBuilder('subCategory')
     .where('subCategory.lastActivutyAt IS NOT NULL')
     .orderBy('subCategory.lastActivitydAt', 'DESC');
 	
-	return await ChannelSubCategories.packMany(subCategories);
+	const subCategories = await query.take(10).getMany();
+	return await Promise.all(subCategories.map(x => ChannelSubCategories.pack(x)));
 });

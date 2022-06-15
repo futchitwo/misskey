@@ -12,7 +12,7 @@ export class ChannelSubCategory {
 	})
 	public createdAt: Date;
 
-    @Column('varchar', {
+	@Column('varchar', {
 		length: 128,
 	})
 	public name: string;
@@ -22,56 +22,56 @@ export class ChannelSubCategory {
 	})
 	public description: string | null;
 
-    @Index()
-    @Column('varchar', {
+	@Index()
+	@Column('varchar', {
 		length: 64,
 	})
 	public category: string;
 
-    @Index()
+  @Index()
 	@Column('timestamp with time zone', {
-        nullable: true,
+		nullable: true,
 		comment: 'The last activity date of the sub-category.',
 	})
 	public lastActivityAt: Date;
 
-    @Index()
-    @Column('varchar', {
+  @Index()
+	@Column('varchar', {
 		length: 64, nullable: true,
 	})
 	public appStoreId: string | null;
 
-    @Index()
-    @Column('varchar', {
+	@Index()
+	@Column('varchar', {
 		length: 256, nullable: true,
 	})
 	public googlePlayId: string | null;
 
-    @Index()
-    @Column('varchar', {
+  @Index()
+  @Column('varchar', {
 		length: 64, nullable: true,
 	})
 	public steamId: string | null;
 
-    @Index()
-    @Column('varchar', {
+  @Index()
+  @Column('varchar', {
 		length: 256, nullable: true,
 	})
 	public epicStoreId: string | null;
 
-    @Index()
-    @Column('varchar', {
+	@Index()
+	@Column('varchar', {
 		length: 256, nullable: true,
 	})
 	public siteUrl: string | null;
 
-    @Column('varchar', {
+	@Column('varchar', {
 		length: 256, nullable: true,
 	})
 	public iconUrl: string | null;
 
-    @Column('smallint', {
-        default: 0,
-    })
-    public channelsCount: number;
+	@Column('smallint', {
+		default: 0,
+	})
+	public channelsCount: number;
 }

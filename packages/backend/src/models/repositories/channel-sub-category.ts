@@ -6,21 +6,21 @@ export const ChannelSubCategoryRepository = db.getRepository(ChannelSubCategory)
 	async pack(
 		src: ChannelSubCategory | string,
 	): Promise<Packed<'ChannelSubCategory'>> {
-        const subCategory = typeof src === 'object' ? src : await this.findOneByOrFail({ id: src });
+		const subCategory = typeof src === 'object' ? src : await this.findOneByOrFail({ id: src });
 
 		return {
-            id: subCategory.id,
+			id: subCategory.id,
 			name: subCategory.name,
-            description: subCategory.description,
-            category: subCategory.category,
-            iconUrl: subCategory.iconUrl,
-            lastActivityAt: subCategory.lastActivityAt,
-            appStoreId: subCategory.appStoreId,
-            googlePlayId: subCategory.googlePlayId,
-            steamId: subCategory.steamId,
-            epicStoreId: subCategory.epicStoreId,
-            channelsCount :subCategory.channelsCount
-        };
+			description: subCategory.description,
+			category: subCategory.category,
+			iconUrl: subCategory.iconUrl,
+			lastActivityAt: subCategory.lastActivityAt.toISOString(),
+			appStoreId: subCategory.appStoreId,
+			googlePlayId: subCategory.googlePlayId,
+			steamId: subCategory.steamId,
+			epicStoreId: subCategory.epicStoreId,
+			channelsCount: subCategory.channelsCount,
+		};
 	},
 
 	packMany(

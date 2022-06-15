@@ -24,7 +24,7 @@ export const packedChannelSubCategorySchema = {
 			type: 'string',
 			optional: false, nullable: false,
 		},
-        lastActivityAt :{
+        lastActivityAt: {
 			type: 'string',
 			optional: false, nullable: true,
 			format: 'date-time',

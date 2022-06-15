@@ -1,5 +1,5 @@
-import define from '../../define.js';
-import { ApiError } from '../../error.js';
+import define from '../../../define.js';
+import { ApiError } from '../../../error.js';
 import { ChannelSubCategories } from '@/models/index.js';
 import { genId } from '@/misc/gen-id.js';
 import { CHANNEL_CATEGORIES } from '@/const.js';
@@ -76,7 +76,7 @@ export default define(meta, paramDef, async (ps, user) => {
         lastActivityAt: new Date(),
 		name: ps.name,
 		description: ps.description || null,
-		iconUrl: iconUrl || null,
+		iconUrl: ps.iconUrl || null,
         category: ps.category,
         ...(category.isGame ? {
             appStoreId: ps.appStoreId || null,
