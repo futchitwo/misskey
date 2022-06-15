@@ -4,19 +4,22 @@ import { Packed } from '@/misc/schema.js';
 
 export const ChannelSubCategoryRepository = db.getRepository(ChannelSubCategory).extend({
 	async pack(
-		src: ChannelSubCategory,
+		src: ChannelSubCategory | string,
 	): Promise<Packed<'ChannelSubCategory'>> {
+        const subCategory = typeof src === 'object' ? src : await this.findOneByOrFail({ id: src });
+
 		return {
-            id: src.id,
-			name: src.name,
-            description: src.description,
-            categoryId: src.categoryId,
-            category: src.category,
-            iconUrl: src.iconUrl,
-            appStoreId: src.appStoreId,
-            googlePlayId: src.googlePlayId,
-            steamId: src.steamId,
-            epicStoreId: src.epicStoreId,
+            id: subCategory.id,
+			name: subCategory.name,
+            description: subCategory.description,
+            category: subCategory.category,
+            iconUrl: subCategory.iconUrl,
+            lastActivityAt: subCategory.lastActivityAt,
+            appStoreId: subCategory.appStoreId,
+            googlePlayId: subCategory.googlePlayId,
+            steamId: subCategory.steamId,
+            epicStoreId: subCategory.epicStoreId,
+            channelsCount :subCategory.channelsCount
         };
 	},
 

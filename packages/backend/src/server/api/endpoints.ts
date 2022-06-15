@@ -94,7 +94,9 @@ import * as ep___channels_unpinNote from './endpoints/channels/unpin-note.js';
 import * as ep___channels_showPinned from './endpoints/channels/show-pinned.js';
 import * as ep___channels_subLeaders_appoint from './endpoints/channels/subleaders/appoint.js';
 import * as ep___channels_subLeaders_dismiss from './endpoints/channels/subleaders/dismiss.js';
-
+import * as ep___channels_subCategory_list from './endpoints/channels/subcategory/list.js';
+import * as ep___channels_subCategory_create from './endpoints/channels/subcategory/create.js';
+import * as ep___channels_subCategory_createGame from './endpoints/channels/subcategory/create_game.js';
 
 import * as ep___charts_activeUsers from './endpoints/charts/active-users.js';
 import * as ep___charts_apRequest from './endpoints/charts/ap-request.js';
@@ -416,6 +418,9 @@ const eps = [
 	['channels/show-pinned', ep___channels_showPinned],
 	['channels/sub-leaders/appoint', ep___channels_subLeaders_appoint],
 	['channels/sub-leaders/dismiss', ep___channels_subLeaders_dismiss],
+	['channels/sub-category/list', ep___channels_subCategory_list],
+	['channels/sub-category/create', ep___channels_subCategory_create],
+	['channels/sub-category/create-game', ep___channels_subCategory_createGame],
 
 	['charts/active-users', ep___charts_activeUsers],
 	['charts/ap-request', ep___charts_apRequest],

@@ -1,6 +1,5 @@
 import { PrimaryColumn, Entity, Index, JoinColumn, Column, ManyToOne } from 'typeorm';
 import { id } from '../id.js';
-import { ChannelCategory } from './channel-category.js';
 
 @Entity()
 export class ChannelSubCategory {
@@ -9,7 +8,7 @@ export class ChannelSubCategory {
 
 	@Index()
 	@Column('timestamp with time zone', {
-		comment: 'The created date of the ChannelFollowing.',
+		comment: 'The created date of the sub-category.',
 	})
 	public createdAt: Date;
 
@@ -23,19 +22,18 @@ export class ChannelSubCategory {
 	})
 	public description: string | null;
 
-	@Index()
-	@Column({
-		...id(),
-        nullable: true,
-		comment: 'The main category ID.',
+    @Index()
+    @Column('varchar', {
+		length: 64,
 	})
-	public categoryId: ChannelCategory['id'] | null;
+	public category: string;
 
-	@ManyToOne(type => Channel, {
-		onDelete: 'SET NULL',//'CASCADE'?
+    @Index()
+	@Column('timestamp with time zone', {
+        nullable: true,
+		comment: 'The last activity date of the sub-category.',
 	})
-	@JoinColumn()
-	public category: ChannelCategory | null;
+	public lastActivityAt: Date;
 
     @Index()
     @Column('varchar', {
@@ -71,4 +69,9 @@ export class ChannelSubCategory {
 		length: 256, nullable: true,
 	})
 	public iconUrl: string | null;
+
+    @Column('smallint', {
+        default: 0,
+    })
+    public channelsCount: number;
 }

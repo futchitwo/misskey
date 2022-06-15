@@ -20,16 +20,14 @@ export const packedChannelSubCategorySchema = {
 			type: 'string',
 			optional: false, nullable: true,
 		},
-        categoryId: {
+        category: {
+			type: 'string',
+			optional: false, nullable: false,
+		},
+        lastActivityAt :{
 			type: 'string',
 			optional: false, nullable: true,
-			format: 'id',
-			example: 'xxxxxxxxxx',
-		},
-        category: {
-            type: 'object',
-            optional: false, nullable: true,
-            ref: 'ChannelCategory',
+			format: 'date-time',
         },
         iconUrl: {
 			type: 'string',
@@ -55,5 +53,9 @@ export const packedChannelSubCategorySchema = {
 			type: 'string',
 			optional: true, nullable: true,
 		},
+        channelsCount: {
+            type: 'number',
+            optional: false, nullable: false,
+        }
 	},
 } as const;
