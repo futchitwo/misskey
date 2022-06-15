@@ -1,6 +1,6 @@
 <template>
 <MkSpacer :content-max="700">
-	<div v-if="channel">
+	<div v-if="channel && tab ==='timeline'">
 		<!--div class="abvloaje">
 			<template v-if="!showPostForm">
 				<div class="folded" @click="() => showPostForm = true">
@@ -31,9 +31,40 @@
 			</div>
 		</div>
 
-		<XPostForm v-if="$i" :channel="channel" class="post-form _panel _gap" fixed/>
+		<template v-if="tab === 'timeline'">
+			<XPostForm v-if="$i" :channel="channel" class="post-form _panel _gap" fixed/>
 
-		<XTimeline :key="channelId" class="_gap" src="channel" :channel="channelId" @before="before" @after="after"/>
+			<XTimeline :key="channelId" class="_gap" src="channel" :channel="channelId" @before="before" @after="after"/>
+		</template>
+		<template v-else-if="channel && tab === 'pinned'">
+			<XNotes :pagination="pinPagenation"/>
+		</template>
+		<template v-else-if="channel && tab === 'info'">
+			<div v-if="leader">
+				<span>{{'リーダー'}}</span>
+				<div class="users">
+					<div class="user _panel">
+						<MkAvatar :user="leader" class="avatar" :show-indicator="true"/>
+						<div class="body">
+							<MkUserName :user="leader" class="name"/>
+							<MkAcct :user="leader" class="acct"/>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div v-if="subLeaders">
+				<span>{{'サブリーダー'}}</span>
+				<div class="users">
+					<div v-for="subleader in subLeaders" :key="user.id" class="user _panel">
+						<MkAvatar :user="subleader" class="avatar" :show-indicator="true"/>
+						<div class="body">
+							<MkUserName :user="subleader" class="name"/>
+							<MkAcct :user="subleader" class="acct"/>
+						</div>
+					</div>
+				</div>
+			</div>
+		</template>
 	</div>
 </MkSpacer>
 </template>
@@ -43,9 +74,11 @@ import { computed, defineComponent } from 'vue';
 import MkContainer from '@/components/ui/container.vue';
 import XPostForm from '@/components/post-form.vue';
 import XTimeline from '@/components/timeline.vue';
+import XNotes from '@/components/notes.vue';
 import XChannelFollowButton from '@/components/channel-follow-button.vue';
 import * as os from '@/os';
 import * as symbols from '@/symbols';
+import { isChannelManager } from '@/scripts/is-channel-manager.js'
 
 export default defineComponent({
 	components: {
@@ -68,17 +101,43 @@ export default defineComponent({
 				title: this.channel.name,
 				icon: 'fas fa-satellite-dish',
 				bg: 'var(--bg)',
-				actions: [...(this.$i && this.$i.id === this.channel.userId ? [{
+				actions: [...(this.$i && isChannelManager(this.$i.id, this.channel) ? [{
 					icon: 'fas fa-cog',
 					text: this.$ts.edit,
 					handler: this.edit,
 				}] : [])],
+				tabs: [{
+					active: this.tab === 'timeline',
+					title: this.$ts.timeline,
+					icon: 'fas fa-house',
+					onClick: () => { this.tab = 'timeline'; },
+				}, {
+					active: this.tab === 'pinned',
+					title: this.$ts.pinned,
+					icon: 'fas fa-thumbtack',
+					onClick: () => { this.tab = 'pinned'; },
+				}, {
+					active: this.tab === 'info',
+					title: this.$ts.info,
+					icon: 'fas fa-circle-info',
+					onClick: () => { this.tab = 'info'; },
+				},]
 			} : null),
 			channel: null,
+			leader: null,
+			subLeaders: [],
+			tab: 'timeline',
 			showBanner: true,
 			//showPostForm: false,
 			pagination: {
 				endpoint: 'channels/timeline' as const,
+				limit: 10,
+				params: computed(() => ({
+					channelId: this.channelId,
+				}))
+			},
+			pinPagination: {
+				endpoint: 'channels/pin-note' as const,
 				limit: 10,
 				params: computed(() => ({
 					channelId: this.channelId,
@@ -93,6 +152,16 @@ export default defineComponent({
 				this.channel = await os.api('channels/show', {
 					channelId: this.channelId,
 				});
+				const leaders = await Promise.all({
+					os.api('users/show', {
+						userId: this.channel.userId,
+					}),
+					...[...new Array(this.channel.subLeaderIds)].map(userId => {
+						os.api('users/show', { userId }),
+					}),
+				});
+				this.leader = leaders.slice();
+				this.subleaders = leaders;
 			},
 			immediate: true
 		}
