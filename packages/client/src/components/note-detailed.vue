@@ -43,12 +43,12 @@
 						<MkUserName :user="appearNote.user"/>
 					</MkA>
 					<span v-if="appearNote.user.isBot" class="is-bot">bot</span>
-					<span v-if="appearNote.visibility !== 'public'" class="visibility">
+					<!--span v-if="appearNote.visibility !== 'public'" class="visibility">
 						<i v-if="appearNote.visibility === 'home'" class="fas fa-home"></i>
 						<i v-else-if="appearNote.visibility === 'followers'" class="fas fa-unlock"></i>
 						<i v-else-if="appearNote.visibility === 'specified'" class="fas fa-envelope"></i>
 					</span>
-					<span v-if="appearNote.localOnly" class="localOnly"><i class="fas fa-biohazard"></i></span>
+					<span v-if="appearNote.localOnly" class="localOnly"><i class="fas fa-biohazard"></i></span-->
 				</div>
 				<div class="username"><MkAcct :user="appearNote.user"/></div>
 				<MkInstanceTicker v-if="showTicker" class="ticker" :instance="appearNote.user.instance"/>
@@ -108,7 +108,7 @@
 			</footer>
 		</div>
 	</article>
-	<XNote v-for="note in replies" :key="note.id" :note="note" class="reply" :detail="true"/>
+	<XNote v-for="note in replies" :key="note.id" :note="note" class="reply" :detail="true" :hideReply="true"/>
 </div>
 <div v-else class="_panel muted" @click="muted = false">
 	<I18n :src="$ts.userSaysSomething" tag="small">

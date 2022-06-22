@@ -9,7 +9,7 @@
 	:tabindex="!isDeleted ? '-1' : null"
 	:class="{ renote: isRenote }"
 >
-	<MkNoteSub v-if="appearNote.reply" :note="appearNote.reply" class="reply-to"/>
+	<MkNoteSub v-if="!hideReply && appearNote.reply" :note="appearNote.reply" class="reply-to"/>
 	<div v-if="pinned" class="info"><i class="fas fa-thumbtack"></i> {{ i18n.ts.pinnedNote }}</div>
 	<div v-if="appearNote._prId_" class="info"><i class="fas fa-bullhorn"></i> {{ i18n.ts.promotion }}<button class="_textButton hide" @click="readPromo()">{{ i18n.ts.hideThisNote }} <i class="fas fa-times"></i></button></div>
 	<div v-if="appearNote._featuredId_" class="info"><i class="fas fa-bolt"></i> {{ i18n.ts.featured }}</div>
@@ -36,18 +36,18 @@
 			<!--span v-if="note.localOnly" class="localOnly"><i class="fas fa-biohazard"></i></span-->
 		</div>
 	</div>
-	<article class="article" @contextmenu.stop="onContextmenu" @click="location.href = `/notes/${appearNote.id}`">
+	<article class="article" @contextmenu.stop="onContextmenu" @click.self="mkNav.push(`/notes/${appearNote.id}`)">
 		<MkAvatar class="avatar" :user="appearNote.user"/>
 		<div class="main">
 			<XNoteHeader class="header" :note="appearNote" :mini="true"/>
 			<MkInstanceTicker v-if="showTicker" class="ticker" :instance="appearNote.user.instance"/>
-			<div class="body">
+			<div class="body" @click.self="mkNav.push(`/notes/${appearNote.id}`)">
 				<p v-if="appearNote.cw != null" class="cw">
 					<Mfm v-if="appearNote.cw != ''" class="text" :text="appearNote.cw" :author="appearNote.user" :i="$i" :custom-emojis="appearNote.emojis"/>
 					<XCwButton v-model="showContent" :note="appearNote"/>
 				</p>
 				<div v-show="appearNote.cw == null || showContent" class="content" :class="{ collapsed }">
-					<div class="text">
+					<div class="text" @click.self="mkNav.push(`/notes/${appearNote.id}`)">
 						<span v-if="appearNote.isHidden" style="opacity: 0.5">({{ i18n.ts.private }})</span>
 						<MkA v-if="appearNote.replyId" class="reply" :to="`/notes/${appearNote.replyId}`"><i class="fas fa-reply"></i></MkA>
 						<Mfm v-if="appearNote.text" :text="appearNote.text" :author="appearNote.user" :i="$i" :custom-emojis="appearNote.emojis"/>
@@ -73,7 +73,7 @@
 				<MkA v-if="appearNote.channel && !inChannel" class="channel" :to="`/channels/${appearNote.channel.id}`"><i class="fas fa-satellite-dish"></i> {{ appearNote.channel.name }}</MkA>
 			</div>
 			<footer class="footer">
-				<XReactionsViewer ref="reactionsViewer" :note="appearNote"/>
+				<XReactionsViewer ref="reactionsViewer" :note="appearNote" @click.self="mkNav.push(`/notes/${appearNote.id}`)"/>
 				<button class="button _button" @click="reply()">
 					<template v-if="appearNote.reply"><i class="fas fa-reply-all"></i></template>
 					<template v-else><i class="fas fa-reply"></i></template>
@@ -130,11 +130,15 @@ import { $i } from '@/account';
 import { i18n } from '@/i18n';
 import { getNoteMenu } from '@/scripts/get-note-menu';
 import { useNoteCapture } from '@/scripts/use-note-capture';
+import { MisskeyNavigator } from '@/scripts/navigate';
 
 const props = defineProps<{
 	note: misskey.entities.Note;
 	pinned?: boolean;
+	hideReply? :boolean;
 }>();
+
+const mkNav = new MisskeyNavigator();
 
 const inChannel = inject('inChannel', null);
 
