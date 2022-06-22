@@ -5,6 +5,13 @@
 			<MkChannelPreview v-for="channel in items" :key="channel.id" class="_gap" :channel="channel"/>
 		</MkPagination>
 	</div>
+	<div v-else-if="tab === 'categories'" class="_content grwlizim categories">
+		<div v-for="category in categories" :key="category.category">
+			<div>
+				<MkA :to="`/channels/category/${category.category}`"></MkA>
+			</div>
+		</div>
+	</div>
 	<div v-else-if="tab === 'following'" class="_content grwlizim following">
 		<MkPagination v-slot="{items}" :pagination="followingPagination">
 			<MkChannelPreview v-for="channel in items" :key="channel.id" class="_gap" :channel="channel"/>
@@ -25,6 +32,7 @@ import MkChannelPreview from '@/components/channel-preview.vue';
 import MkPagination from '@/components/ui/pagination.vue';
 import MkButton from '@/components/ui/button.vue';
 import * as symbols from '@/symbols';
+import { CHANNEL_CATEGORIES } from '@/const.js';
 
 export default defineComponent({
 	components: {
@@ -46,6 +54,11 @@ export default defineComponent({
 					title: this.$ts._channel.featured,
 					icon: 'fas fa-fire-alt',
 					onClick: () => { this.tab = 'featured'; },
+				}, {
+					active: this.tab === 'categories',
+					title: this.$ts._channel.categories,
+					icon: 'fas fa-shapes',
+					onClick: () => { this.tab = 'categories'; },
 				}, {
 					active: this.tab === 'following',
 					title: this.$ts._channel.following,
@@ -71,6 +84,7 @@ export default defineComponent({
 				endpoint: 'channels/owned' as const,
 				limit: 5,
 			},
+			categories: CHANNEL_CATEGORIES,
 		};
 	},
 	methods: {
