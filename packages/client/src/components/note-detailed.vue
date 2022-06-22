@@ -108,7 +108,7 @@
 			</footer>
 		</div>
 	</article>
-	<MkNoteSub v-for="note in replies" :key="note.id" :note="note" class="reply" :detail="true"/>
+	<XNote v-for="note in replies" :key="note.id" :note="note" class="reply" :detail="true"/>
 </div>
 <div v-else class="_panel muted" @click="muted = false">
 	<I18n :src="$ts.userSaysSomething" tag="small">
@@ -125,7 +125,7 @@
 import { computed, inject, onMounted, onUnmounted, reactive, ref } from 'vue';
 import * as mfm from 'mfm-js';
 import * as misskey from 'misskey-js';
-import MkNoteSub from './MkNoteSub.vue';
+import XNote from './note.vue';
 import XNoteSimple from './note-simple.vue';
 import XReactionsViewer from './reactions-viewer.vue';
 import XMediaList from './media-list.vue';

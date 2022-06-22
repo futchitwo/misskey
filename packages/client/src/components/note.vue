@@ -36,7 +36,7 @@
 			<!--span v-if="note.localOnly" class="localOnly"><i class="fas fa-biohazard"></i></span-->
 		</div>
 	</div>
-	<article class="article" @contextmenu.stop="onContextmenu">
+	<article class="article" @contextmenu.stop="onContextmenu" @click="location.href = `/notes/${appearNote.id}`">
 		<MkAvatar class="avatar" :user="appearNote.user"/>
 		<div class="main">
 			<XNoteHeader class="header" :note="appearNote" :mini="true"/>
