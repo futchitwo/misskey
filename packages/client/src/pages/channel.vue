@@ -69,7 +69,7 @@ function edit() {
 	router.push(`/channels/${channel.id}/edit`);
 }
 
-const headerActions = $computed(() => channel && channel.userId ? [{
+const headerActions = $computed(() => channel && $i && $i.id === channel.userId ? [{
 	icon: 'fas fa-cog',
 	text: i18n.ts.edit,
 	handler: edit,
