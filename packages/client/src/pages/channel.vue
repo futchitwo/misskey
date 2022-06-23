@@ -69,8 +69,8 @@
 </MkSpacer>
 </template>
 
-<script lang="ts">
-import { computed, defineComponent } from 'vue';
+<script lang="ts" setup>
+import { computed, inject, watch } from 'vue';
 import MkContainer from '@/components/ui/container.vue';
 import XPostForm from '@/components/post-form.vue';
 import XTimeline from '@/components/timeline.vue';
@@ -78,23 +78,52 @@ import XNotes from '@/components/notes.vue';
 import XChannelFollowButton from '@/components/channel-follow-button.vue';
 import * as os from '@/os';
 import * as symbols from '@/symbols';
+import { $i } from '@/account';
+import { i18n } from '@/i18n';
 import { isChannelManager } from '@/scripts/is-channel-manager.js';
 
-export default defineComponent({
-	components: {
-		MkContainer,
-		XPostForm,
-		XTimeline,
-		XNotes,
-		XChannelFollowButton
-	},
+const props = defineProps<{
+	channelId: string;
+}>();
 
-	props: {
-		channelId: {
-			type: String,
-			required: true
-		}
-	},
+let channel = $ref(null);
+let leader = $ref(null);
+let subLeaders = $ref([]);
+let tab = ('timeline')
+let showBanner = $ref(true);
+const pagination = {
+	endpoint: 'channels/timeline' as const,
+	limit: 10,
+	params: computed(() => ({
+		channelId: props.channelId,
+	})),
+};
+const pinPagination = {
+	endpoint: 'channels/show-pinned' as const,
+	limit: 10,
+	params: computed(() => ({
+		channelId: props.channelId,
+	})),
+};
+
+watch(() => props.channelId, async () => {
+	channel = await os.api('channels/show', {
+		channelId: props.channelId,
+	});
+
+	const leaders = await Promise.all([
+		os.api('users/show', {
+			userId: channel?.userId,
+		}),
+		...channel?.subLeaderIds.map(userId => os.api('users/show', { userId })),
+	]);
+	leader = leaders.shift();
+	subLeaders = leaders;
+}, { immediate: true });
+
+function edit() {
+	router.push(`/channels/${channel.id}/edit`);
+}
 
 	data() {
 		return {
@@ -124,54 +153,43 @@ export default defineComponent({
 					onClick: () => { this.tab = 'info'; },
 				},]
 			} : null),
-			channel: null,
-			leader: null,
-			subLeaders: [],
-			tab: 'timeline',
-			showBanner: true,
-			//showPostForm: false,
-			pagination: {
-				endpoint: 'channels/timeline' as const,
-				limit: 10,
-				params: computed(() => ({
-					channelId: this.channelId,
-				}))
-			},
-			pinPagination: {
-				endpoint: 'channels/show-pinned' as const,
-				limit: 10,
-				params: computed(() => ({
-					channelId: this.channelId,
-				}))
-			},
+			
 		};
 	},
-
-	watch: {
-		channelId: {
-			async handler() {
-				this.channel = await os.api('channels/show', {
-					channelId: this.channelId,
-				});
-				const leaders = await Promise.all([
-					os.api('users/show', {
-						userId: this.channel?.userId,
-					}),
-					...this.channel?.subLeaderIds.map(userId => os.api('users/show', { userId })),
-				]);
-				this.leader = leaders.shift();
-				this.subLeaders = leaders;
-			},
-			immediate: true
-		}
+const headerActions = $computed(() => channel && $i && isChannelManager($i.id, channel) ? [{
+	icon: 'fas fa-cog',
+	text: i18n.ts.edit,
+	handler: edit,
+}] : null);
+const headerTabs = $computed(() => [{
+		active: tab === 'timeline',
+		title: i18n.ts.timeline,
+		icon: 'fas fa-house',
+		onClick: () => { tab = 'timeline'; },
+	}, {
+		active: tab === 'pinned',
+		title: i18n.ts.pinned,
+		icon: 'fas fa-thumbtack',
+		onClick: () => { tab = 'pinned'; },
+	}, {
+		active: tab === 'info',
+		title: i18n.ts.info,
+		icon: 'fas fa-circle-info',
+		onClick: () => { tab = 'info'; },
 	},
-
-	methods: {
-		edit() {
-			this.$router.push(`/channels/${this.channel.id}/edit`);
-		}
-	},
-});
+]);
+defineExpose({
+	[symbols.PAGE_INFO]: 
+//definePageMetadata(
+	computed(() => channel ? {
+	title: channel.name,
+	icon: 'fas fa-satellite-dish',
+	bg: 'var(--bg)',
+	//old router start
+	actions: headerActions,
+	tabs: headerTabs,
+	//old router end
+} : null));
 </script>
 
 <style lang="scss" scoped>
