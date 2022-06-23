@@ -149,11 +149,11 @@ export const defaultStore = markRaw(new Storage('base', {
 	},
 	useBlurEffectForModal: {
 		where: 'device',
-		default: true
+		default: false
 	},
 	useBlurEffect: {
 		where: 'device',
-		default: true
+		default: false
 	},
 	showFixedPostForm: {
 		where: 'device',
