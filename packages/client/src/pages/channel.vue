@@ -78,9 +78,12 @@ import XNotes from '@/components/notes.vue';
 import XChannelFollowButton from '@/components/channel-follow-button.vue';
 import * as os from '@/os';
 import * as symbols from '@/symbols';
+import { MisskeyNavigator } from '@/scripts/navigate';
 import { $i } from '@/account';
 import { i18n } from '@/i18n';
 import { isChannelManager } from '@/scripts/is-channel-manager.js';
+
+const router = new MisskeyNavigator(); //useRouter();
 
 const props = defineProps<{
 	channelId: string;
@@ -125,37 +128,6 @@ function edit() {
 	router.push(`/channels/${channel.id}/edit`);
 }
 
-	data() {
-		return {
-			[symbols.PAGE_INFO]: computed(() => this.channel ? {
-				title: this.channel.name,
-				icon: 'fas fa-satellite-dish',
-				bg: 'var(--bg)',
-				actions: [...(this.$i && isChannelManager(this.$i.id, this.channel) ? [{
-					icon: 'fas fa-cog',
-					text: this.$ts.edit,
-					handler: this.edit,
-				}] : [])],
-				tabs: [{
-					active: this.tab === 'timeline',
-					title: this.$ts.timeline,
-					icon: 'fas fa-house',
-					onClick: () => { this.tab = 'timeline'; },
-				}, {
-					active: this.tab === 'pinned',
-					title: this.$ts.pinned,
-					icon: 'fas fa-thumbtack',
-					onClick: () => { this.tab = 'pinned'; },
-				}, {
-					active: this.tab === 'info',
-					title: this.$ts.info,
-					icon: 'fas fa-circle-info',
-					onClick: () => { this.tab = 'info'; },
-				},]
-			} : null),
-			
-		};
-	},
 const headerActions = $computed(() => channel && $i && isChannelManager($i.id, channel) ? [{
 	icon: 'fas fa-cog',
 	text: i18n.ts.edit,
