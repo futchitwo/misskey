@@ -50,12 +50,12 @@ export class Channel {
 	@Index()
 	@Column({
 		...id(),
-        nullable: true,
+    nullable: true,
 		comment: 'The sub category ID.',
 	})
 	public subCategoryId: ChannelSubCategory['id'] | null;
 
-	@ManyToOne(type => Channel, {
+	@ManyToOne(type => ChannelSubCategory, {
 		onDelete: 'SET NULL',//'CASCADE'?
 	})
 	@JoinColumn()
