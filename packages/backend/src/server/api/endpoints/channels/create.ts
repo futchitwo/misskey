@@ -35,12 +35,12 @@ export const paramDef = {
 	type: 'object',
 	properties: {
 		name: { type: 'string', minLength: 1, maxLength: 128 },
-		subCategory: { type: 'string', format: 'misskey:id' },
+		subCategoryId: { type: 'string', format: 'misskey:id' },
 		description: { type: 'string', nullable: true, minLength: 1, maxLength: 2048 },
 		bannerId: { type: 'string', format: 'misskey:id', nullable: true },
 		approvalOnly: { type: 'boolean' },
 	},
-	required: ['name', 'subCategory'],
+	required: ['name', 'subCategoryId'],
 } as const;
 
 // eslint-disable-next-line import/no-default-export
@@ -59,7 +59,11 @@ export default define(meta, paramDef, async (ps, user) => {
 
 	const subCategory = await ChannelSubCategories.findOneBy({
 		id: ps.subCategoryId,
-	})
+	});
+
+	if (subCategory == null) {
+		throw new ApiError(meta.errors.noSuchSubCategory);
+	}
 
 	const channel = await Channels.insert({
 		id: genId(),

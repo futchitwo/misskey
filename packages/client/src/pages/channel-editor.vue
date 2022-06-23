@@ -9,6 +9,16 @@
 			<template #label>{{ $ts.description }}</template>
 		</MkTextarea>
 
+		<FormSelect v-model="category" class="_formBlock">
+			<template #label><span v-text="'category'"></span></template>
+			<option v-for="item in categoryList" :key="item.value" :value="item.value">{{ item.label }}</option>
+		</FormSelect>
+
+		<FormSelect v-model="subCategoryId" class="_formBlock">
+			<template #label><span v-text="'sub-category'"></span></template>
+			<option v-for="item in subCategoryList" :key="item.value" :value="item.value">{{ item.label }}</option>
+		</FormSelect>
+
 		<div class="banner">
 			<MkButton v-if="bannerId == null" @click="setBannerImage"><i class="fas fa-plus"></i> {{ $ts._channel.setBanner }}</MkButton>
 			<div v-else-if="bannerUrl">
@@ -28,13 +38,16 @@ import { computed, defineComponent } from 'vue';
 import MkTextarea from '@/components/form/textarea.vue';
 import MkButton from '@/components/ui/button.vue';
 import MkInput from '@/components/form/input.vue';
+import FormSelect from '@/components/form/select.vue';
 import { selectFile } from '@/scripts/select-file';
 import * as os from '@/os';
 import * as symbols from '@/symbols';
+import { lang } from '@/config';
+import { CHANNEL_CATEGORIES } from '@/const.js';
 
 export default defineComponent({
 	components: {
-		MkTextarea, MkButton, MkInput,
+		MkTextarea, MkButton, MkInput, FormSelect,
 	},
 
 	props: {
@@ -42,6 +55,14 @@ export default defineComponent({
 			type: String,
 			required: false
 		},
+		initCategory: {
+			type: String,
+			required: false
+		}, 
+		initSubCategoryId :{
+			type: String,
+			required: false
+		}
 	},
 
 	data() {
@@ -60,6 +81,13 @@ export default defineComponent({
 			description: null,
 			bannerUrl: null,
 			bannerId: null,
+			category: this.initCategory,
+			subCategoryId: this.initSubCategoryId,
+			categoryList: CHANNEL_CATEGORIES.map(cat => ({
+				value: cat.category,
+				label: cat[lang || ''] || cat.category,
+			})),
+			subCategoryList: null,
 		};
 	},
 
@@ -72,6 +100,19 @@ export default defineComponent({
 					fileId: this.bannerId,
 				})).url;
 			}
+		},
+		category: {
+			async handler() {
+				const rawSubCategoryList = await os.api('channels/sub-categories/list', {
+					category: this.category,
+					limit: 100,
+				});
+				this.subCategoryList = rawSubCategoryList.map(cat => ({
+					value: cat.id,
+					label: cat.name,
+				}));
+			},
+			immediate: true
 		},
 	},
 
@@ -94,6 +135,7 @@ export default defineComponent({
 				name: this.name,
 				description: this.description,
 				bannerId: this.bannerId,
+				subCategoryId: this.subCategoryId,
 			};
 
 			if (this.channelId) {

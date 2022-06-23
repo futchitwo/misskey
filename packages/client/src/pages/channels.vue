@@ -7,9 +7,9 @@
 	</div>
 	<div v-else-if="tab === 'categories'" class="_content grwlizim categories">
 		<div v-for="category in categories" :key="category.category">
-			<div>
-				<MkA :to="`/channels/category/${category.category}`"></MkA>
-			</div>
+			<MkA :to="`/channels/category/${category.category}`">
+				<div class="category">{{category[lang] || category.category}}</div>
+			</MkA>
 		</div>
 	</div>
 	<div v-else-if="tab === 'following'" class="_content grwlizim following">
@@ -33,6 +33,7 @@ import MkPagination from '@/components/ui/pagination.vue';
 import MkButton from '@/components/ui/button.vue';
 import * as symbols from '@/symbols';
 import { CHANNEL_CATEGORIES } from '@/const.js';
+import { lang } from '@/config';
 
 export default defineComponent({
 	components: {
@@ -85,6 +86,7 @@ export default defineComponent({
 				limit: 5,
 			},
 			categories: CHANNEL_CATEGORIES,
+			lang,
 		};
 	},
 	methods: {
@@ -94,3 +96,14 @@ export default defineComponent({
 	}
 });
 </script>
+
+<style lang="scss" scoped>
+.grwlizim {
+	.category {
+		background-color: var(--panel);
+		margin-top: var(--margin);
+		padding: 10px;
+		border-radius: var(--radius);
+	}
+}
+</style>

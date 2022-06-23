@@ -97,6 +97,8 @@ import * as ep___channels_subLeaders_dismiss from './endpoints/channels/subleade
 import * as ep___channels_subCategories_list from './endpoints/channels/sub-categories/list.js';
 import * as ep___channels_subCategories_create from './endpoints/channels/sub-categories/create.js';
 import * as ep___channels_subCategories_createGame from './endpoints/channels/sub-categories/create-game.js';
+import * as ep___channels_subCategories_channels from './endpoints/channels/sub-categories/channels.js';
+import * as ep___channels_subCategories_show from './endpoints/channels/sub-categories/show.js';
 
 import * as ep___charts_activeUsers from './endpoints/charts/active-users.js';
 import * as ep___charts_apRequest from './endpoints/charts/ap-request.js';
@@ -421,7 +423,9 @@ const eps = [
 	['channels/sub-categories/list', ep___channels_subCategories_list],
 	['channels/sub-categories/create', ep___channels_subCategories_create],
 	['channels/sub-categories/create-game', ep___channels_subCategories_createGame],
-
+	['channels/sub-categories/channels', ep___channels_subCategories_channels],
+	['channels/sub-categories/show', ep___channels_subCategories_show],
+	
 	['charts/active-users', ep___charts_activeUsers],
 	['charts/ap-request', ep___charts_apRequest],
 	['charts/drive', ep___charts_drive],
