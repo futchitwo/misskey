@@ -92,7 +92,7 @@ const props = defineProps<{
 let channel = $ref(null);
 let leader = $ref(null);
 let subLeaders = $ref([]);
-let tab = ('timeline')
+let tab = $ref('timeline');
 let showBanner = $ref(true);
 const pagination = {
 	endpoint: 'channels/timeline' as const,
@@ -157,11 +157,13 @@ defineExpose({
 	title: channel.name,
 	icon: 'fas fa-satellite-dish',
 	bg: 'var(--bg)',
-	//old router start
-	actions: headerActions,
-	tabs: headerTabs,
-	//old router end
-} : null));
+//old router start
+		actions: headerActions,
+		tabs: headerTabs,
+	} : null),
+});
+//old router end
+//} : null));
 </script>
 
 <style lang="scss" scoped>
