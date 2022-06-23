@@ -115,10 +115,12 @@ if (props.src === 'antenna') {
 } else if (props.src === 'channel') {
 	endpoint = 'channels/timeline';
 	query = {
-		channelId: props.channel
+		channelId: props.channel,
+		excludeReply: true,
 	};
 	connection = stream.useChannel('channel', {
-		channelId: props.channel
+		channelId: props.channel,
+		excludeReply: true,
 	});
 	connection.on('note', prepend);
 }

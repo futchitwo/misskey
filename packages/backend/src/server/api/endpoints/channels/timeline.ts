@@ -37,6 +37,7 @@ export const paramDef = {
 		untilId: { type: 'string', format: 'misskey:id' },
 		sinceDate: { type: 'integer' },
 		untilDate: { type: 'integer' },
+		excludeReply: { type: 'boolean', default: false },
 	},
 	required: ['channelId'],
 } as const;
@@ -67,6 +68,10 @@ export default define(meta, paramDef, async (ps, user) => {
 		.leftJoinAndSelect('renoteUser.banner', 'renoteUserBanner')
 		.leftJoinAndSelect('note.channel', 'channel');
 	//#endregion
+
+	if (ps.excludeReply) {
+		query.andWhere('note.replyId IS NULL');
+	}
 
 	const timeline = await query.take(ps.limit).getMany();
 

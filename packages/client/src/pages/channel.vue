@@ -94,13 +94,7 @@ let leader = $ref(null);
 let subLeaders = $ref([]);
 let tab = $ref('timeline');
 let showBanner = $ref(true);
-const pagination = {
-	endpoint: 'channels/timeline' as const,
-	limit: 10,
-	params: computed(() => ({
-		channelId: props.channelId,
-	})),
-};
+
 const pinPagination = {
 	endpoint: 'channels/show-pinned' as const,
 	limit: 10,
