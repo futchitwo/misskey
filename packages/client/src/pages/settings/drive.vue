@@ -28,7 +28,7 @@
 			<template #suffix>{{ uploadFolder ? uploadFolder.name : '-' }}</template>
 			<template #suffixIcon><i class="fas fa-folder-open"></i></template>
 		</FormLink>
-		<FormSwitch v-model="keepOriginalUploading" class="_formBlock">{{ i18n.ts.keepOriginalUploading }}<template #caption>{{ i18n.ts.keepOriginalUploadingDescription }}</template></FormSwitch>
+		<!--FormSwitch v-model="keepOriginalUploading" class="_formBlock">{{ i18n.ts.keepOriginalUploading }}<template #caption>{{ i18n.ts.keepOriginalUploadingDescription }}</template></FormSwitch-->
 	</FormSection>
 </div>
 </template>

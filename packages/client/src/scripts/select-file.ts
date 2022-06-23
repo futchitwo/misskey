@@ -77,11 +77,11 @@ function select(src: any, label: string | null, multiple: boolean): Promise<Driv
 		os.popupMenu([label ? {
 			text: label,
 			type: 'label'
-		} : undefined, {
+		} : undefined, /*{
 			type: 'switch',
 			text: i18n.ts.keepOriginalUploading,
 			ref: keepOriginal
-		}, {
+		},*/ {
 			text: i18n.ts.upload,
 			icon: 'fas fa-upload',
 			action: chooseFileFromPc

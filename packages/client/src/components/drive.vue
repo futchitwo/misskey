@@ -563,11 +563,11 @@ function fetchMoreFiles() {
 }
 
 function getMenu() {
-	return [{
+	return [/*{
 		type: 'switch',
 		text: i18n.ts.keepOriginalUploading,
 		ref: keepOriginal,
-	}, null, {
+	}, null,*/ {
 		text: i18n.ts.addFile,
 		type: 'label'
 	}, {
