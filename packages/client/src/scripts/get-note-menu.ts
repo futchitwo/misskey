@@ -173,7 +173,7 @@ export function getNoteMenu(props: {
 
 		menu = [...(($i.id === props.currentChannel.value.userId) ? [{
 			icon: 'fas',
-				text: 'set subleader this user',
+				text: i18n.ts.setUserToSubLeader,
 				action: () => {
 					os.apiWithDialog('channels/sub-leaders/appoint', {
 						userId: appearNote.userId,
@@ -184,7 +184,7 @@ export function getNoteMenu(props: {
 		), ...(
 			isChannelManager($i.id, props.currentChannel.value) ? [{
 				icon: 'fas',
-				text: 'pin this note to Channel',
+				text: i18n.ts.pinToChannel,
 				action: () => {
 					os.apiWithDialog('channels/pin-note', {
 						noteId: appearNote.id,
@@ -193,7 +193,7 @@ export function getNoteMenu(props: {
 				}, 
 			}, {
 				icon: 'fas',
-				text: 'force delete this note',
+				text: i18n.ts.delete,
 				action: () => {
 					os.apiWithDialog('notes/delete', {
 						noteId: appearNote.id,
@@ -201,7 +201,7 @@ export function getNoteMenu(props: {
 				},
 			}, {
 				icon: 'fas',
-				text: 'channel unfollow this user',
+				text: i18n.ts.forceChannelUnfollow,
 				action: () => {
 					os.apiWithDialog('channels/force-unfollow', {
 						userId: appearNote.userId,

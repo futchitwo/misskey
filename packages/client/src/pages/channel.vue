@@ -33,6 +33,7 @@
 
 		<template v-if="tab === 'timeline'">
 			<XPostForm v-if="$i && isFollowing" :channel="channel" class="post-form _panel _gap" fixed/>
+			<MkInfo v-else-if"$i">{{$ts.followChannelToPost}}</MkInfo>
 
 			<XTimeline :key="channelId" class="_gap" src="channel" :channel="channelId" @before="before" @after="after"/>
 		</template>
@@ -41,7 +42,7 @@
 		</template>
 		<template v-else-if="tab === 'info'">
 			<div v-if="leader" class="sivpwjiw">
-				<span>{{'リーダー'}}</span>
+				<I18n :src="$ts.leader" tag="span" style="margin: 4px;">
 				<div class="users">
 					<div class="user _panel">
 						<MkAvatar :user="leader" class="avatar" :show-indicator="true"/>
@@ -53,7 +54,7 @@
 				</div>
 			</div>
 			<div v-if="subLeaders" class="sivpwjiw">
-				<span>{{'サブリーダー'}}</span>
+				<I18n :src="$ts.subLeader" tag="span" style="margin: 4px;">
 				<div class="users">
 					<div v-for="subleader in subLeaders" :key="subleader.id" class="user _panel">
 						<MkAvatar :user="subleader" class="avatar" :show-indicator="true"/>
@@ -76,6 +77,7 @@ import XPostForm from '@/components/post-form.vue';
 import XTimeline from '@/components/timeline.vue';
 import XNotes from '@/components/notes.vue';
 import XChannelFollowButton from '@/components/channel-follow-button.vue';
+import MkInfo from '@/components/ui/info.vue';
 import * as os from '@/os';
 import * as symbols from '@/symbols';
 import { MisskeyNavigator } from '@/scripts/navigate';

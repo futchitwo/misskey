@@ -1,5 +1,21 @@
 _lang_: "日本語"
 
+category: "カテゴリー"
+subCategory: "サブカテゴリー"
+leader: "リーダー"
+subLeader: "サブリーダー"
+setUserToSubLeader: "サブリーダーに指定"
+confirmSetUserToSubLeader: "このユーザーをサブリーダーに指定しますか？"
+banFromChannel: "チャンネルから追放"
+confirmBanFromChannel: "このユーザーをチャンネルから追放し、チャンネルをフォローできなくしますか？"
+forceChannelUnfollow: "チャンネルフォロー解除"
+confirmForceChannelUnfollow: "このユーザーのチャンネルフォローを強制解除しますか？"
+pinToChannel: "チャンネルにピン止め"
+unPinToChannel: "チャンネルのピン止めを解除"
+followChannelToPost: "このチャンネルに投稿するにはチャンネルをフォローしてください"
+
+flagAsBotDescription_: "このアカウントがプログラムによって運用される場合は、この設定を有効にします。"
+
 headlineMisskey: "ノートでつながるネットワーク"
 introMisskey: "ようこそ！Misskeyは、オープンソースの分散型マイクロブログサービスです。\n「ノート」を作成して、いま起こっていることを共有したり、あなたについて皆に発信しよう📡\n「リアクション」機能で、皆のノートに素早く反応を追加することもできます👍\n新しい世界を探検しよう🚀"
 monthAndDay: "{month}月 {day}日"

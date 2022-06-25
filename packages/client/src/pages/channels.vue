@@ -57,7 +57,7 @@ export default defineComponent({
 					onClick: () => { this.tab = 'featured'; },
 				}, {
 					active: this.tab === 'categories',
-					title: this.$ts._channel.categories,
+					title: this.$ts.category,
 					icon: 'fas fa-shapes',
 					onClick: () => { this.tab = 'categories'; },
 				}, {
