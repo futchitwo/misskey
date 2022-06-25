@@ -98,7 +98,6 @@ let showBanner = $ref(true);
 let channelManager = $computed(() => isChannelManager($i?.id || '', channel));
 let isFollowing = $ref(channel?.isFollowing);
 provide('currentChannel', $$(channel));
-provide('isChannelManager', $$(channelManager));
 provide('isChannelFollowing', $$(isFollowing));
 
 const pinPagination = {

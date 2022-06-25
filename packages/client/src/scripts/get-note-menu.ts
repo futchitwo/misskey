@@ -7,6 +7,7 @@ import * as os from '@/os';
 import copyToClipboard from '@/scripts/copy-to-clipboard';
 import { url } from '@/config';
 import { noteActions } from '@/store';
+import { isChannelManager } from '@/scripts/is-channel-manager.js';
 import { pleaseLogin } from './please-login';
 
 export function getNoteMenu(props: {
@@ -14,6 +15,7 @@ export function getNoteMenu(props: {
 	menuButton: Ref<HTMLElement>;
 	translation: Ref<any>;
 	translating: Ref<boolean>;
+	currentChannel: Ref<misskey.entities.Channel>
 }) {
 	const isRenote = (
 		props.note.renote != null &&
@@ -169,7 +171,46 @@ export function getNoteMenu(props: {
 			noteId: appearNote.id
 		});
 
-		menu = [{
+		menu = [...(($i.id === props.currentChannel.value.userId) ? [{
+			icon: 'fas',
+				text: 'set subleader this user',
+				action: () => {
+					os.apiWithDialog('channels/sub-leaders/appoint', {
+						userId: appearNote.userId,
+						channelId: props.currentChannel.value.id,
+					});
+				},
+		}] : []
+		), ...(
+			isChannelManager($i.id, props.currentChannel.value) ? [{
+				icon: 'fas',
+				text: 'pin this note to Channel',
+				action: () => {
+					os.apiWithDialog('channels/pin-note', {
+						noteId: appearNote.id,
+						channelId: props.currentChannel.value.id,
+					});
+				}, 
+			}, {
+				icon: 'fas',
+				text: 'force delete this note',
+				action: () => {
+					os.apiWithDialog('notes/delete', {
+						noteId: appearNote.id,
+					});
+				},
+			}, {
+				icon: 'fas',
+				text: 'channel unfollow this user',
+				action: () => {
+					os.apiWithDialog('channels/force-unfollow', {
+						userId: appearNote.userId,
+						channelId: props.currentChannel.value.id,
+						ban: false,
+					});
+				},
+			}, null] : []
+		), {
 			icon: 'fas fa-copy',
 			text: i18n.ts.copyContent,
 			action: copyContent

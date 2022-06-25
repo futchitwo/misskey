@@ -141,6 +141,7 @@ const props = defineProps<{
 const mkNav = new MisskeyNavigator();
 
 const inChannel = inject('inChannel', null);
+const currentChannel = inject('currentChannel',null);
 
 let note = $ref(JSON.parse(JSON.stringify(props.note)));
 
@@ -243,12 +244,12 @@ function onContextmenu(ev: MouseEvent): void {
 		ev.preventDefault();
 		react();
 	} else {
-		os.contextMenu(getNoteMenu({ note: note, translating, translation, menuButton }), ev).then(focus);
+		os.contextMenu(getNoteMenu({ note: note, translating, translation, menuButton, currentChannel }), ev).then(focus);
 	}
 }
 
 function menu(viaKeyboard = false): void {
-	os.popupMenu(getNoteMenu({ note: note, translating, translation, menuButton }), menuButton.value, {
+	os.popupMenu(getNoteMenu({ note: note, translating, translation, menuButton, currentChannel }), menuButton.value, {
 		viaKeyboard
 	}).then(focus);
 }

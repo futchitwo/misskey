@@ -7,8 +7,7 @@ export async function isChannelManager(myId: string, channel?: Channel | null): 
 	const leader = channel.userId === myId;
 	if (leader) return true;
 
-
-	const isSubLeader = channel.subLeaderIds.some(id => id === myId );
+	const isSubLeader = channel.subLeaderIds?.some(id => id === myId );
 	return isSubLeader;
 	/*
 	const subLeader = await ChannelSubLeaders.findOneBy({

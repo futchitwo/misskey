@@ -5,6 +5,6 @@ export function isChannelManager(myId: string, channel?: misskey.models.channel 
 	
 	const isLeader = channel.userId === myId;
 
-	const isSubLeader = channel.subLeaderIds.some(id => id === myId );
+	const isSubLeader = channel.subLeaderIds?.some(id => id === myId );
 	return isLeader || isSubLeader;
 }
