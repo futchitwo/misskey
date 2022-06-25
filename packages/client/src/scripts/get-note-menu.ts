@@ -171,17 +171,23 @@ export function getNoteMenu(props: {
 			noteId: appearNote.id
 		});
 
-		menu = [...(($i.id === props.currentChannel.value.userId) ? [{
+		menu = [($i.id === props.currentChannel.value.userId) ? {
 			icon: 'fas',
 				text: i18n.ts.setUserToSubLeader,
 				action: () => {
-					os.apiWithDialog('channels/sub-leaders/appoint', {
-						userId: appearNote.userId,
-						channelId: props.currentChannel.value.id,
+					os.confirm({
+						type: 'warning',
+						text: i18n.ts.confirmSetUserToSubLeader,
+					}).then(({ canceled }) => {
+						if (canceled) return;
+			
+						os.apiWithDialog('channels/sub-leaders/appoint', {
+							userId: appearNote.userId,
+							channelId: props.currentChannel.value.id,
+						});
 					});
 				},
-		}] : []
-		), ...(
+		} : undefined, ...(
 			isChannelManager($i.id, props.currentChannel.value) ? [{
 				icon: 'fas',
 				text: i18n.ts.pinToChannel,
@@ -194,19 +200,22 @@ export function getNoteMenu(props: {
 			}, {
 				icon: 'fas',
 				text: i18n.ts.delete,
-				action: () => {
-					os.apiWithDialog('notes/delete', {
-						noteId: appearNote.id,
-					});
-				},
+				action: del
 			}, {
 				icon: 'fas',
 				text: i18n.ts.forceChannelUnfollow,
 				action: () => {
-					os.apiWithDialog('channels/force-unfollow', {
-						userId: appearNote.userId,
-						channelId: props.currentChannel.value.id,
-						ban: false,
+					os.confirm({
+						type: 'warning',
+						text: i18n.ts.confirmForceChannelUnfollow,
+					}).then(({ canceled }) => {
+						if (canceled) return;
+			
+						os.apiWithDialog('channels/force-unfollow', {
+							userId: appearNote.userId,
+							channelId: props.currentChannel.value.id,
+							ban: false,
+						});
 					});
 				},
 			}, null] : []
