@@ -1,7 +1,7 @@
 <template>
 <MkSpacer :content-max="700">
 	<div class="_content grwlizim owned">
-		<MkButton class="new" @click="create()"><i class="fas fa-plus"></i></MkButton>
+		<!--MkButton class="new" @click="create()"><i class="fas fa-plus"></i></MkButton-->
 		<MkPagination v-slot="{items}" :pagination="pagination">
 			<MkChannelPreview v-for="channel in items" :key="channel.id" class="_gap" :channel="channel"/>
 		</MkPagination>

@@ -12,6 +12,7 @@ confirmForceChannelUnfollow: "このユーザーのチャンネルフォロー�
 pinToChannel: "チャンネルにピン止め"
 unPinToChannel: "チャンネルのピン止めを解除"
 followChannelToPost: "このチャンネルに投稿するにはチャンネルをフォローしてください"
+createNewCategory: "新しいカテゴリを追加"
 
 flagAsBotDescription_: "このアカウントがプログラムによって運用される場合は、この設定を有効にします。"
 

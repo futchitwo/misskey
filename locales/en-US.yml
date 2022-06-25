@@ -13,6 +13,7 @@ confirmForceChannelUnfollow: "Do you want to force this user to unfollow the cha
 pinToChannel: "pin to channel"
 unPinToChannel: "Unpin from channel"
 followChannelToPost: "Follow channel to post on this channel."
+createNewCategory: "Create new category"
 
 headlineMisskey: "A network connected by notes"
 introMisskey: "Welcome! Misskey is an open source, decentralized microblogging service.\nCreate \"notes\" to share your thoughts with everyone around you. 📡\nWith \"reactions\", you can also quickly express your feelings about everyone's notes. 👍\nLet's explore a new world! 🚀"

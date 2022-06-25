@@ -126,6 +126,7 @@ export default defineComponent({
 			this.description = this.channel.description;
 			this.bannerId = this.channel.bannerId;
 			this.bannerUrl = this.channel.bannerUrl;
+			this.subCategoryId = this.channel.subCategoryId;
 		}
 	},
 

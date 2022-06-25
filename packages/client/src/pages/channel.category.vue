@@ -20,6 +20,7 @@ import * as symbols from '@/symbols';
 import { CHANNEL_CATEGORIES } from '@/const.js';
 import { lang } from '@/config';
 import { i18n } from '@/i18n';
+import { MisskeyNavigator } from '@/scripts/navigate';
 
 export default defineComponent({
 	components: {
@@ -57,7 +58,7 @@ export default defineComponent({
 	},
 	methods: {
 		async create() {
-			const { canceled, result } = await os.form(i18n.ts.createNewClip, {
+			const { canceled, result } = await os.form(i18n.ts.createNewCategory, {
 				name: {
 					type: 'string',
 					label: i18n.ts.name,
@@ -97,14 +98,17 @@ export default defineComponent({
 			});
 			if (canceled) return;
 
+			console.log("resu",result)
+
 			const endpoint = this.category?.isGame ? 'channels/sub-categories/create-game' : 'channels/sub-categories/create';
 
-			os.apiWithDialog(endpoint, {
+			const newSubCat = await os.apiWithDialog(endpoint, {
 				...result,
 				category: this.categoryName,
 			});
 			
 			//pagingComponent.reload();
+			new MisskeyNavigator().push('/channels/sub-category/' + newSubCat.id);
 		},
 	},
 });
