@@ -59,6 +59,12 @@ export const meta = {
 			code: 'ALREADTY_APPOINTED',
 			id: '337cb909-49c2-4348-873c-342acef0a360',
 		},
+
+		isLeader: {
+			message: 'This user is leader.',
+			code: 'isLeader',
+			id: 'c2de747c-2729-4b6a-b71c-ac077368193d',
+		}
 	},
 } as const;
 
@@ -90,6 +96,11 @@ export default define(meta, paramDef, async (ps, me) => {
 		if (err.id === '15348ddd-432d-49c2-8a5a-8069753becff') throw new ApiError(meta.errors.noSuchUser);
 		throw err;
 	});
+
+	// check if leader
+	if (newLeader.id === channel.userId) {
+		throw new ApiError(meta.errors.isLeader);
+	}
 
 	// Check if blocking
 	const blocking = await Blockings.findOneBy({
