@@ -16,6 +16,12 @@ export const meta = {
 			code: 'NO_SUCH_CHANNEL',
 			id: '19959ee9-0153-4c51-bbd9-a98c49dc59d6',
 		},
+
+		notFollowing: {
+			message: 'Not following.',
+			code: 'NOT_FOLLOWING',
+			id: 'a87dc844-6a90-47df-87eb-c94894cf36f0',
+		},
 	},
 } as const;
 
@@ -37,11 +43,20 @@ export default define(meta, paramDef, async (ps, user) => {
 		throw new ApiError(meta.errors.noSuchChannel);
 	}
 
-	await ChannelFollowings.delete({
+	const channelFollowing = await ChannelFollowings.findOneBy({
 		followerId: user.id,
 		followeeId: channel.id,
 	});
+	
+	if (channelFollowing == null) {
+		throw new ApiError(meta.errors.notFollowing);
+	}
 
+	ChannelFollowings.delete({
+		followerId: user.id,
+		followeeId: channel.id,
+	});
+  
 	Channels.decrement({ id: channel.id }, 'usersCount', 1);
 
 	publishUserEvent(user.id, 'unfollowChannel', channel);

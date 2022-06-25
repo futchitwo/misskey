@@ -32,7 +32,7 @@
 		</div>
 
 		<template v-if="tab === 'timeline'">
-			<XPostForm v-if="$i" :channel="channel" class="post-form _panel _gap" fixed/>
+			<XPostForm v-if="$i && isFollowing" :channel="channel" class="post-form _panel _gap" fixed/>
 
 			<XTimeline :key="channelId" class="_gap" src="channel" :channel="channelId" @before="before" @after="after"/>
 		</template>
@@ -70,7 +70,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, inject, watch } from 'vue';
+import { computed, inject, provide, watch } from 'vue';
 import MkContainer from '@/components/ui/container.vue';
 import XPostForm from '@/components/post-form.vue';
 import XTimeline from '@/components/timeline.vue';
@@ -95,6 +95,12 @@ let subLeaders = $ref([]);
 let tab = $ref('timeline');
 let showBanner = $ref(true);
 
+let channelManager = $computed(() => isChannelManager($i?.id || '', channel));
+let isFollowing = $ref(channel?.isFollowing);
+provide('currentChannel', $$(channel));
+provide('isChannelManager', $$(channelManager));
+provide('isChannelFollowing', $$(isFollowing));
+
 const pinPagination = {
 	endpoint: 'channels/show-pinned' as const,
 	limit: 10,
@@ -116,13 +122,14 @@ watch(() => props.channelId, async () => {
 	]);
 	leader = leaders.shift();
 	subLeaders = leaders;
+	isFollowing = channel.isFollowing;
 }, { immediate: true });
 
 function edit() {
 	router.push(`/channels/${channel.id}/edit`);
 }
 
-const headerActions = $computed(() => channel && $i && isChannelManager($i.id, channel) ? [{
+const headerActions = $computed(() => channel && $i && channelManager ? [{
 	icon: 'fas fa-cog',
 	text: i18n.ts.edit,
 	handler: edit,

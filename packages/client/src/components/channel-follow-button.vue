@@ -19,7 +19,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue';
+import { ref, inject, Ref } from 'vue';
 import * as os from '@/os';
 import { i18n } from '@/i18n';
 
@@ -30,23 +30,26 @@ const props = withDefaults(defineProps<{
 	full: false,
 });
 
-const isFollowing = ref<boolean>(props.channel.isFollowing);
+const isFollowing = inject<Ref<boolean>>('isChannelFollowing'); //ref<boolean>(props.channel.isFollowing);
+console.log(isFollowing?.value);
 const wait = ref(false);
 
 async function onClick() {
 	wait.value = true;
-
+  console.log(isFollowing?.value)
 	try {
-		if (isFollowing.value) {
+		if (isFollowing?.value) {
 			await os.api('channels/unfollow', {
 				channelId: props.channel.id
 			});
 			isFollowing.value = false;
+			console.log("false",isFollowing.value)
 		} else {
 			await os.api('channels/follow', {
 				channelId: props.channel.id
 			});
 			isFollowing.value = true;
+			console.log(isFollowing.value)
 		}
 	} catch (err) {
 		console.error(err);
