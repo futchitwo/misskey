@@ -200,10 +200,12 @@ export function getNoteMenu(props: {
 			}, {
 				icon: 'fas',
 				text: i18n.ts.delete,
-				action: del
+				danger: true,
+				action: del,
 			}, {
 				icon: 'fas',
 				text: i18n.ts.forceChannelUnfollow,
+				danger: true,
 				action: () => {
 					os.confirm({
 						type: 'warning',
