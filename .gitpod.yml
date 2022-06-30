@@ -16,7 +16,7 @@ tasks:
       # cd misskey
       # git checkout "$GITTAG"
       echo "url: $(gp url 8080)" > .config/default.yml
-      cat gitpod.example.yml >> .config/default.yml
+      cat .config/gitpod.example.yml >> .config/default.yml
       yarn install
       NODE_ENV=production yarn build
       yarn run init
