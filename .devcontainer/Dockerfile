@@ -1,5 +1,5 @@
-#FROM node:18.0.0-alpine3.15 AS base
-FROM mcr.microsoft.com/vscode/devcontainers/javascript-node:0-18
+FROM node:18.0.0-alpine3.15 AS base
+#FROM mcr.microsoft.com/vscode/devcontainers/javascript-node:0-18
 
 ARG NODE_ENV=production
 
