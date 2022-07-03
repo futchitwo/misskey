@@ -31,7 +31,7 @@ services:
     networks:
       - internal_network
     env_file:
-      - .config/docker.env
+      - ../.config/docker.env
     volumes:
       - ./db:/var/lib/postgresql/data
 

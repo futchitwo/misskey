@@ -1,5 +1,5 @@
 {
-  "dockerComposeFile": "../docker-compose.yml",
+  "dockerComposeFile": "docker-compose.yml",
   "service": "web",
-  "initializeCommand" :"cat ./.config/docker_example.env > ./.config/docker.env"
+  "initializeCommand" :"pwd && cat ./.config/docker_example.env > ./.config/docker.env"
 }
