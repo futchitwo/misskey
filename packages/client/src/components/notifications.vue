@@ -3,7 +3,7 @@
 	<template #empty>
 		<div class="_fullinfo">
 			<img src="https://xn--931a.moe/assets/info.jpg" class="_ghost"/>
-			<div>{{ $ts.noNotifications }}</div>
+			<div>{{ i18n.ts.noNotifications }}</div>
 		</div>
 	</template>
 
@@ -19,14 +19,14 @@
 <script lang="ts" setup>
 import { defineComponent, markRaw, onUnmounted, onMounted, computed, ref } from 'vue';
 import { notificationTypes } from 'misskey-js';
-import MkPagination from '@/components/ui/pagination.vue';
-import { Paging } from '@/components/ui/pagination.vue';
+import MkPagination, { Paging } from '@/components/ui/pagination.vue';
 import XNotification from '@/components/notification.vue';
 import XList from '@/components/date-separated-list.vue';
 import XNote from '@/components/note.vue';
 import * as os from '@/os';
 import { stream } from '@/stream';
 import { $i } from '@/account';
+import { i18n } from '@/i18n';
 
 const props = defineProps<{
 	includeTypes?: typeof notificationTypes[number][];
@@ -49,20 +49,22 @@ const onNotification = (notification) => {
 	const isMuted = props.includeTypes ? !props.includeTypes.includes(notification.type) : $i.mutingNotificationTypes.includes(notification.type);
 	if (isMuted || document.visibilityState === 'visible') {
 		stream.send('readNotification', {
-			id: notification.id
+			id: notification.id,
 		});
 	}
 
 	if (!isMuted) {
 		pagingComponent.value.prepend({
 			...notification,
-			isRead: document.visibilityState === 'visible'
+			isRead: document.visibilityState === 'visible',
 		});
 	}
 };
 
+let connection;
+
 onMounted(() => {
-	const connection = stream.useChannel('main');
+	connection = stream.useChannel('main');
 	connection.on('notification', onNotification);
 	connection.on('readAllNotifications', () => {
 		if (pagingComponent.value) {
@@ -88,10 +90,10 @@ onMounted(() => {
 			}
 		}
 	});
+});
 
-	onUnmounted(() => {
-		connection.dispose();
-	});
+onUnmounted(() => {
+	if (connection) connection.dispose();
 });
 </script>
 
