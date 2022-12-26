@@ -1,13 +1,13 @@
 <template>
 <div class="_formRoot">
-	<FormLink to="/settings/plugin/install"><template #icon><i class="fas fa-download"></i></template>{{ i18n.ts._plugin.install }}</FormLink>
+	<FormLink to="/settings/plugin/install"><template #icon><i class="ti ti-download"></i></template>{{ i18n.ts._plugin.install }}</FormLink>
 
 	<FormSection>
 		<template #label>{{ i18n.ts.manage }}</template>
 		<div v-for="plugin in plugins" :key="plugin.id" class="_formBlock _panel" style="padding: 20px;">
 			<span style="display: flex;"><b>{{ plugin.name }}</b><span style="margin-left: auto;">v{{ plugin.version }}</span></span>
 
-			<FormSwitch class="_formBlock" :modelValue="plugin.active" @update:modelValue="changeActive(plugin, $event)">{{ i18n.ts.makeActive }}</FormSwitch>
+			<FormSwitch class="_formBlock" :model-value="plugin.active" @update:model-value="changeActive(plugin, $event)">{{ i18n.ts.makeActive }}</FormSwitch>
 
 			<MkKeyValue class="_formBlock">
 				<template #key>{{ i18n.ts.author }}</template>
@@ -23,8 +23,8 @@
 			</MkKeyValue>
 
 			<div style="display: flex; gap: var(--margin); flex-wrap: wrap;">
-				<MkButton v-if="plugin.config" inline @click="config(plugin)"><i class="fas fa-cog"></i> {{ i18n.ts.settings }}</MkButton>
-				<MkButton inline danger @click="uninstall(plugin)"><i class="fas fa-trash-alt"></i> {{ i18n.ts.uninstall }}</MkButton>
+				<MkButton v-if="plugin.config" inline @click="config(plugin)"><i class="ti ti-settings"></i> {{ i18n.ts.settings }}</MkButton>
+				<MkButton inline danger @click="uninstall(plugin)"><i class="ti ti-trash"></i> {{ i18n.ts.uninstall }}</MkButton>
 			</div>
 		</div>
 	</FormSection>
@@ -32,17 +32,17 @@
 </template>
 
 <script lang="ts" setup>
-import { defineExpose, nextTick, ref } from 'vue';
+import { nextTick, ref } from 'vue';
 import FormLink from '@/components/form/link.vue';
 import FormSwitch from '@/components/form/switch.vue';
 import FormSection from '@/components/form/section.vue';
-import MkButton from '@/components/ui/button.vue';
-import MkKeyValue from '@/components/key-value.vue';
+import MkButton from '@/components/MkButton.vue';
+import MkKeyValue from '@/components/MkKeyValue.vue';
 import * as os from '@/os';
 import { ColdDeviceStorage } from '@/store';
-import * as symbols from '@/symbols';
 import { unisonReload } from '@/scripts/unison-reload';
 import { i18n } from '@/i18n';
+import { definePageMetadata } from '@/scripts/page-metadata';
 
 const plugins = ref(ColdDeviceStorage.get('plugins'));
 
@@ -83,12 +83,13 @@ function changeActive(plugin, active) {
 	});
 }
 
-defineExpose({
-	[symbols.PAGE_INFO]: {
-		title: i18n.ts.plugins,
-		icon: 'fas fa-plug',
-		bg: 'var(--bg)',
-	}
+const headerActions = $computed(() => []);
+
+const headerTabs = $computed(() => []);
+
+definePageMetadata({
+	title: i18n.ts.plugins,
+	icon: 'ti ti-plug',
 });
 </script>
 

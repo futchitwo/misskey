@@ -1,6 +1,8 @@
 import keyCode from './keycode';
 
-type Keymap = Record<string, Function>;
+type Callback = (ev: KeyboardEvent) => void;
+
+type Keymap = Record<string, Callback>;
 
 type Pattern = {
 	which: string[];
@@ -11,15 +13,15 @@ type Pattern = {
 
 type Action = {
 	patterns: Pattern[];
-	callback: Function;
+	callback: Callback;
 	allowRepeat: boolean;
 };
 
 const parseKeymap = (keymap: Keymap) => Object.entries(keymap).map(([patterns, callback]): Action => {
 	const result = {
 		patterns: [],
-		callback: callback,
-		allowRepeat: true
+		callback,
+		allowRepeat: true,
 	} as Action;
 
 	if (patterns.match(/^\(.*\)$/) !== null) {
@@ -32,7 +34,7 @@ const parseKeymap = (keymap: Keymap) => Object.entries(keymap).map(([patterns, c
 			which: [],
 			ctrl: false,
 			alt: false,
-			shift: false
+			shift: false,
 		} as Pattern;
 
 		const keys = part.trim().split('+').map(x => x.trim().toLowerCase());
@@ -59,7 +61,7 @@ function match(ev: KeyboardEvent, patterns: Action['patterns']): boolean {
 		pattern.ctrl === ev.ctrlKey &&
 		pattern.shift === ev.shiftKey &&
 		pattern.alt === ev.altKey &&
-		!ev.metaKey
+		!ev.metaKey,
 	);
 }
 

@@ -2,7 +2,7 @@
 <div v-size="{ max: [400, 500] }" class="thvuemwp" :class="{ isMe }">
 	<MkAvatar class="avatar" :user="message.user" :show-indicator="true"/>
 	<div class="content">
-		<div class="balloon" :class="{ noText: message.text == null }" >
+		<div class="balloon" :class="{ noText: message.text == null }">
 			<button v-if="isMe" class="delete-button" :title="$ts.delete" @click="del">
 				<img src="/client-assets/remove.png" alt="Delete"/>
 			</button>
@@ -29,51 +29,34 @@
 				<span v-if="isMe && message.isRead" class="read">{{ $ts.messageRead }}</span>
 			</template>
 			<MkTime :time="message.createdAt"/>
-			<template v-if="message.is_edited"><i class="fas fa-pencil-alt"></i></template>
+			<template v-if="message.is_edited"><i class="ti ti-pencil"></i></template>
 		</footer>
 	</div>
 </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
+<script lang="ts" setup>
+import { } from 'vue';
 import * as mfm from 'mfm-js';
+import * as Misskey from 'misskey-js';
 import { extractUrlFromMfm } from '@/scripts/extract-url-from-mfm';
-import MkUrlPreview from '@/components/url-preview.vue';
+import MkUrlPreview from '@/components/MkUrlPreview.vue';
 import * as os from '@/os';
+import { $i } from '@/account';
 
-export default defineComponent({
-	components: {
-		MkUrlPreview
-	},
-	props: {
-		message: {
-			required: true
-		},
-		isGroup: {
-			required: false
-		}
-	},
-	computed: {
-		isMe(): boolean {
-			return this.message.userId === this.$i.id;
-		},
-		urls(): string[] {
-			if (this.message.text) {
-				return extractUrlFromMfm(mfm.parse(this.message.text));
-			} else {
-				return [];
-			}
-		}
-	},
-	methods: {
-		del() {
-			os.api('messaging/messages/delete', {
-				messageId: this.message.id
-			});
-		}
-	}
-});
+const props = defineProps<{
+	message: Misskey.entities.MessagingMessage;
+	isGroup?: boolean;
+}>();
+
+const isMe = $computed(() => props.message.userId === $i?.id);
+const urls = $computed(() => props.message.text ? extractUrlFromMfm(mfm.parse(props.message.text)) : []);
+
+function del(): void {
+	os.api('messaging/messages/delete', {
+		messageId: props.message.id,
+	});
+}
 </script>
 
 <style lang="scss" scoped>
@@ -266,6 +249,7 @@ export default defineComponent({
 	&.isMe {
 		flex-direction: row-reverse;
 		padding-right: var(--margin);
+		right: var(--margin); // 削除時にposition: absoluteになったときに使う
 
 		> .content {
 			padding-right: 16px;
@@ -336,6 +320,39 @@ export default defineComponent({
 	}
 
 	&.max-width_500px {
+		> .content {
+			> .balloon {
+				> .content {
+					> .text {
+						padding: 8px 16px;
+					}
+				}
+			}
+		}
+	}
+}
+
+@container (max-width: 400px) {
+	.thvuemwp {
+		> .avatar {
+			width: 48px;
+			height: 48px;
+		}
+
+		> .content {
+			> .balloon {
+				> .content {
+					> .text {
+						font-size: 0.9em;
+					}
+				}
+			}
+		}
+	}
+}
+
+@container (max-width: 500px) {
+	.thvuemwp {
 		> .content {
 			> .balloon {
 				> .content {

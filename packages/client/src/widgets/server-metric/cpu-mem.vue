@@ -100,7 +100,7 @@ onMounted(() => {
 	props.connection.on('stats', onStats);
 	props.connection.on('statsLog', onStatsLog);
 	props.connection.send('requestLog', {
-		id: Math.random().toString().substr(2, 8)
+		id: Math.random().toString().substr(2, 8),
 	});
 });
 
@@ -155,7 +155,7 @@ function onStatsLog(statsLog) {
 		}
 
 		> text {
-			font-size: 5px;
+			font-size: 4.5px;
 			fill: currentColor;
 
 			> tspan {

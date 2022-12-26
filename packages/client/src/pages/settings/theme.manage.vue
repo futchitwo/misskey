@@ -20,30 +20,30 @@
 			<template #label>{{ i18n.ts._theme.code }}</template>
 			<template #caption><button class="_textButton" @click="copyThemeCode()">{{ i18n.ts.copy }}</button></template>
 		</FormTextarea>
-		<FormButton v-if="!builtinThemes.some(t => t.id == selectedTheme.id)" class="_formBlock" danger @click="uninstall()"><i class="fas fa-trash-alt"></i> {{ i18n.ts.uninstall }}</FormButton>
+		<FormButton v-if="!builtinThemes.some(t => t.id == selectedTheme.id)" class="_formBlock" danger @click="uninstall()"><i class="ti ti-trash"></i> {{ i18n.ts.uninstall }}</FormButton>
 	</template>
 </div>
 </template>
 
 <script lang="ts" setup>
-import { computed, defineExpose, ref } from 'vue';
+import { computed, ref } from 'vue';
 import JSON5 from 'json5';
 import FormTextarea from '@/components/form/textarea.vue';
 import FormSelect from '@/components/form/select.vue';
 import FormInput from '@/components/form/input.vue';
-import FormButton from '@/components/ui/button.vue';
+import FormButton from '@/components/MkButton.vue';
 import { Theme, getBuiltinThemesRef } from '@/scripts/theme';
 import copyToClipboard from '@/scripts/copy-to-clipboard';
 import * as os from '@/os';
 import { getThemes, removeTheme } from '@/theme-store';
-import * as symbols from '@/symbols';
 import { i18n } from '@/i18n';
+import { definePageMetadata } from '@/scripts/page-metadata';
 
 const installedThemes = ref(getThemes());
 const builtinThemes = getBuiltinThemesRef();
 const selectedThemeId = ref(null);
 
-const themes = computed(() => [ ...installedThemes.value, ...builtinThemes.value ]);
+const themes = computed(() => [...installedThemes.value, ...builtinThemes.value]);
 
 const selectedTheme = computed(() => {
 	if (selectedThemeId.value == null) return null;
@@ -67,11 +67,12 @@ function uninstall() {
 	os.success();
 }
 
-defineExpose({
-	[symbols.PAGE_INFO]: {
-		title: i18n.ts._theme.manage,
-		icon: 'fas fa-folder-open',
-		bg: 'var(--bg)',
-	}
+const headerActions = $computed(() => []);
+
+const headerTabs = $computed(() => []);
+
+definePageMetadata({
+	title: i18n.ts._theme.manage,
+	icon: 'ti ti-tool',
 });
 </script>

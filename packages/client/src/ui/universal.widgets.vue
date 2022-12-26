@@ -2,14 +2,14 @@
 <div class="efzpzdvf">
 	<XWidgets :edit="editMode" :widgets="defaultStore.reactiveState.widgets.value" @add-widget="addWidget" @remove-widget="removeWidget" @update-widget="updateWidget" @update-widgets="updateWidgets" @exit="editMode = false"/>
 
-	<button v-if="editMode" class="_textButton" style="font-size: 0.9em;" @click="editMode = false"><i class="fas fa-check"></i> {{ i18n.ts.editWidgetsExit }}</button>
-	<button v-else class="_textButton mk-widget-edit" style="font-size: 0.9em;" @click="editMode = true"><i class="fas fa-pencil-alt"></i> {{ i18n.ts.editWidgets }}</button>
+	<button v-if="editMode" class="_textButton" style="font-size: 0.9em;" @click="editMode = false"><i class="ti ti-check"></i> {{ i18n.ts.editWidgetsExit }}</button>
+	<button v-else class="_textButton mk-widget-edit" style="font-size: 0.9em;" @click="editMode = true"><i class="ti ti-pencil"></i> {{ i18n.ts.editWidgets }}</button>
 </div>
 </template>
 
 <script lang="ts" setup>
 import { onMounted } from 'vue';
-import XWidgets from '@/components/widgets.vue';
+import XWidgets from '@/components/MkWidgets.vue';
 import { i18n } from '@/i18n';
 import { defaultStore } from '@/store';
 

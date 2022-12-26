@@ -1,5 +1,3 @@
-declare var self: ServiceWorkerGlobalScope;
-
 import { get } from 'idb-keyval';
 import { pushNotificationDataMap } from '@/types';
 import { api } from '@/scripts/operations';
@@ -37,12 +35,22 @@ class SwNotificationReadManager {
 
 		account.queue.push(data.body.id as string);
 
+		if (account.queue.length >= 20) {
+			if (account.timeout) clearTimeout(account.timeout);
+			const notificationIds = account.queue;
+			account.queue = [];
+			await api('notifications/read', data.userId, { notificationIds });
+			return;
+		}
+
 		// 最後の呼び出しから200ms待ってまとめて処理する
 		if (account.timeout) clearTimeout(account.timeout);
 		account.timeout = setTimeout(() => {
 			account.timeout = null;
 
-			api('notifications/read', data.userId, { notificationIds: account.queue });
+			const notificationIds = account.queue;
+			account.queue = [];
+			api('notifications/read', data.userId, { notificationIds });
 		}, 200);
 	}
 }

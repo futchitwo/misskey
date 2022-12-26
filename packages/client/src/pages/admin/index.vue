@@ -1,68 +1,69 @@
 <template>
 <div ref="el" class="hiyeyicy" :class="{ wide: !narrow }">
-	<div v-if="!narrow || initialPage == null" class="nav">
-		<MkHeader :info="header"></MkHeader>
-	
+	<div v-if="!narrow || currentPage?.route.name == null" class="nav">	
 		<MkSpacer :content-max="700" :margin-min="16">
 			<div class="lxpfedzu">
 				<div class="banner">
 					<img :src="$instance.iconUrl || '/favicon.ico'" alt="" class="icon"/>
 				</div>
 
-				<MkInfo v-if="noMaintainerInformation" warn class="info">{{ $ts.noMaintainerInformationWarning }} <MkA to="/admin/settings" class="_link">{{ $ts.configure }}</MkA></MkInfo>
-				<MkInfo v-if="noBotProtection" warn class="info">{{ $ts.noBotProtectionWarning }} <MkA to="/admin/security" class="_link">{{ $ts.configure }}</MkA></MkInfo>
+				<MkInfo v-if="thereIsUnresolvedAbuseReport" warn class="info">{{ i18n.ts.thereIsUnresolvedAbuseReportWarning }} <MkA to="/admin/abuses" class="_link">{{ i18n.ts.check }}</MkA></MkInfo>
+				<MkInfo v-if="noMaintainerInformation" warn class="info">{{ i18n.ts.noMaintainerInformationWarning }} <MkA to="/admin/settings" class="_link">{{ i18n.ts.configure }}</MkA></MkInfo>
+				<MkInfo v-if="noBotProtection" warn class="info">{{ i18n.ts.noBotProtectionWarning }} <MkA to="/admin/security" class="_link">{{ i18n.ts.configure }}</MkA></MkInfo>
+				<MkInfo v-if="noEmailServer" warn class="info">{{ i18n.ts.noEmailServerWarning }} <MkA to="/admin/email-settings" class="_link">{{ i18n.ts.configure }}</MkA></MkInfo>
 
-				<MkSuperMenu :def="menuDef" :grid="initialPage == null"></MkSuperMenu>
+				<MkSuperMenu :def="menuDef" :grid="currentPage?.route.name == null"></MkSuperMenu>
 			</div>
 		</MkSpacer>
 	</div>
-	<div v-if="!(narrow && initialPage == null)" class="main">
-		<MkStickyContainer>
-			<template #header><MkHeader v-if="childInfo && !childInfo.hideHeader" :info="childInfo"/></template>
-			<component :is="component" :ref="el => pageChanged(el)" :key="initialPage" v-bind="pageProps"/>
-		</MkStickyContainer>
+	<div v-if="!(narrow && currentPage?.route.name == null)" class="main">
+		<RouterView/>
 	</div>
 </div>
 </template>
 
 <script lang="ts" setup>
-import { defineAsyncComponent, nextTick, onMounted, onUnmounted, provide, watch } from 'vue';
+import { defineAsyncComponent, inject, nextTick, onMounted, onUnmounted, provide, watch } from 'vue';
 import { i18n } from '@/i18n';
-import MkSuperMenu from '@/components/ui/super-menu.vue';
-import MkInfo from '@/components/ui/info.vue';
+import MkSuperMenu from '@/components/MkSuperMenu.vue';
+import MkInfo from '@/components/MkInfo.vue';
 import { scroll } from '@/scripts/scroll';
 import { instance } from '@/instance';
-import * as symbols from '@/symbols';
 import * as os from '@/os';
 import { lookupUser } from '@/scripts/lookup-user';
-import { MisskeyNavigator } from '@/scripts/navigate';
+import { useRouter } from '@/router';
+import { definePageMetadata, provideMetadataReceiver, setPageMetadata } from '@/scripts/page-metadata';
 
 const isEmpty = (x: string | null) => x == null || x === '';
 
-const nav = new MisskeyNavigator();
+const router = useRouter();
 
 const indexInfo = {
 	title: i18n.ts.controlPanel,
-	icon: 'fas fa-cog',
-	bg: 'var(--bg)',
+	icon: 'ti ti-settings',
 	hideHeader: true,
 };
-
-const props = defineProps<{
-	initialPage?: string,
-}>();
 
 provide('shouldOmitHeaderTitle', false);
 
 let INFO = $ref(indexInfo);
 let childInfo = $ref(null);
-let page = $ref(props.initialPage);
 let narrow = $ref(false);
 let view = $ref(null);
 let el = $ref(null);
 let pageProps = $ref({});
 let noMaintainerInformation = isEmpty(instance.maintainerName) || isEmpty(instance.maintainerEmail);
-let noBotProtection = !instance.enableHcaptcha && !instance.enableRecaptcha;
+let noBotProtection = !instance.disableRegistration && !instance.enableHcaptcha && !instance.enableRecaptcha && !instance.enableTurnstile;
+let noEmailServer = !instance.enableEmail;
+let thereIsUnresolvedAbuseReport = $ref(false);
+let currentPage = $computed(() => router.currentRef.value.child);
+
+os.api('admin/abuse-user-reports', {
+	state: 'unresolved',
+	limit: 1,
+}).then(reports => {
+	if (reports.length > 0) thereIsUnresolvedAbuseReport = true;
+});
 
 const NARROW_THRESHOLD = 600;
 const ro = new ResizeObserver((entries, observer) => {
@@ -74,167 +75,124 @@ const menuDef = $computed(() => [{
 	title: i18n.ts.quickAction,
 	items: [{
 		type: 'button',
-		icon: 'fas fa-search',
+		icon: 'ti ti-search',
 		text: i18n.ts.lookup,
 		action: lookup,
 	}, ...(instance.disableRegistration ? [{
 		type: 'button',
-		icon: 'fas fa-user',
+		icon: 'ti ti-user',
 		text: i18n.ts.invite,
 		action: invite,
 	}] : [])],
 }, {
 	title: i18n.ts.administration,
 	items: [{
-		icon: 'fas fa-tachometer-alt',
+		icon: 'ti ti-dashboard',
 		text: i18n.ts.dashboard,
 		to: '/admin/overview',
-		active: props.initialPage === 'overview',
+		active: currentPage?.route.name === 'overview',
 	}, {
-		icon: 'fas fa-users',
+		icon: 'ti ti-users',
 		text: i18n.ts.users,
 		to: '/admin/users',
-		active: props.initialPage === 'users',
+		active: currentPage?.route.name === 'users',
 	}, {
-		icon: 'fas fa-laugh',
+		icon: 'ti ti-mood-happy',
 		text: i18n.ts.customEmojis,
 		to: '/admin/emojis',
-		active: props.initialPage === 'emojis',
+		active: currentPage?.route.name === 'emojis',
 	}, {
-		icon: 'fas fa-globe',
+		icon: 'ti ti-whirl',
 		text: i18n.ts.federation,
-		to: '/admin/federation',
-		active: props.initialPage === 'federation',
+		to: '/about#federation',
+		active: currentPage?.route.name === 'federation',
 	}, {
-		icon: 'fas fa-clipboard-list',
+		icon: 'ti ti-clock-play',
 		text: i18n.ts.jobQueue,
 		to: '/admin/queue',
-		active: props.initialPage === 'queue',
+		active: currentPage?.route.name === 'queue',
 	}, {
-		icon: 'fas fa-cloud',
+		icon: 'ti ti-cloud',
 		text: i18n.ts.files,
 		to: '/admin/files',
-		active: props.initialPage === 'files',
+		active: currentPage?.route.name === 'files',
 	}, {
-		icon: 'fas fa-broadcast-tower',
+		icon: 'ti ti-speakerphone',
 		text: i18n.ts.announcements,
 		to: '/admin/announcements',
-		active: props.initialPage === 'announcements',
+		active: currentPage?.route.name === 'announcements',
 	}, {
-		icon: 'fas fa-audio-description',
+		icon: 'ti ti-ad',
 		text: i18n.ts.ads,
 		to: '/admin/ads',
-		active: props.initialPage === 'ads',
+		active: currentPage?.route.name === 'ads',
 	}, {
-		icon: 'fas fa-exclamation-circle',
+		icon: 'ti ti-exclamation-circle',
 		text: i18n.ts.abuseReports,
 		to: '/admin/abuses',
-		active: props.initialPage === 'abuses',
+		active: currentPage?.route.name === 'abuses',
 	}],
 }, {
 	title: i18n.ts.settings,
 	items: [{
-		icon: 'fas fa-cog',
+		icon: 'ti ti-settings',
 		text: i18n.ts.general,
 		to: '/admin/settings',
-		active: props.initialPage === 'settings',
+		active: currentPage?.route.name === 'settings',
 	}, {
-		icon: 'fas fa-envelope',
+		icon: 'ti ti-mail',
 		text: i18n.ts.emailServer,
 		to: '/admin/email-settings',
-		active: props.initialPage === 'email-settings',
+		active: currentPage?.route.name === 'email-settings',
 	}, {
-		icon: 'fas fa-cloud',
+		icon: 'ti ti-cloud',
 		text: i18n.ts.objectStorage,
 		to: '/admin/object-storage',
-		active: props.initialPage === 'object-storage',
+		active: currentPage?.route.name === 'object-storage',
 	}, {
-		icon: 'fas fa-lock',
+		icon: 'ti ti-lock',
 		text: i18n.ts.security,
 		to: '/admin/security',
-		active: props.initialPage === 'security',
+		active: currentPage?.route.name === 'security',
 	}, {
-		icon: 'fas fa-globe',
+		icon: 'ti ti-planet',
 		text: i18n.ts.relays,
 		to: '/admin/relays',
-		active: props.initialPage === 'relays',
+		active: currentPage?.route.name === 'relays',
 	}, {
-		icon: 'fas fa-share-alt',
+		icon: 'ti ti-share',
 		text: i18n.ts.integration,
 		to: '/admin/integrations',
-		active: props.initialPage === 'integrations',
+		active: currentPage?.route.name === 'integrations',
 	}, {
-		icon: 'fas fa-ban',
+		icon: 'ti ti-ban',
 		text: i18n.ts.instanceBlocking,
 		to: '/admin/instance-block',
-		active: props.initialPage === 'instance-block',
+		active: currentPage?.route.name === 'instance-block',
 	}, {
-		icon: 'fas fa-ghost',
+		icon: 'ti ti-ghost',
 		text: i18n.ts.proxyAccount,
 		to: '/admin/proxy-account',
-		active: props.initialPage === 'proxy-account',
+		active: currentPage?.route.name === 'proxy-account',
 	}, {
-		icon: 'fas fa-cogs',
+		icon: 'ti ti-adjustments',
 		text: i18n.ts.other,
 		to: '/admin/other-settings',
-		active: props.initialPage === 'other-settings',
+		active: currentPage?.route.name === 'other-settings',
 	}],
 }, {
 	title: i18n.ts.info,
 	items: [{
-		icon: 'fas fa-database',
+		icon: 'ti ti-database',
 		text: i18n.ts.database,
 		to: '/admin/database',
-		active: props.initialPage === 'database',
+		active: currentPage?.route.name === 'database',
 	}],
 }]);
 
-const component = $computed(() => {
-	if (props.initialPage == null) return null;
-	switch (props.initialPage) {
-		case 'overview': return defineAsyncComponent(() => import('./overview.vue'));
-		case 'users': return defineAsyncComponent(() => import('./users.vue'));
-		case 'emojis': return defineAsyncComponent(() => import('./emojis.vue'));
-		case 'federation': return defineAsyncComponent(() => import('../federation.vue'));
-		case 'queue': return defineAsyncComponent(() => import('./queue.vue'));
-		case 'files': return defineAsyncComponent(() => import('./files.vue'));
-		case 'announcements': return defineAsyncComponent(() => import('./announcements.vue'));
-		case 'ads': return defineAsyncComponent(() => import('./ads.vue'));
-		case 'database': return defineAsyncComponent(() => import('./database.vue'));
-		case 'abuses': return defineAsyncComponent(() => import('./abuses.vue'));
-		case 'settings': return defineAsyncComponent(() => import('./settings.vue'));
-		case 'email-settings': return defineAsyncComponent(() => import('./email-settings.vue'));
-		case 'object-storage': return defineAsyncComponent(() => import('./object-storage.vue'));
-		case 'security': return defineAsyncComponent(() => import('./security.vue'));
-		case 'relays': return defineAsyncComponent(() => import('./relays.vue'));
-		case 'integrations': return defineAsyncComponent(() => import('./integrations.vue'));
-		case 'instance-block': return defineAsyncComponent(() => import('./instance-block.vue'));
-		case 'proxy-account': return defineAsyncComponent(() => import('./proxy-account.vue'));
-		case 'other-settings': return defineAsyncComponent(() => import('./other-settings.vue'));
-	}
-});
-
-watch(component, () => {
-	pageProps = {};
-
-	nextTick(() => {
-		scroll(el, { top: 0 });
-	});
-}, { immediate: true });
-
-watch(() => props.initialPage, () => {
-	if (props.initialPage == null && !narrow) {
-		nav.push('/admin/overview');
-	} else {
-		if (props.initialPage == null) {
-			INFO = indexInfo;
-		}
-	}
-});
-
 watch(narrow, () => {
-	if (props.initialPage == null && !narrow) {
-		nav.push('/admin/overview');
+	if (currentPage?.route.name == null && !narrow) {
+		router.push('/admin/overview');
 	}
 });
 
@@ -242,8 +200,8 @@ onMounted(() => {
 	ro.observe(el);
 
 	narrow = el.offsetWidth < NARROW_THRESHOLD;
-	if (props.initialPage == null && !narrow) {
-		nav.push('/admin/overview');
+	if (currentPage?.route.name == null && !narrow) {
+		router.push('/admin/overview');
 	}
 });
 
@@ -251,19 +209,19 @@ onUnmounted(() => {
 	ro.disconnect();
 });
 
-const pageChanged = (page) => {
-	if (page == null) {
+provideMetadataReceiver((info) => {
+	if (info == null) {
 		childInfo = null;
 	} else {
-		childInfo = page[symbols.PAGE_INFO];
+		childInfo = info;
 	}
-};
+});
 
 const invite = () => {
 	os.api('admin/invite').then(x => {
 		os.alert({
 			type: 'info',
-			text: x.code
+			text: x.code,
 		});
 	}).catch(err => {
 		os.alert({
@@ -276,36 +234,41 @@ const invite = () => {
 const lookup = (ev) => {
 	os.popupMenu([{
 		text: i18n.ts.user,
-		icon: 'fas fa-user',
+		icon: 'ti ti-user',
 		action: () => {
 			lookupUser();
-		}
+		},
 	}, {
 		text: i18n.ts.note,
-		icon: 'fas fa-pencil-alt',
+		icon: 'ti ti-pencil',
 		action: () => {
 			alert('TODO');
-		}
+		},
 	}, {
 		text: i18n.ts.file,
-		icon: 'fas fa-cloud',
+		icon: 'ti ti-cloud',
 		action: () => {
 			alert('TODO');
-		}
+		},
 	}, {
 		text: i18n.ts.instance,
-		icon: 'fas fa-globe',
+		icon: 'ti ti-planet',
 		action: () => {
 			alert('TODO');
-		}
+		},
 	}], ev.currentTarget ?? ev.target);
 };
 
+const headerActions = $computed(() => []);
+
+const headerTabs = $computed(() => []);
+
+definePageMetadata(INFO);
+
 defineExpose({
-	[symbols.PAGE_INFO]: INFO,
 	header: {
 		title: i18n.ts.controlPanel,
-	}
+	},
 });
 </script>
 

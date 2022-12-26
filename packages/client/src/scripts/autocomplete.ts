@@ -8,7 +8,7 @@ export class Autocomplete {
 		x: Ref<number>;
 		y: Ref<number>;
 		q: Ref<string | null>;
-		close: Function;
+		close: () => void;
 	} | null;
 	private textarea: HTMLInputElement | HTMLTextAreaElement;
 	private currentType: string;
@@ -16,10 +16,14 @@ export class Autocomplete {
 	private opening: boolean;
 
 	private get text(): string {
-		return this.textRef.value;
+		// Use raw .value to get the latest value
+		// (Because v-model does not update while composition)
+		return this.textarea.value;
 	}
 
 	private set text(text: string) {
+		// Use ref value to notify other watchers
+		// (Because .value setter never fires input/change events)
 		this.textRef.value = text;
 	}
 
@@ -157,7 +161,7 @@ export class Autocomplete {
 			const _y = ref(y);
 			const _q = ref(q);
 
-			const { dispose } = await popup(defineAsyncComponent(() => import('@/components/autocomplete.vue')), {
+			const { dispose } = await popup(defineAsyncComponent(() => import('@/components/MkAutocomplete.vue')), {
 				textarea: this.textarea,
 				close: this.close,
 				type: type,
@@ -167,7 +171,7 @@ export class Autocomplete {
 			}, {
 				done: (res) => {
 					this.complete(res);
-				}
+				},
 			});
 
 			this.suggestion = {

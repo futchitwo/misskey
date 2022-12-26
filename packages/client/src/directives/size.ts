@@ -8,12 +8,15 @@ const mountings = new Map<Element, {
 	resize: ResizeObserver;
 	intersection?: IntersectionObserver;
 	previousWidth: number;
+	twoPreviousWidth: number;
 }>();
 
 type ClassOrder = {
 	add: string[];
 	remove: string[];
 };
+
+const isContainerQueriesSupported = ('container' in document.documentElement.style);
 
 const cache = new Map<string, ClassOrder>();
 
@@ -27,9 +30,9 @@ function getClassOrder(width: number, queue: Value): ClassOrder {
 			...(queue.min ? queue.min.filter(v => width >= v).map(getMinClass) : []),
 		],
 		remove: [
-			...(queue.max ? queue.max.filter(v => width  > v).map(getMaxClass) : []),
-			...(queue.min ? queue.min.filter(v => width  < v).map(getMinClass) : []),
-		]
+			...(queue.max ? queue.max.filter(v => width > v).map(getMaxClass) : []),
+			...(queue.min ? queue.min.filter(v => width < v).map(getMinClass) : []),
+		],
 	};
 }
 
@@ -60,11 +63,17 @@ function calc(el: Element) {
 		return;
 	}
 	if (info.intersection) {
-		info.intersection.disconnect()
+		info.intersection.disconnect();
 		delete info.intersection;
-	};
+	}
 
-	mountings.set(el, Object.assign(info, { previousWidth: width }));
+	mountings.set(el, { ...info, ...{ previousWidth: width, twoPreviousWidth: info.previousWidth }});
+
+	// Prevent infinite resizing
+	// https://github.com/misskey-dev/misskey/issues/9076
+	if (info.twoPreviousWidth === width) {
+		return;
+	}
 
 	const cached = cache.get(getOrderName(width, info.value));
 	if (cached) {
@@ -78,6 +87,8 @@ function calc(el: Element) {
 
 export default {
 	mounted(src, binding, vn) {
+		if (isContainerQueriesSupported) return;
+
 		const resize = new ResizeObserver((entries, observer) => {
 			calc(src);
 		});
@@ -86,6 +97,7 @@ export default {
 			value: binding.value,
 			resize,
 			previousWidth: 0,
+			twoPreviousWidth: 0,
 		});
 
 		calc(src);
@@ -93,15 +105,19 @@ export default {
 	},
 
 	updated(src, binding, vn) {
+		if (isContainerQueriesSupported) return;
+
 		mountings.set(src, Object.assign({}, mountings.get(src), { value: binding.value }));
 		calc(src);
 	},
 
 	unmounted(src, binding, vn) {
+		if (isContainerQueriesSupported) return;
+
 		const info = mountings.get(src);
 		if (!info) return;
 		info.resize.disconnect();
 		if (info.intersection) info.intersection.disconnect();
 		mountings.delete(src);
-	}
+	},
 } as Directive<Element, Value>;
