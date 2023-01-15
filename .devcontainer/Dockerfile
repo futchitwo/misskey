@@ -1,36 +1,17 @@
-#FROM node:18.0.0-alpine3.15 AS base
-FROM mcr.microsoft.com/vscode/devcontainers/javascript-node:0-18 AS base
+FROM mcr.microsoft.com/vscode/devcontainers/javascript-node:0-18
 
-ARG NODE_ENV=production
+ARG NODE_ENV=development
 
 WORKDIR /misskey
 
-ENV BUILD_DEPS autoconf automake file g++ gcc libc-dev libtool make nasm pkgconfig python3 zlib-dev git
-
-FROM base AS builder
-
 COPY . ./
 
-RUN apk add --no-cache $BUILD_DEPS && \
-	git submodule update --init && \
-	yarn install && \
-	yarn build && \
-	rm -rf .git
+RUN apt-get update
+RUN apt-get install -y build-essential ffmpeg tiny
+RUN git submodule update --init
+RUN yarn install --immutable
+RUN yarn build
 
-FROM base AS runner
-
-RUN apk add --no-cache \
-	ffmpeg \
-	tini
-
-ENTRYPOINT ["/sbin/tini", "--"]
-
-COPY --from=builder /misskey/node_modules ./node_modules
-COPY --from=builder /misskey/built ./built
-COPY --from=builder /misskey/packages/backend/node_modules ./packages/backend/node_modules
-COPY --from=builder /misskey/packages/backend/built ./packages/backend/built
-COPY --from=builder /misskey/packages/client/node_modules ./packages/client/node_modules
-COPY . ./
-
-ENV NODE_ENV=production
-CMD ["npm", "run", "migrateandstart"]
+ENV NODE_ENV=development
+ENTRYPOINT ["/usr/bin/tini", "--"]
+CMD ["yarn", "run", "migrateandstart"]
