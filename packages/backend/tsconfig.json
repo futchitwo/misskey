@@ -32,7 +32,8 @@
 		},
 		"outDir": "./built",
 		"types": [
-			"node"
+			"node",
+			"vitest/globals"
 		],
 		"typeRoots": [
 			"./node_modules/@types",
