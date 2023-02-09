@@ -1,5 +1,6 @@
 process.env.NODE_ENV = 'test';
 
+import { vi } from 'vitest';
 import { jest } from '@jest/globals';
 import { ModuleMocker } from 'jest-mock';
 import { Test } from '@nestjs/testing';
@@ -37,7 +38,7 @@ describe('MetaService', () => {
 
 	test('fetch (cache)', async () => {
 		const db = app.get<DataSource>(DI.db);
-		const spy = jest.spyOn(db, 'transaction');
+		const spy = vi.spyOn(db, 'transaction');
 
 		const result = await metaService.fetch();
 
@@ -47,7 +48,7 @@ describe('MetaService', () => {
 
 	test('fetch (force)', async () => {
 		const db = app.get<DataSource>(DI.db);
-		const spy = jest.spyOn(db, 'transaction');
+		const spy = vi.spyOn(db, 'transaction');
 
 		const result = await metaService.fetch(true);
 

@@ -1,6 +1,7 @@
 process.env.NODE_ENV = 'test';
 
 import { jest } from '@jest/globals';
+import { vi } from 'vitest';
 import { ModuleMocker } from 'jest-mock';
 import { Test } from '@nestjs/testing';
 import { GlobalModule } from '@/GlobalModule.js';
@@ -36,7 +37,7 @@ describe('RelayService', () => {
 		})
 			.useMocker((token) => {
 				if (token === QueueService) {
-					return { deliver: jest.fn() };
+					return { deliver: vi.fn() };
 				}
 				if (typeof token === 'function') {
 					const mockMetadata = moduleMocker.getMetadata(token) as MockFunctionMetadata<any, any>;

@@ -2,6 +2,7 @@ process.env.NODE_ENV = 'test';
 
 import * as assert from 'assert';
 import { jest } from '@jest/globals';
+import { vi } from 'vitest';
 import * as lolex from '@sinonjs/fake-timers';
 import { DataSource } from 'typeorm';
 import TestChart from '@/core/chart/charts/test.js';
@@ -19,7 +20,7 @@ import Logger from '@/logger.js';
 describe('Chart', () => {
 	const config = loadConfig();
 	const appLockService = {
-		getChartInsertLock: jest.fn().mockImplementation(() => Promise.resolve(() => {})),
+		getChartInsertLock: vi.fn().mockImplementation(() => Promise.resolve(() => {})),
 	} as unknown as jest.Mocked<AppLockService>;
 
 	let db: DataSource | undefined;
